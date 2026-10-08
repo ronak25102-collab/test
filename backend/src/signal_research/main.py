@@ -34,7 +34,7 @@ def create_app(settings=None, store_override=None):
         yield
         engine.dispose()
 
-    application = FastAPI(title="Signal Research", version="0.1.0", lifespan=lifespan)
+    application = FastAPI(title="Beyond", version="0.2.0", lifespan=lifespan)
     application.state.settings = settings
     application.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"], allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Idempotency-Key"])
     for router in (companies.router, runs.router, evidence.router, exports.router, health.router):

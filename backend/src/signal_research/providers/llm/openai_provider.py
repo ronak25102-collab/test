@@ -24,7 +24,7 @@ class OpenAIProvider(LLMProvider):
             from openai import OpenAI
         except ImportError as exc:
             raise ProviderNotConfigured("install the optional OpenAI SDK to enable live model calls") from exc
-        client = OpenAI(api_key=self.settings.openai_api_key, timeout=deadline.total_seconds())
+        client = OpenAI(api_key=self.settings.openai_api_key, timeout=deadline.total_seconds(), max_retries=0)
         response = client.responses.parse(
             model=model,
             input=messages,

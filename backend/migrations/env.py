@@ -1,11 +1,10 @@
+import os
 from logging.config import fileConfig
 from pathlib import Path
-import os
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-
 from signal_research.db.models import Base
+from sqlalchemy import engine_from_config, pool
 
 config = context.config
 url = os.getenv("DATABASE_URL")

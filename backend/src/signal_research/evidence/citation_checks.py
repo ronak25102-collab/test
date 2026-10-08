@@ -18,7 +18,7 @@ def verify_claim(claim: Claim, report: ResearchReport) -> CitationCheck:
     for link in claim.evidence_links:
         if link.passage_or_fact_id not in evidence_ids:
             reasons.append(f"unknown evidence {link.passage_or_fact_id}")
-        if link.relation == EvidenceRelation.SUPPORTING and link.entailment_status not in {VerificationStatus.PENDING, VerificationStatus.SUPPORTED}:
+        if link.relation == EvidenceRelation.SUPPORTING and link.entailment_status != VerificationStatus.SUPPORTED:
             reasons.append("supporting link is not entailed")
     if claim.material and not any(link.relation == EvidenceRelation.SUPPORTING for link in claim.evidence_links):
         reasons.append("material claim has no supporting link")

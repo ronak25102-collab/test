@@ -11,6 +11,7 @@ from signal_research.domain.schemas import StrictModel
 
 
 class ExtractedFactCandidate(StrictModel):
+    evidence_quote: str | None = None
     metric_key: str
     value_raw: str
     unit_raw: str | None = None

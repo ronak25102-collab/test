@@ -31,6 +31,27 @@ METRICS: dict[str, MetricDefinition] = {
     "segment_profit": MetricDefinition("segment_profit", ("segment profit",), "INR_crore", "duration", COMMON, "segment disclosure"),
 }
 
+# Profile-native measures are registered centrally, never added for a specific issuer.
+for key, aliases, unit, kind, profiles in (
+    ("funding_cost", ("cost of funds", "funding cost"), "percent", "duration", (Profile.BANK, Profile.NBFC)),
+    ("credit_cost", ("credit cost",), "percent", "duration", (Profile.BANK, Profile.NBFC)),
+    ("nnpa", ("net NPA", "net non-performing assets ratio"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
+    ("stage2_ratio", ("stage 2 ratio", "stage-2 ratio"), "percent", "stock", (Profile.NBFC,)),
+    ("stage3_ratio", ("stage 3 ratio", "stage-3 ratio"), "percent", "stock", (Profile.NBFC,)),
+    ("borrowings", ("total borrowings", "borrowings"), "INR_crore", "stock", (Profile.BANK, Profile.NBFC, Profile.DIVERSIFIED)),
+    ("vnb_margin", ("VNB margin", "value of new business margin"), "percent", "duration", (Profile.LIFE_INSURER,)),
+    ("persistency_ratio", ("persistency ratio",), "percent", "duration", (Profile.LIFE_INSURER,)),
+    ("solvency_ratio", ("solvency ratio",), "percent", "stock", (Profile.LIFE_INSURER, Profile.GENERAL_INSURER)),
+    ("gross_written_premium", ("gross written premium",), "INR_crore", "duration", (Profile.GENERAL_INSURER,)),
+    ("loss_ratio", ("loss ratio", "claims ratio"), "percent", "duration", (Profile.GENERAL_INSURER,)),
+    ("expense_ratio", ("expense ratio",), "percent", "duration", (Profile.GENERAL_INSURER,)),
+    ("fee_revenue", ("fee revenue", "management fees"), "INR_crore", "duration", (Profile.ASSET_MANAGER, Profile.EXCHANGE)),
+    ("revenue", ("revenue from operations", "total revenue"), "INR_crore", "duration", COMMON),
+    ("net_profit", ("net profit", "profit after tax"), "INR_crore", "duration", COMMON),
+    ("capital_adequacy", ("capital adequacy ratio", "CRAR"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
+):
+    METRICS[key] = MetricDefinition(key, aliases, unit, kind, profiles, "issuer financial disclosure")
+
 
 def metrics_for_profile(profile: Profile) -> list[MetricDefinition]:
     return [metric for metric in METRICS.values() if profile in metric.profiles]

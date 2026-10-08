@@ -1,7 +1,6 @@
 """Add evidence relationship and worker heartbeat tables."""
 
 from alembic import op
-
 from signal_research.db.models import Base
 
 revision = "0002_evidence_and_heartbeats"

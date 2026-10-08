@@ -34,12 +34,14 @@ def test_live_pipeline_validates_model_facts_before_abstaining(store, tmp_path, 
     run_id = store.create_run(company, date(2026, 10, 8), RunMode.LIVE)
     store.lease_next("live-integration")
     html_path = tmp_path / "results.html"
-    html_path.write_text("<html><title>Results</title><p>Gross advances were INR 1,20,000 crore at 31 March 2026.</p></html>")
+    html_path.write_text('<html><head><title>Results</title><meta property="article:published_time" content="2026-05-15"></head><p>HDFC Bank consolidated gross advances were INR 1,20,000 crore at 31 March 2026.</p></html>')
     hit = SearchHit("https://hdfc.bank.in/results", "Quarterly results", "lead", 1, "tavily", date(2026, 5, 15))
     monkeypatch.setattr(TavilySearchProvider, "search", lambda self, query, domains, as_of, max_results: [hit])
     monkeypatch.setattr(PublicFetcher, "fetch", lambda self, url: FetchResult(url, url, 200, "text/html", "a" * 64, str(html_path), None))
 
     def generated(self, schema, messages, model_role, deadline, max_output_tokens):
+        if schema.__name__ == "FactReview":
+            return schema(verdicts=[{"index": 0, "supported": True, "reason": "Exact issuer cell, date, unit and scope matched"}]), type("Usage", (), {"input_tokens": 10, "output_tokens": 10})()
         passage_id = json.loads(messages[1]["content"])["passage_id"]
         candidate = ExtractedFactCandidate(metric_key="gross_advances", value_raw="1,20,000", unit_raw="INR crore", currency="INR", period_end=date(2026, 3, 31), scope="consolidated", passage_id=passage_id, extraction_confidence=Decimal("0.99"))
         return ExtractedFactBatch(facts=[candidate]), type("Usage", (), {"input_tokens": 10, "output_tokens": 10})()

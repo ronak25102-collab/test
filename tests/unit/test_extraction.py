@@ -9,7 +9,7 @@ from signal_research.extraction.validate import validate_candidate
 
 
 def test_fact_candidate_requires_exact_source_value_and_scale():
-    passage = Passage(id=uuid4(), document_id=uuid4(), text="Gross advances were INR 1,20,000 crore at 31 March 2026.")
+    passage = Passage(id=uuid4(), document_id=uuid4(), text="Consolidated gross advances were INR 1,20,000 crore at 31 March 2026.")
     candidate = ExtractedFactCandidate(metric_key="gross_advances", value_raw="1,20,000", unit_raw="INR crore", currency="INR", period_end=date(2026, 3, 31), period_type=PeriodType.INSTANT, scope=Scope.CONSOLIDATED, passage_id=passage.id, extraction_confidence=Decimal("0.98"))
     result = validate_candidate(candidate, passage, uuid4(), Profile.BANK)
     assert result.fact is not None

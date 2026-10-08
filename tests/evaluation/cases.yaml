@@ -3,5 +3,12 @@ cases:
     company: SYNTHBANK
     mode: replay
     expected_outcome: discovery
-    expected_calculations: [yoy_growth, change_pp, loan_to_deposit]
+    expected_calculations: [yoy_growth, growth_gap, ldr_change, loan_to_deposit]
+    synthetic: true
+  - id: synthetic-cutoff-withheld
+    company: SYNTHBANK
+    mode: replay
+    as_of: '2026-01-01'
+    expected_outcome: insufficient_evidence
+    expected_calculations: []
     synthetic: true

@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.schemas import Company, ResearchReport, RunEvent, RunSummary
@@ -78,11 +78,15 @@ class Store:
         with self.session_factory() as session:
             rows = session.scalars(select(CompanyModel).order_by(CompanyModel.legal_name)).all()
             matches = [r for r in rows if lowered in r.legal_name.lower() or any(lowered in s.lower() for s in (r.symbols or []) + (r.aliases or []))]
+            matches.sort(key=lambda r: (lowered not in [s.lower() for s in r.symbols], r.legal_name))
             return [company_schema(row) for row in matches[:20]]
 
-    def snapshot_age_days(self) -> int | None:
+    def snapshot_age_days(self, source_url=None) -> int | None:
         with self.session_factory() as session:
-            latest = session.scalar(select(UniverseSnapshotModel).order_by(UniverseSnapshotModel.fetched_at.desc()))
+            query = select(UniverseSnapshotModel)
+            if source_url:
+                query = query.where(UniverseSnapshotModel.source_url == source_url)
+            latest = session.scalar(query.order_by(UniverseSnapshotModel.fetched_at.desc()))
             if not latest:
                 return None
             return max(0, (datetime.now(UTC).date() - latest.fetched_at.date()).days)
@@ -97,17 +101,20 @@ class Store:
             added = 0
             for row in rows:
                 symbol = row.get("Symbol") or row.get("SYMBOL") or row.get("symbol")
-                legal_name = row.get("Company Name") or row.get("CompanyName") or row.get("COMPANY NAME") or symbol
+                legal_name = row.get("Company Name") or row.get("CompanyName") or row.get("COMPANY NAME") or row.get("NAME OF COMPANY") or symbol
                 if not symbol or not legal_name:
                     continue
                 symbol = symbol.upper().strip()
-                existing = session.scalar(select(CompanyModel).where(CompanyModel.symbols.contains([symbol])))
+                company_id = str(uuid5(NAMESPACE_URL, f"signal-research/company/{symbol}"))
+                existing = session.get(CompanyModel, company_id)
                 if existing:
+                    existing.isin = existing.isin or row.get("ISIN Code") or row.get("ISIN NUMBER")
+                    existing.exchange = existing.exchange or "NSE"
                     continue
                 industry = " ".join(str(row.get(key, "")) for key in ("Industry", "Sector", "ISIN Code")).lower()
-                profile = infer_profile(industry)
-                if profile:
-                    session.add(CompanyModel(id=str(uuid5(NAMESPACE_URL, f"signal-research/company/{symbol}")), legal_name=legal_name.strip(), symbols=[symbol], aliases=[legal_name.strip()], verified_ir_domains=[], business_profiles=[profile], identity_source_ids=[]))
+                profile = infer_profile(f"{industry} {legal_name.lower()}")
+                if profile or "financial" in industry:
+                    session.add(CompanyModel(id=company_id, legal_name=legal_name.strip(), symbols=[symbol], isin=row.get("ISIN Code") or row.get("ISIN NUMBER"), exchange="NSE", aliases=[legal_name.strip()], verified_ir_domains=[], business_profiles=[profile] if profile else [], identity_source_ids=[]))
                     added += 1
             session.commit()
             return added
@@ -122,6 +129,8 @@ class Store:
             if idempotency_key:
                 existing = session.scalar(select(ResearchRunModel).where(ResearchRunModel.idempotency_key == idempotency_key))
                 if existing:
+                    if (existing.company_id, existing.as_of, existing.mode) != (str(company.id), as_of, mode.value):
+                        raise ValueError("idempotency key already belongs to a different request")
                     return UUID(existing.id)
             run_id = uuid4()
             row = ResearchRunModel(
@@ -228,8 +237,21 @@ class Store:
             existing = session.scalar(select(StageCheckpointModel).where(StageCheckpointModel.run_id == str(run_id), StageCheckpointModel.stage == stage, StageCheckpointModel.iteration == iteration))
             if existing:
                 return
-            session.add(StageCheckpointModel(run_id=str(run_id), stage=stage, iteration=iteration, input_hash=digest, output_artifact_ids=[], schema_version="1.0"))
+            from .models import ArtifactModel
+            artifact_id = str(uuid4())
+            session.add(ArtifactModel(id=artifact_id, run_id=str(run_id), kind="checkpoint", payload=json.loads(encoded)))
+            session.flush()
+            session.add(StageCheckpointModel(run_id=str(run_id), stage=stage, iteration=iteration, input_hash=digest, output_artifact_ids=[artifact_id], schema_version="1.0"))
             session.commit()
+
+    def load_checkpoint(self, run_id, stage, iteration=0):
+        from .models import ArtifactModel
+        with self.session_factory() as session:
+            row = session.scalar(select(StageCheckpointModel).where(StageCheckpointModel.run_id == str(run_id), StageCheckpointModel.stage == stage, StageCheckpointModel.iteration == iteration))
+            if not row or not row.output_artifact_ids:
+                return None
+            artifact = session.get(ArtifactModel, row.output_artifact_ids[0])
+            return artifact.payload if artifact else None
 
     def save_report(self, report: ResearchReport) -> None:
         encoded = report.model_dump_json().encode()
@@ -239,9 +261,18 @@ class Store:
             row = session.get(ResearchRunModel, str(report.run_id))
             if not row:
                 raise KeyError("run not found")
+            if row.cancel_requested:
+                raise RuntimeError("run cancelled before publication")
             row.report_json = json.loads(encoded)
             row.report_hash = digest
+            row.status = RunStatus.COMPLETED.value
+            row.stage = RunStatus.COMPLETED.value
+            row.outcome = report.outcome.value
+            row.ended_at = datetime.now(UTC)
+            row.limitations = report.limitations
+            row.lease_expires_at = None
             self._save_evidence(session, report)
+            self._add_event(session, str(report.run_id), RunStatus.COMPLETED.value, "run_completed", f"Run completed with outcome {report.outcome.value}")
             session.commit()
         path = self.data_dir / "exports" / f"{report.run_id}.report.json"
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -277,18 +308,26 @@ class Store:
             rows = session.scalars(select(StageCheckpointModel.stage).where(StageCheckpointModel.run_id == str(run_id))).all()
             return set(rows)
 
-    def lease_next(self, owner: str) -> UUID | None:
+    def lease_next(self, owner: str, max_active_runs: int = 1) -> UUID | None:
         """PostgreSQL SKIP LOCKED lease with a monotonically increasing fencing token."""
         from datetime import timedelta
 
         from .models import WorkerHeartbeatModel
         with self.session_factory() as session:
+            # Serialize the global admission check on PostgreSQL, then SKIP LOCKED
+            # handles selection. SQLite is the single-worker development fallback.
+            if session.bind.dialect.name == "postgresql":
+                session.execute(select(func.pg_advisory_xact_lock(724193)))
             heartbeat = session.get(WorkerHeartbeatModel, owner)
             if not heartbeat:
                 heartbeat = WorkerHeartbeatModel(owner=owner)
                 session.add(heartbeat)
             heartbeat.timestamp = datetime.now(UTC)
             active = [s.value for s in RunStatus if s not in {RunStatus.COMPLETED, RunStatus.CANCELLED, RunStatus.FAILED, RunStatus.QUEUED}]
+            busy = session.scalar(select(func.count()).select_from(ResearchRunModel).where(ResearchRunModel.status.in_(active), ResearchRunModel.lease_expires_at > datetime.now(UTC)))
+            if busy >= max_active_runs:
+                session.commit()
+                return None
             row = session.scalar(select(ResearchRunModel).where(or_(ResearchRunModel.status == RunStatus.QUEUED.value, (ResearchRunModel.status.in_(active) & (ResearchRunModel.lease_expires_at < datetime.now(UTC))))).order_by(ResearchRunModel.created_at).with_for_update(skip_locked=True))
             if not row:
                 session.commit()
@@ -308,7 +347,8 @@ class Store:
             return
         owner, token = self.lease_tokens[run_id]
         row = session.scalar(select(ResearchRunModel).where(ResearchRunModel.id == run_id).with_for_update())
-        if row.lease_owner != owner or row.fencing_token != token:
+        expiry = row.lease_expires_at.replace(tzinfo=UTC) if row.lease_expires_at and row.lease_expires_at.tzinfo is None else row.lease_expires_at
+        if row.lease_owner != owner or row.fencing_token != token or (expiry and expiry < datetime.now(UTC)):
             raise RuntimeError("worker lost its fenced lease")
 
     def heartbeat(self, run_id):
@@ -342,6 +382,9 @@ class Store:
         status: str = "ok",
         cost_status: str = "unknown",
         latency_ms: int | None = None,
+        estimated_cost: float | None = None,
+        result_kind: str | None = None,
+        result_payload: Any = None,
     ) -> None:
         from .models import ProviderCallModel
 
@@ -354,8 +397,11 @@ class Store:
                 run_id=str(run_id), stage=stage, request_hash=request_hash, provider=provider,
                 model=model, attempt=attempt, input_tokens=input_tokens,
                 output_tokens=output_tokens, search_credits=search_credits,
-                status=status, cost_status=cost_status, latency_ms=latency_ms,
+                status=status, cost_status=cost_status, latency_ms=latency_ms, estimated_cost=estimated_cost,
             ))
+            if result_kind:
+                from .models import ArtifactModel
+                session.add(ArtifactModel(id=str(uuid4()), run_id=str(run_id), kind=result_kind, payload=json.loads(json.dumps(result_payload, default=str))))
             session.commit()
 
     def provider_calls(self, run_id: UUID | str) -> list[dict[str, Any]]:
@@ -367,6 +413,8 @@ class Store:
                 "provider": row.provider, "model": row.model, "stage": row.stage,
                 "status": row.status, "input_tokens": row.input_tokens,
                 "output_tokens": row.output_tokens, "search_credits": row.search_credits,
+                "estimated_cost_usd": str(row.estimated_cost) if row.estimated_cost is not None else None,
+                "cost_status": row.cost_status,
             } for row in rows]
 
     def artifact(self, run_id, kind, payload, artifact_id=None):
@@ -457,7 +505,10 @@ class Store:
         for link in claim.evidence_links:
             passage = next((p for p in report.passages if p.id == link.passage_or_fact_id), None)
             fact = next((f for f in report.facts if f.id == link.passage_or_fact_id), None)
-            links.append({"link": link.model_dump(mode="json"), "passage": passage.model_dump(mode="json") if passage else None, "fact": fact.model_dump(mode="json") if fact else None})
+            if fact:
+                passage = next((p for p in report.passages if p.id == fact.passage_id), None)
+            document = next((d for d in report.documents if passage and d.id == passage.document_id), None)
+            links.append({"link": link.model_dump(mode="json"), "passage": passage.model_dump(mode="json") if passage else None, "fact": fact.model_dump(mode="json") if fact else None, "document": document.model_dump(mode="json") if document else None})
         return {"claim": claim.model_dump(mode="json"), "evidence": links, "calculations": [c.model_dump(mode="json") for c in report.calculations if c.id in claim.calculation_ids]}
 
 
@@ -478,10 +529,14 @@ def infer_profile(industry: str) -> str | None:
         return "general_insurer"
     if "exchange" in industry or "market infrastructure" in industry:
         return "exchange"
-    if "asset management" in industry or "mutual fund" in industry:
+    if "asset management" in industry or "mutual fund" in industry or "amc" in industry:
         return "asset_manager"
     if "bank" in industry:
         return "bank"
-    if "nbfc" in industry or "finance" in industry or "lending" in industry:
+    if "finserv" in industry or "financial services" in industry or "holdings" in industry:
+        return "diversified"
+    if "nbfc" in industry or "finance" in industry or "lending" in industry or "housing" in industry:
         return "nbfc"
+    if "securities" in industry or "capital markets" in industry or "investments" in industry:
+        return "diversified"
     return None

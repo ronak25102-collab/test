@@ -12,7 +12,7 @@ class UnsafeURL(ValueError):
 def _is_private(host: str) -> bool:
     try:
         address = ipaddress.ip_address(host)
-        return address.is_private or address.is_loopback or address.is_link_local or address.is_reserved or address.is_unspecified or address.is_multicast
+        return not address.is_global or address.is_multicast
     except ValueError:
         return False
 

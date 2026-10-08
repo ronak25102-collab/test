@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
+from decimal import Decimal
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ def quarter(label: str, fiscal_year_end_month: int = 3, fiscal_year_end_day: int
             next_month = month + 3
             next_year = year + (next_month - 1) // 12
             next_month = (next_month - 1) % 12 + 1
-            ends.append(date(next_year, next_month, 1))
+            ends.append(date(next_year, next_month, 1) - timedelta(days=1))
     return FiscalPeriod(label.upper(), starts[q - 1], ends[q - 1])
 
 
@@ -53,7 +54,7 @@ def fiscal_year(label: str, fiscal_year_end_month: int = 3, fiscal_year_end_day:
     return FiscalPeriod(label.upper(), date(start_year, start_month, 1), end)
 
 
-def derive_quarter_flow(cumulative: float, prior_cumulative: float, same_definition: bool = True) -> float:
+def derive_quarter_flow(cumulative: Decimal, prior_cumulative: Decimal, same_definition: bool = True) -> Decimal:
     if not same_definition:
         raise ValueError("cumulative flows are not comparable")
     return cumulative - prior_cumulative

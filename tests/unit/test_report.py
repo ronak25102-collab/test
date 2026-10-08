@@ -14,7 +14,7 @@ def test_replay_report_has_traceable_eight_element_discovery(store):
     assert len(discovery.timeline_event_ids) == 1
     assert discovery.counterargument.search_attempted
     assert discovery.falsification_rules
-    assert {str(c.formula_id) for c in report.calculations} >= {"yoy_growth", "change_pp", "loan_to_deposit"}
+    assert {str(c.formula_id) for c in report.calculations} >= {"yoy_growth", "growth_gap", "loan_to_deposit", "ldr_change"}
     assert all(claim.verification_status.value == "supported" for claim in report.claims)
 
 

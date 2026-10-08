@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import typer
 
@@ -24,7 +25,8 @@ app.add_typer(universe_app, name="universe")
 def context():
     settings = get_settings()
     engine = build_engine(settings.database_url)
-    Base.metadata.create_all(engine)
+    if settings.database_url.startswith("sqlite"):
+        Base.metadata.create_all(engine)
     store = Store(session_factory(engine), settings.data_dir)
     store.bootstrap()
     return settings, store
@@ -46,21 +48,24 @@ def universe_refresh():
 def research(company: str = typer.Option(..., help="Legal name or exchange symbol"), as_of: str | None = typer.Option(None, help="YYYY-MM-DD cutoff"), mode: RunMode = typer.Option(RunMode.LIVE)):
     """Start and process one run using the same worker service as the API."""
     settings, store = context()
-    resolution = resolve(store, company)
+    resolution = resolve(store, company, refresh=True)
     if not resolution.company:
         typer.echo(resolution.reason or "company could not be resolved", err=True)
         raise typer.Exit(2)
     try:
-        cutoff = date.fromisoformat(as_of) if as_of else date.today()
+        cutoff = date.fromisoformat(as_of) if as_of else datetime.now(ZoneInfo("Asia/Kolkata")).date()
     except ValueError:
         typer.echo("as-of must be YYYY-MM-DD", err=True)
         raise typer.Exit(2)
-    if cutoff > date.today():
+    if cutoff > datetime.now(ZoneInfo("Asia/Kolkata")).date():
         typer.echo("cutoff cannot be in the future", err=True)
+        raise typer.Exit(2)
+    if (mode == RunMode.REPLAY) != ("SYNTHBANK" in resolution.company.symbols):
+        typer.echo("Replay requires SYNTHBANK; live/deep requires a real listed company", err=True)
         raise typer.Exit(2)
     run_id = store.create_run(resolution.company, cutoff, mode, f"cli-{uuid4()}")
     owner = f"cli-{uuid4()}"
-    leased = store.lease_next(owner)
+    leased = store.lease_next(owner, settings.max_active_runs)
     if leased != run_id:
         typer.echo(f"run {run_id} was queued; start the worker to process it")
     else:
@@ -128,11 +133,38 @@ def evaluate(suite: Path = typer.Option(Path("tests/evaluation/cases.yaml")), of
     if not offline:
         typer.echo("evaluation requires --offline or an explicitly configured live suite", err=True)
         raise typer.Exit(2)
+    import yaml
+    try:
+        cases = yaml.safe_load(suite.read_text(encoding="utf-8"))["cases"]
+        if not isinstance(cases, list) or not cases:
+            raise ValueError("suite requires a nonempty cases list")
+    except (OSError, ValueError, TypeError, KeyError, yaml.YAMLError) as exc:
+        typer.echo(f"Invalid evaluation suite: {exc}", err=True)
+        raise typer.Exit(2)
     settings, store = context()
-    resolution = resolve(store, "SYNTHBANK")
-    run_id = store.create_run(resolution.company, date(2026, 10, 8), RunMode.REPLAY, f"eval-{uuid4()}")
-    owner = f"eval-{uuid4()}"
-    store.lease_next(owner)
-    ResearchMachine(store, settings).process(run_id)
-    report = store.get_report(run_id)
-    typer.echo(json.dumps({"suite": str(suite), "offline": True, "run_id": str(run_id), "outcome": report.outcome.value if report else None, "discoveries": len(report.discoveries) if report else 0}, indent=2))
+    results = []
+    for case in cases:
+        if case.get("mode") != "replay" or not case.get("synthetic"):
+            typer.echo("Offline suites may contain only explicitly synthetic replay cases", err=True)
+            raise typer.Exit(2)
+        resolution = resolve(store, case["company"])
+        if not resolution.company or "SYNTHBANK" not in resolution.company.symbols:
+            raise typer.Exit(2)
+        cutoff = date.fromisoformat(case.get("as_of", "2026-10-08"))
+        run_id = store.create_run(resolution.company, cutoff, RunMode.REPLAY, f"eval-{uuid4()}")
+        leased = store.lease_next(f"eval-{uuid4()}", settings.max_active_runs)
+        if leased != run_id:
+            typer.echo("Evaluation is blocked by another queued/active run; use an isolated evaluation database", err=True)
+            raise typer.Exit(2)
+        ResearchMachine(store, settings).process(run_id)
+        report = store.get_report(run_id)
+        actual = {c.formula_id for c in report.calculations} if report else set()
+        passed = bool(report and report.outcome.value == case["expected_outcome"] and set(case.get("expected_calculations", [])) <= actual)
+        results.append({"case": case["id"], "run_id": str(run_id), "outcome": report.outcome.value if report else None, "passed": passed})
+    typer.echo(json.dumps({"suite": str(suite), "offline": True, "results": results, "passed": all(r["passed"] for r in results)}, indent=2))
+    if not all(r["passed"] for r in results):
+        raise typer.Exit(1)
+
+
+if __name__ == "__main__":
+    app()

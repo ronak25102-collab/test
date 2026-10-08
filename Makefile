@@ -16,6 +16,8 @@ lint:
 	uv run ruff check backend/src tests
 
 verify: lint test
+	uv run pytest tests/security -q
+	cd frontend && npm run build
 
 doctor-live:
 	uv run python scripts/doctor.py --live

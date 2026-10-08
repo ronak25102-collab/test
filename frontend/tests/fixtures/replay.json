@@ -1,0 +1,576 @@
+{
+  "schema_version": "1.0",
+  "run_id": "11111111-1111-4111-8111-111111111111",
+  "company": {
+    "id": "e1a896fd-7985-530a-9773-e164425b0ca0",
+    "legal_name": "SYNTHBANK",
+    "symbols": [
+      "SYNTHBANK"
+    ],
+    "isin": null,
+    "exchange": null,
+    "aliases": [],
+    "verified_ir_domains": [],
+    "business_profiles": [
+      "bank"
+    ],
+    "identity_source_ids": [],
+    "universe_snapshot_age_days": null
+  },
+  "cutoff": "2026-10-08",
+  "historical_coverage": "FY2025-FY2026 comparable consolidated year-end balances",
+  "source_coverage": {
+    "documents_found": 2,
+    "documents_used": 2,
+    "eligible_origin_families": 2,
+    "primary_source": true,
+    "mode": "replay",
+    "synthetic": true
+  },
+  "outcome": "discovery",
+  "publication_status": "published",
+  "discoveries": [
+    {
+      "id": "37b7d785-7bbf-5c07-a3be-9d5ee186dcfb",
+      "discovery_sentence": "Comparable year-end balances show advances growing materially faster than deposits, widening the calculated loan-to-deposit ratio; this is a funding-growth observation rather than proof of funding stress.",
+      "why_it_matters": [
+        {
+          "text": "Gross advances grew 20.00% from INR 100000 crore to INR 120000 crore at comparable consolidated year-end dates.",
+          "claim_id": "bf7e26d5-04ac-5b13-9ae7-a5bddff307db"
+        },
+        {
+          "text": "Advances grew 10 percentage points faster than deposits.",
+          "claim_id": "4d048913-3b6c-548c-ba16-a68da1b647a7"
+        },
+        {
+          "text": "The calculated loan-to-deposit ratio rose from 80.00% to approximately 87.27%, a 7.27 percentage-point change.",
+          "claim_id": "b2c774a6-7116-5cc9-aee4-83fd2335423c"
+        },
+        {
+          "text": "The arithmetic supports a funding-growth observation, not a conclusion of funding stress; deposit composition and funding-cost evidence are still needed.",
+          "claim_id": "914bf58b-14da-5109-89f0-62a36d6fa46e"
+        }
+      ],
+      "evidence_claim_ids": [
+        "bf7e26d5-04ac-5b13-9ae7-a5bddff307db",
+        "2ef4b897-cd0f-5c8a-a153-87c87db3a23d",
+        "4d048913-3b6c-548c-ba16-a68da1b647a7",
+        "b2c774a6-7116-5cc9-aee4-83fd2335423c",
+        "914bf58b-14da-5109-89f0-62a36d6fa46e",
+        "7ea5ab15-e378-5274-b02c-b090505e8910"
+      ],
+      "timeline_event_ids": [
+        "bc0601e3-0991-5b94-b8b5-4de42209274f"
+      ],
+      "calculation_ids": [
+        "0b7f4016-835b-555d-9f7b-9a44042620e7",
+        "66062819-3fd5-5c49-be95-cf4a13a10146",
+        "c8a3872e-c93d-5d20-a3cb-1d256f0a743b",
+        "5db027e7-734c-5c13-a9b1-a1bfa6446c6c",
+        "921c5582-760c-552c-9763-1ac848704d2a",
+        "261b9fe4-0923-5938-b50c-f120769fce94"
+      ],
+      "calculation_explanation": null,
+      "counterargument": {
+        "statement": "An acquisition, reclassification or deposit-composition shift could explain the growth gap without funding stress.",
+        "evidence_claim_ids": [
+          "914bf58b-14da-5109-89f0-62a36d6fa46e"
+        ],
+        "search_attempted": true,
+        "search_summary": "The independent context source was searched and states that a growth gap alone does not establish funding stress; composition and cost evidence remain needed.",
+        "unresolved": true
+      },
+      "falsification_rules": [
+        {
+          "id": "2b9cdd13-975b-57c1-b6ec-1de81b240c23",
+          "observable_metric_or_event": "Comparable advances and deposits disclosures",
+          "operator": "growth_gap reverses or scope change explains movement",
+          "threshold": null,
+          "unit": "percentage points / event",
+          "required_periods": 2,
+          "expected_source_type": "issuer quarterly results",
+          "interpretation": "Reconsider the funding-growth observation if two later comparable periods reverse the gap or a documented reclassification accounts for it.",
+          "dependencies": [
+            "c8a3872e-c93d-5d20-a3cb-1d256f0a743b"
+          ]
+        }
+      ],
+      "evidence_strength": "Moderate",
+      "strength_rationale": "Primary facts and calculations are verified across relevant origins, but a plausible alternative mechanism remains."
+    }
+  ],
+  "limitations": [
+    "Replay evidence is synthetic and must not be presented as a live company finding.",
+    "Funding composition and cost were not disclosed in this fixture; the stronger mechanism is intentionally withheld."
+  ],
+  "generation_metadata": {
+    "pipeline": "observation-plan-calculate-challenge-verify",
+    "model_id": null,
+    "prompt_version": "1.0",
+    "verification_digest": "fc5ef63e40615c4974533ec0487d10818e4b0f5feee8b06348ec1b9fb106e047"
+  },
+  "claims": [
+    {
+      "id": "bf7e26d5-04ac-5b13-9ae7-a5bddff307db",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "Gross advances grew 20.00% from INR 100000 crore to INR 120000 crore at comparable consolidated year-end dates.",
+      "kind": "observed",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "bf7e26d5-04ac-5b13-9ae7-a5bddff307db",
+          "passage_or_fact_id": "f3ce0054-d48c-5a14-83b2-8060097feda9",
+          "relation": "supporting",
+          "reason": "prior-year advances fact",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "bf7e26d5-04ac-5b13-9ae7-a5bddff307db",
+          "passage_or_fact_id": "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+          "relation": "supporting",
+          "reason": "current-year advances fact",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "0b7f4016-835b-555d-9f7b-9a44042620e7"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": []
+    },
+    {
+      "id": "2ef4b897-cd0f-5c8a-a153-87c87db3a23d",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "Total deposits grew 10.00% from INR 125000 crore to INR 137500 crore over the same dates.",
+      "kind": "observed",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "2ef4b897-cd0f-5c8a-a153-87c87db3a23d",
+          "passage_or_fact_id": "e006c6e7-d82a-5771-9c01-040fc21de6de",
+          "relation": "supporting",
+          "reason": "prior-year deposits fact",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "2ef4b897-cd0f-5c8a-a153-87c87db3a23d",
+          "passage_or_fact_id": "92356a81-8b5e-5795-aae1-73f24ca8c320",
+          "relation": "supporting",
+          "reason": "current-year deposits fact",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "66062819-3fd5-5c49-be95-cf4a13a10146"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": []
+    },
+    {
+      "id": "4d048913-3b6c-548c-ba16-a68da1b647a7",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "Advances grew 10 percentage points faster than deposits.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "4d048913-3b6c-548c-ba16-a68da1b647a7",
+          "passage_or_fact_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+          "relation": "supporting",
+          "reason": "calculation inputs are reported in the issuer passage",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "0b7f4016-835b-555d-9f7b-9a44042620e7",
+        "66062819-3fd5-5c49-be95-cf4a13a10146",
+        "c8a3872e-c93d-5d20-a3cb-1d256f0a743b"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": []
+    },
+    {
+      "id": "b2c774a6-7116-5cc9-aee4-83fd2335423c",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "The calculated loan-to-deposit ratio rose from 80.00% to approximately 87.27%, a 7.27 percentage-point change.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "b2c774a6-7116-5cc9-aee4-83fd2335423c",
+          "passage_or_fact_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+          "relation": "supporting",
+          "reason": "reported advances and deposits supply both denominators",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "5db027e7-734c-5c13-a9b1-a1bfa6446c6c",
+        "921c5582-760c-552c-9763-1ac848704d2a",
+        "261b9fe4-0923-5938-b50c-f120769fce94"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": []
+    },
+    {
+      "id": "914bf58b-14da-5109-89f0-62a36d6fa46e",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "The arithmetic supports a funding-growth observation, not a conclusion of funding stress; deposit composition and funding-cost evidence are still needed.",
+      "kind": "inferred",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "914bf58b-14da-5109-89f0-62a36d6fa46e",
+          "passage_or_fact_id": "1eadbd49-e915-58c3-b9e2-c123b8459cd9",
+          "relation": "supporting",
+          "reason": "independent context explicitly limits the interpretation",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [],
+      "verification_status": "supported",
+      "verification_reasons": []
+    },
+    {
+      "id": "7ea5ab15-e378-5274-b02c-b090505e8910",
+      "run_id": "11111111-1111-4111-8111-111111111111",
+      "text": "Comparable year-end balances show advances growing materially faster than deposits, widening the calculated loan-to-deposit ratio; this is a funding-growth observation rather than proof of funding stress.",
+      "kind": "inferred",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "7ea5ab15-e378-5274-b02c-b090505e8910",
+          "passage_or_fact_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+          "relation": "supporting",
+          "reason": "manually reviewed synthetic evidence",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "7ea5ab15-e378-5274-b02c-b090505e8910",
+          "passage_or_fact_id": "1eadbd49-e915-58c3-b9e2-c123b8459cd9",
+          "relation": "supporting",
+          "reason": "manually reviewed synthetic evidence",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "c8a3872e-c93d-5d20-a3cb-1d256f0a743b",
+        "261b9fe4-0923-5938-b50c-f120769fce94"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": []
+    }
+  ],
+  "timeline_events": [
+    {
+      "id": "bc0601e3-0991-5b94-b8b5-4de42209274f",
+      "event_date": "2026-03-31",
+      "date_precision": "unknown",
+      "published_at": "2026-05-15T00:00:00Z",
+      "description": "Comparable FY2026 disclosure showed advances growing faster than deposits.",
+      "claim_ids": [
+        "bf7e26d5-04ac-5b13-9ae7-a5bddff307db",
+        "2ef4b897-cd0f-5c8a-a153-87c87db3a23d",
+        "4d048913-3b6c-548c-ba16-a68da1b647a7",
+        "b2c774a6-7116-5cc9-aee4-83fd2335423c",
+        "914bf58b-14da-5109-89f0-62a36d6fa46e"
+      ],
+      "source_ids": [
+        "1405e9ba-d2c0-5099-9e12-76171aba3873"
+      ]
+    }
+  ],
+  "calculations": [
+    {
+      "id": "0b7f4016-835b-555d-9f7b-9a44042620e7",
+      "formula_id": "yoy_growth",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+        "f3ce0054-d48c-5a14-83b2-8060097feda9"
+      ],
+      "parameters": {},
+      "output_value": "20.0",
+      "unit": "percent",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "66062819-3fd5-5c49-be95-cf4a13a10146",
+      "formula_id": "yoy_growth",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "92356a81-8b5e-5795-aae1-73f24ca8c320",
+        "e006c6e7-d82a-5771-9c01-040fc21de6de"
+      ],
+      "parameters": {},
+      "output_value": "10.0",
+      "unit": "percent",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "c8a3872e-c93d-5d20-a3cb-1d256f0a743b",
+      "formula_id": "growth_gap",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+        "f3ce0054-d48c-5a14-83b2-8060097feda9",
+        "92356a81-8b5e-5795-aae1-73f24ca8c320",
+        "e006c6e7-d82a-5771-9c01-040fc21de6de"
+      ],
+      "parameters": {},
+      "output_value": "10.0",
+      "unit": "percentage_points",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "5db027e7-734c-5c13-a9b1-a1bfa6446c6c",
+      "formula_id": "loan_to_deposit",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "f3ce0054-d48c-5a14-83b2-8060097feda9",
+        "e006c6e7-d82a-5771-9c01-040fc21de6de"
+      ],
+      "parameters": {},
+      "output_value": "80.0",
+      "unit": "percent",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "921c5582-760c-552c-9763-1ac848704d2a",
+      "formula_id": "loan_to_deposit",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+        "92356a81-8b5e-5795-aae1-73f24ca8c320"
+      ],
+      "parameters": {},
+      "output_value": "87.27272727272727272727272727",
+      "unit": "percent",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "261b9fe4-0923-5938-b50c-f120769fce94",
+      "formula_id": "ldr_change",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+        "f3ce0054-d48c-5a14-83b2-8060097feda9",
+        "92356a81-8b5e-5795-aae1-73f24ca8c320",
+        "e006c6e7-d82a-5771-9c01-040fc21de6de"
+      ],
+      "parameters": {},
+      "output_value": "7.27272727272727272727272727",
+      "unit": "percentage_points",
+      "period": "FY2025-FY2026",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    }
+  ],
+  "facts": [
+    {
+      "id": "f3ce0054-d48c-5a14-83b2-8060097feda9",
+      "entity_id": "e1a896fd-7985-530a-9773-e164425b0ca0",
+      "metric_key": "gross_advances",
+      "value_raw": "100000",
+      "value_decimal": "100000",
+      "unit_raw": "INR crore",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": null,
+      "period_end": "2025-03-31",
+      "period_type": "instant",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "gross_advances_as_reported_v1",
+      "passage_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "87fa421c-0887-5329-a5e3-13ee4f8c4a03",
+      "entity_id": "e1a896fd-7985-530a-9773-e164425b0ca0",
+      "metric_key": "gross_advances",
+      "value_raw": "120000",
+      "value_decimal": "120000",
+      "unit_raw": "INR crore",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": null,
+      "period_end": "2026-03-31",
+      "period_type": "instant",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "gross_advances_as_reported_v1",
+      "passage_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "e006c6e7-d82a-5771-9c01-040fc21de6de",
+      "entity_id": "e1a896fd-7985-530a-9773-e164425b0ca0",
+      "metric_key": "deposits",
+      "value_raw": "125000",
+      "value_decimal": "125000",
+      "unit_raw": "INR crore",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": null,
+      "period_end": "2025-03-31",
+      "period_type": "instant",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "deposits_as_reported_v1",
+      "passage_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "92356a81-8b5e-5795-aae1-73f24ca8c320",
+      "entity_id": "e1a896fd-7985-530a-9773-e164425b0ca0",
+      "metric_key": "deposits",
+      "value_raw": "137500",
+      "value_decimal": "137500",
+      "unit_raw": "INR crore",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": null,
+      "period_end": "2026-03-31",
+      "period_type": "instant",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "deposits_as_reported_v1",
+      "passage_id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    }
+  ],
+  "documents": [
+    {
+      "id": "1405e9ba-d2c0-5099-9e12-76171aba3873",
+      "canonical_url": "https://synthetic.example/issuer/annual-results",
+      "final_url": "https://synthetic.example/issuer/annual-results",
+      "publisher": "Synthetic Bank Investor Relations",
+      "origin_family_id": "synthetic-issuer",
+      "title": "Synthetic Bank FY2026 results",
+      "document_type": "issuer_results",
+      "published_at": "2026-05-15T00:00:00Z",
+      "retrieved_at": "2026-05-15T00:00:00Z",
+      "period_start": null,
+      "period_end": "2026-03-31",
+      "content_hash": "synthetic-issuer-hash",
+      "mime_type": "text/html",
+      "local_object_key": null,
+      "access_status": "ok",
+      "cutoff_eligibility": "eligible"
+    },
+    {
+      "id": "a4a4ce38-406a-5e99-957a-180f286b99ea",
+      "canonical_url": "https://synthetic.example/context/sector-review",
+      "final_url": "https://synthetic.example/context/sector-review",
+      "publisher": "Synthetic Sector Review",
+      "origin_family_id": "synthetic-independent-context",
+      "title": "Sector funding context",
+      "document_type": "independent_context",
+      "published_at": "2026-06-01T00:00:00Z",
+      "retrieved_at": "2026-06-01T00:00:00Z",
+      "period_start": null,
+      "period_end": "2026-03-31",
+      "content_hash": "synthetic-sector-hash",
+      "mime_type": "text/html",
+      "local_object_key": null,
+      "access_status": "ok",
+      "cutoff_eligibility": "eligible"
+    }
+  ],
+  "passages": [
+    {
+      "id": "899f70c6-a4b4-5f0b-afb7-7c6610498749",
+      "document_id": "1405e9ba-d2c0-5099-9e12-76171aba3873",
+      "page_index": null,
+      "printed_page_label": null,
+      "section": "Balance sheet highlights",
+      "table_id": null,
+      "row_label": "Gross advances and deposits",
+      "column_label": "FY2025 / FY2026",
+      "text": "Synthetic Bank reported gross advances of INR 100000 crore at 31 March 2025 and INR 120000 crore at 31 March 2026. Total deposits were INR 125000 crore and INR 137500 crore at the same dates. The figures are consolidated year-end balances.",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "fixture",
+      "extraction_quality": "manually_checked"
+    },
+    {
+      "id": "1eadbd49-e915-58c3-b9e2-c123b8459cd9",
+      "document_id": "a4a4ce38-406a-5e99-957a-180f286b99ea",
+      "page_index": null,
+      "printed_page_label": null,
+      "section": "Funding context",
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "The independent sector review notes that deposit growth and loan growth can diverge during expansion periods, and that a growth gap alone does not establish funding stress. Deposit composition and funding cost are needed to test that mechanism.",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "fixture",
+      "extraction_quality": "manually_checked"
+    }
+  ],
+  "abstention": null
+}

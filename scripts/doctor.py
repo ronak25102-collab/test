@@ -5,7 +5,6 @@ import json
 import os
 import shutil
 import sys
-from pathlib import Path
 
 from signal_research.db.models import Base
 from signal_research.db.session import build_engine
@@ -35,12 +34,20 @@ def main() -> int:
     except Exception as exc:
         checks["database"] = f"unavailable: {exc}"
     if args.live:
-        checks["openai_configured"] = bool(settings.openai_api_key and settings.openai_model_research)
+        checks["openai_configured"] = bool(settings.openai_api_key and settings.openai_model_research and settings.openai_model_extract)
         checks["tavily_configured"] = bool(settings.tavily_api_key)
-        checks["cost_policy"] = "rate-card" if Path(settings.model_rate_card_path).exists() and json.loads(Path(settings.model_rate_card_path).read_text()).get("models") else ("unknown-cost-with-hard-caps" if settings.allow_unknown_cost else "not-configured")
+        from signal_research.worker.machine import ResearchMachine
+        try:
+            ResearchMachine(None, settings)._check_live_cost_policy()
+            checks["cost_policy"] = "unknown-cost-with-hard-caps" if settings.allow_unknown_cost else "validated configured rates"
+        except Exception as exc:
+            checks["cost_policy"] = f"not configured: {exc}"
         if not checks["openai_configured"] or not checks["tavily_configured"]:
             print(json.dumps(checks, indent=2))
             print("Live provider checks require keys and account-accessible model IDs.", file=sys.stderr)
+            return 2
+        if str(checks["cost_policy"]).startswith("not configured"):
+            print(json.dumps(checks, indent=2))
             return 2
     print(json.dumps(checks, indent=2))
     return 0 if checks.get("database") == "ok" and checks.get("data_dir_writable") else 1

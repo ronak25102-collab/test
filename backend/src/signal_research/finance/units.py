@@ -53,6 +53,8 @@ def parse_numeric(raw: str | None, unit: str | None = None) -> ParsedNumber:
         value = Decimal(text)
     except (InvalidOperation, ValueError):
         return ParsedNumber(original, None, unit, "ambiguous")
+    if not value.is_finite():
+        return ParsedNumber(original, None, unit, "ambiguous")
     if negative:
         value = -value
     if unit and unit.lower() in {"inr crore", "inr_crore", "₹ crore"}:

@@ -17,11 +17,27 @@ class Resolution:
     reason: str | None = None
 
 
-def resolve(store: Store, query: str) -> Resolution:
+def resolve(store: Store, query: str, refresh: bool = False) -> Resolution:
     candidates = store.search_companies(query)
+    if not candidates and refresh:
+        from .universe import LISTED_URL, NIFTY_URL, refresh_universe
+        try:
+            age = store.snapshot_age_days(NIFTY_URL)
+            if age is None or age > 7:
+                store.save_universe_snapshot(refresh_universe())
+            candidates = store.search_companies(query)
+            if not candidates:
+                age = store.snapshot_age_days(LISTED_URL)
+                if age is None or age > 7:
+                    store.save_universe_snapshot(refresh_universe(listed=True))
+                candidates = store.search_companies(query)
+        except Exception as exc:
+            return Resolution(None, [], f"Could not verify the entity against the public exchange directory: {exc}")
     if not candidates:
         return Resolution(None, [], "No listed financial-services entity matched the query")
     if len(candidates) == 1:
+        if not candidates[0].business_profiles:
+            return Resolution(None, candidates, "Listed financial entity found, but its business profile needs verified disclosure evidence")
         return Resolution(candidates[0], candidates)
     exact = [c for c in candidates if query.strip().upper() in {s.upper() for s in c.symbols}]
     if len(exact) == 1:

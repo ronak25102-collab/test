@@ -1,39 +1,45 @@
 # Implementation status
 
-## Completed in this checkout
+The previous live-path placeholder has been replaced. The same service is used by
+the API and CLI for all seven profiles; there are no issuer-specific calculation
+rules. Replay is explicitly synthetic and restricted to SYNTHBANK.
 
-* Phase 0: monorepo scaffold, environment contract, Compose, health API and
-  Vite dashboard.
-* Phase 1: typed domain contracts, relational persistence, migrations,
-  provenance chain and report validation.
-* Phase 2: Indian-number parsing, units, periods, comparability and Decimal
-  calculation registry.
-* Phase 3/4: profile routing, source policy, bounded fetcher, HTML/PDF passage
-  extraction and synthetic evidence provider.
-* Phase 5/6: observation-first hypotheses, adaptive action records,
-  counterevidence, falsification and publication/abstention gates.
-* Phase 8/9: API, dashboard, print view, exports, cancellation, checkpoints,
-  idempotent run creation and worker lease fields.
+Implemented and exercised offline:
 
-## Verification
+- Issuer and unrestricted independent/context discovery; profile-based peers and
+  regulator selection; targeted follow-up and opposing searches; ranked candidate
+  hypotheses; rejection or qualification after challenge.
+- Exact numeric-token, metric, explicit date, scope, currency and monetary-scale
+  checks plus independent model checks for row/column and entity binding. Missing
+  context and unresolved conflicting disclosures are withheld.
+- Registered calculations over comparable original facts. Growth gaps and LDR
+  changes have four-input formulas, so their outputs can be independently reproduced.
+- Independent semantic claim review followed by a report integrity checksum.
+  The checksum binds the reviewed text; it does not itself prove entailment.
+  The verifier rejects pending links, broken lineage, altered content, unreproducible
+  calculations, unknown/future publication dates and missing relevant origins.
+- Source-owned publication metadata, IST cutoff boundaries, exact/substantial-copy
+  origin grouping, issuer/exchange-copy grouping, and explicit wire attribution.
+- Streamed downloads, decompressed size caps, bounded validated redirect chains,
+  and public-IP-pinned TCP connections with original hostname TLS validation.
+- Deterministic passage/fact/calculation IDs; HTML table and PDF page/row locators;
+  isolated PDF parsing with a timeout; selective OCR with numeric-confidence gates;
+  XBRL entity/context/date/dimension/unit retention and entity-expansion protection.
+- Persisted tool results, call accounting and budget reservations; cumulative token,
+  call, OCR, USD-estimate and wall-clock limits; preserved limits/deadline on resume;
+  continuous heartbeat, active-run admission, stale-lease fencing, and atomic report
+  publication/terminal state. Uncertain paid calls are never automatically retried.
+- Runtime exchange-directory resolution using portable identity lookups, source
+  navigation and calculation inputs in the dashboard, explicit failed/cancelled
+  states, resume control, printable timeline and clickable original URLs.
 
-`uv run pytest -q`: 18 passed. `ruff`: passed. Frontend TypeScript/Vite build:
-passed. Playwright browser shell test: 1 passed after installing Chromium and
-its Linux dependencies. Fresh SQLite Alembic migration: passed. CLI replay,
-JSON export and offline evaluation: passed. See `evaluation-report.md` for
-run IDs and measured commands.
+Validation: 69 backend tests passed locally before final packaging; the browser
+suite has four passing scenarios and the production frontend build passes.
+See evaluation-report.md for the final command results and limits of this evidence.
 
-Live checks require credentials and are opt-in via `make doctor-live`; no live
-provider result is represented by the offline suite.
-
-## Known operational limits
-
-The live LLM/search path requires account-accessible model IDs and provider
-keys. OCR is guarded but not enabled in the base image. A PostgreSQL-backed
-deployment should be used for concurrent workers; SQLite is for local tests.
-
-The current live path retrieves and parses source leads, but publication
-continues to abstain until schema-validated facts, trustworthy publication
-dates and two relevant origins pass the gate. Full all-constituent live
-evaluation, curated public extraction accuracy, advanced OCR/XBRL and
-concurrent-worker recovery remain required finals validation gates.
+Remaining deployment validation is external: account-backed provider calls, a
+representative live company set, public-PDF/OCR accuracy against manually checked
+disclosures, and real concurrent PostgreSQL workers. No real-provider quality or
+all-constituent success rate is claimed from mocked tests. Some issuers omit dates,
+scope, units or duration starts in retrievable spans; those cases legitimately
+abstain. OCR tools are bundled in Docker but may be absent from a host installation.

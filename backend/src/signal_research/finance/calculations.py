@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
 from decimal import Decimal, InvalidOperation, localcontext
-from uuid import UUID, uuid4
+from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
 from signal_research.domain.enums import Scope
 
@@ -31,6 +32,10 @@ class NumericFact:
     definition_id: str
     period: str
     entity_id: UUID | str
+    period_start: str | None = None
+    period_type: str = "instant"
+    segment: str = "all"
+    currency: str | None = None
 
 
 Formula = Callable[[list[Decimal], dict], Decimal]
@@ -75,6 +80,14 @@ def _loan_to_deposit(values: list[Decimal], _: dict) -> Decimal:
     return advances / deposits * Decimal("100")
 
 
+def _growth_gap(values: list[Decimal], parameters: dict) -> Decimal:
+    return _positive_growth(values[:2], parameters) - _positive_growth(values[2:], parameters)
+
+
+def _ldr_change(values: list[Decimal], parameters: dict) -> Decimal:
+    return _loan_to_deposit([values[0], values[2]], parameters) - _loan_to_deposit([values[1], values[3]], parameters)
+
+
 FORMULAS: dict[str, tuple[str, Formula, str]] = {
     "yoy_growth": ("1.0", _positive_growth, "percent"),
     "share_pct": ("1.0", _share, "percent"),
@@ -82,7 +95,66 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
     "change_bps": ("1.0", _change_bps, "basis_points"),
     "cagr": ("1.0", _cagr, "percent"),
     "loan_to_deposit": ("1.0", _loan_to_deposit, "percent"),
+    "growth_gap": ("1.0", _growth_gap, "percentage_points"),
+    "ldr_change": ("1.0", _ldr_change, "percentage_points"),
+    "vnb_to_ape": ("1.0", _share, "percent"),
+    "fee_yield": ("1.0", _share, "percent"),
 }
+
+
+def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
+    expected = 4 if formula_id in {"growth_gap", "ldr_change"} else 2
+    if len(facts) != expected:
+        raise ValueError(f"{formula_id} requires {expected} facts")
+    for field_name in ("entity_id", "unit", "scope", "segment", "currency", "period_type"):
+        if len({str(getattr(f, field_name)) for f in facts}) != 1:
+            raise ValueError(f"incomparable {field_name}")
+    if any(not isinstance(f.value, Decimal) or not f.value.is_finite() for f in facts):
+        raise ValueError("non-finite input")
+    if formula_id in {"growth_gap", "ldr_change"}:
+        comparable("yoy_growth", facts[:2])
+        comparable("yoy_growth", facts[2:])
+        if facts[0].period != facts[2].period or facts[1].period != facts[3].period:
+            raise ValueError("growth intervals differ")
+        if formula_id == "ldr_change" and [facts[0].metric_key, facts[2].metric_key] != ["gross_advances", "deposits"]:
+            raise ValueError("LDR requires advances and deposits")
+    elif formula_id in {"yoy_growth", "change_pp", "change_bps", "cagr"}:
+        if len({f.metric_key for f in facts}) != 1 or len({f.definition_id for f in facts}) != 1:
+            raise ValueError("metric definitions differ")
+        current, prior = facts if formula_id != "cagr" else list(reversed(facts))
+        try:
+            end, start = date.fromisoformat(current.period), date.fromisoformat(prior.period)
+        except ValueError as exc:
+            raise ValueError("explicit comparable dates are required") from exc
+        if end <= start:
+            raise ValueError("current date must follow prior date")
+        if formula_id == "yoy_growth" and (end.month, end.day, end.year - start.year) != (start.month, start.day, 1):
+            raise ValueError("year-on-year endpoints must be one year apart")
+        if current.period_type == "duration":
+            if not current.period_start or not prior.period_start:
+                raise ValueError("duration starts are required")
+            a, b = date.fromisoformat(current.period_start), date.fromisoformat(prior.period_start)
+            if (a.month, a.day) != (b.month, b.day) or abs((end - a).days - (start - b).days) > 1:
+                raise ValueError("duration windows differ")
+        if formula_id in {"change_pp", "change_bps"} and facts[0].unit != "percent":
+            raise ValueError("percentage changes require percentage inputs")
+    else:
+        if facts[0].period != facts[1].period or facts[0].period_start != facts[1].period_start:
+            raise ValueError("ratio periods differ")
+        if formula_id == "loan_to_deposit" and [f.metric_key for f in facts] != ["gross_advances", "deposits"]:
+            raise ValueError("LDR requires advances and deposits")
+        expected_keys = {"vnb_to_ape": ["vnb", "ape"], "fee_yield": ["fee_revenue", "average_aum"]}
+        if formula_id in expected_keys and [f.metric_key for f in facts] != expected_keys[formula_id]:
+            raise ValueError("ratio metric definitions differ")
+    return ["same entity, unit, currency, scope, segment and period type", "formula-specific metric and period checks passed"]
+
+
+def numeric_fact(fact) -> NumericFact:
+    if fact.value_decimal is None:
+        raise ValueError("missing calculation input")
+    return NumericFact(fact.id, fact.value_decimal, fact.metric_key, fact.unit_normalized or "", fact.scope,
+                       fact.definition_id, str(fact.period_end), fact.entity_id, str(fact.period_start) if fact.period_start else None,
+                       fact.period_type.value, fact.segment, fact.currency)
 
 
 def calculate(formula_id: str, facts: list[NumericFact], parameters: dict | None = None) -> CalculationResult:
@@ -91,13 +163,15 @@ def calculate(formula_id: str, facts: list[NumericFact], parameters: dict | None
         raise KeyError(f"unregistered formula: {formula_id}")
     version, formula, unit = FORMULAS[formula_id]
     try:
+        checks = comparable(formula_id, facts)
         output = formula([fact.value for fact in facts], parameters)
     except (ValueError, InvalidOperation, ArithmeticError) as exc:
         return CalculationResult(
             uuid4(), formula_id, version, [fact.id for fact in facts], None, unit,
             [str(exc)], available=False,
         )
-    return CalculationResult(uuid4(), formula_id, version, [fact.id for fact in facts], output, unit)
+    identifier = uuid5(NAMESPACE_URL, f"{formula_id}|{version}|{[str(f.id) for f in facts]}|{sorted(parameters.items())}")
+    return CalculationResult(identifier, formula_id, version, [fact.id for fact in facts], output, unit, comparability_checks=checks)
 
 
 def calculation_context(result: CalculationResult, facts: list[NumericFact]) -> dict:

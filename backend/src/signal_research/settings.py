@@ -30,12 +30,13 @@ class Settings(BaseSettings):
     max_input_tokens: int = 150000
     max_output_tokens: int = 20000
     max_run_cost_usd: float = 5.0
+    search_usd_per_credit: float | None = None
     model_rate_card_path: Path = Path("./config/model-rates.json")
     source_request_timeout_seconds: int = 25
     max_source_bytes: int = 25_000_000
     allow_fixture_provider: bool = False
     allow_unknown_cost: bool = False
-    auto_start_worker: bool = True
+    auto_start_worker: bool = False
 
     @property
     def sqlite_path(self) -> Path | None:

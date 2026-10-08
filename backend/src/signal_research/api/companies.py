@@ -15,7 +15,7 @@ def companies(q: str = "", store=Depends(get_store)):
 
 @router.post("/resolve")
 def resolve_company(request: ResolveRequest, store=Depends(get_store)):
-    result = resolve(store, request.query)
+    result = resolve(store, request.query, refresh=True)
     if result.company:
         return {"resolved": result.company.model_dump(mode="json"), "candidates": [c.model_dump(mode="json") for c in result.candidates]}
     if result.candidates:

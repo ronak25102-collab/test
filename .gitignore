@@ -6,6 +6,11 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.review-cache/
+.review-test-temp*/
+.fix-tests*/
+.fix-test*/
+frontend/.review-npm-cache/
 node_modules/
 dist/
 frontend/test-results/

@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response, status
 
 from signal_research.db.repositories import Store
+from signal_research.domain.enums import RunMode
 from signal_research.domain.schemas import RunCreate
 
 router = APIRouter(prefix="/runs", tags=["runs"])
@@ -25,12 +27,19 @@ def require_summary(run_id: UUID, store: Store):
 
 @router.post("", status_code=status.HTTP_202_ACCEPTED)
 def create_run(request: RunCreate, response: Response, store: Store = Depends(get_store), idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None):
-    if request.as_of > datetime.now(UTC).date():
+    if request.as_of > datetime.now(ZoneInfo("Asia/Kolkata")).date():
         raise HTTPException(status_code=422, detail={"code": "INVALID_CUTOFF", "message": "cutoff cannot be in the future"})
     company = store.get_company(request.company_id)
     if not company:
         raise HTTPException(status_code=404, detail={"code": "COMPANY_NOT_FOUND", "message": "company does not exist"})
-    run_id = store.create_run(company, request.as_of, request.mode, idempotency_key)
+    if not company.business_profiles:
+        raise HTTPException(status_code=422, detail={"code": "PROFILE_UNRESOLVED", "message": "company business profile has not been resolved"})
+    if (request.mode == RunMode.REPLAY) != ("SYNTHBANK" in company.symbols):
+        raise HTTPException(status_code=422, detail={"code": "MODE_COMPANY_MISMATCH", "message": "Replay requires SYNTHBANK; live and deep modes require a real listed company"})
+    try:
+        run_id = store.create_run(company, request.as_of, request.mode, idempotency_key)
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(exc)})
     response.headers["Location"] = f"/api/v1/runs/{run_id}"
     return {"run_id": str(run_id), "status_url": f"/api/v1/runs/{run_id}", "status": "queued"}
 
