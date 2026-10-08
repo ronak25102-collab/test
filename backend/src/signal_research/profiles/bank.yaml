@@ -1,0 +1,8 @@
+profile: bank
+required_metrics: [gross_advances, deposits, casa_ratio, nim, gnpa]
+aliases:
+  gross_advances: [advances, gross loans]
+starter_questions:
+  - Does loan growth outpace stable funding?
+  - Does headline asset quality conceal weaker inflows or write-offs?
+calculation_ids: [yoy_growth, loan_to_deposit, change_pp]

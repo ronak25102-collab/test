@@ -1,0 +1,7 @@
+cases:
+  - id: synthetic-bank-funding-growth
+    company: SYNTHBANK
+    mode: replay
+    expected_outcome: discovery
+    expected_calculations: [yoy_growth, change_pp, loan_to_deposit]
+    synthetic: true

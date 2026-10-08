@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: signal
+      POSTGRES_PASSWORD: signal
+      POSTGRES_DB: signal
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signal -d signal"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://signal:signal@db:5432/signal
+      DATA_DIR: /app/data
+      MODEL_RATE_CARD_PATH: /app/config/model-rates.json
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn signal_research.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://signal:signal@db:5432/signal
+      DATA_DIR: /app/data
+      MODEL_RATE_CARD_PATH: /app/config/model-rates.json
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python -m signal_research.worker.main
+
+  web:
+    build: ./frontend
+    environment:
+      VITE_API_BASE_URL: http://127.0.0.1:8000
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:

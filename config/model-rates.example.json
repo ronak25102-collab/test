@@ -1,0 +1,15 @@
+{
+  "provider": "openai",
+  "models": [
+    {
+      "model_id": "",
+      "input_usd_per_million_tokens": null,
+      "output_usd_per_million_tokens": null,
+      "cached_input_usd_per_million_tokens": null,
+      "search_usd_per_credit": null,
+      "currency": "USD",
+      "effective_at": null,
+      "official_pricing_url": "https://openai.com/api/pricing/"
+    }
+  ]
+}

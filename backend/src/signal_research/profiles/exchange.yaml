@@ -1,0 +1,5 @@
+profile: exchange
+required_metrics: [transaction_revenue]
+aliases: {turnover: [turnover], contracts: [contracts traded]}
+starter_questions: [Are earnings driven by durable fee income or a volume mix shift?, What changes after a rule becomes effective?]
+calculation_ids: [yoy_growth, share_pct]

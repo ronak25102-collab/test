@@ -1,0 +1,5 @@
+profile: diversified
+required_metrics: [segment_profit]
+aliases: {segment_revenue: [segment revenue], active_clients: [active clients]}
+starter_questions: [Do segment economics explain a change hidden in consolidated totals?, Do group dependencies or related-party flows matter?]
+calculation_ids: [share_pct, yoy_growth]
