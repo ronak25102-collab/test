@@ -193,7 +193,7 @@ class LiveResearch:
                     from signal_research.extraction.ocr import ocr_page
                     try:
                         ocr_text = self.calls.invoke(["ocr", fetched.body_hash, page_index], "extracting", lambda: self.budget.reserve("ocr_pages"),
-                                                    lambda: (ocr_page(Path(fetched.local_path), page_index, self.settings.data_dir, min(self.settings.source_request_timeout_seconds, self.budget.remaining_seconds())), {"provider": "local_ocr"}))
+                                                    lambda: (ocr_page(Path(fetched.local_path), page_index, self.settings.data_dir, min(self.settings.source_request_timeout_seconds, self.budget.remaining_seconds()), pdftoppm_path=self.settings.pdftoppm_path, tesseract_path=self.settings.tesseract_path), {"provider": "local_ocr"}))
                         parsed.passages.append(Passage(id=uuid5(document_id, f"ocr:{page_index}:{ocr_text}"), document_id=document_id, page_index=page_index, printed_page_label=str(page_index + 1), text=ocr_text, extraction_method="ocr", extraction_quality="numeric_confidence_at_least_95"))
                     except Exception as exc:
                         self.limitations.append(f"OCR page {page_index + 1} withheld: {exc}")
@@ -230,7 +230,7 @@ class LiveResearch:
             self.extracted.add(passage.id)
             batch = self.calls.model(ExtractedFactBatch, {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "allowed_metric_keys": [m.key for m in metrics], "passage_text": passage.text}, "extract", "extracting",
-                                      "Extract exact source-backed values. Include an exact evidence_quote that contains the metric, numeric cell, complete dates, currency/scale and standalone/consolidated/segment scope. For tables preserve row and column association. Reject missing scope, definitions and duration starts. Never infer missing units or dates from a financial year label.")
+                                      "Extract at most six complete source-backed facts. Keep each exact evidence_quote limited to relevant rows and headers containing the metric, numeric cell, complete dates, currency/scale and standalone/consolidated/segment scope. For tables preserve row and column association. Reject missing scope, definitions and duration starts. Never infer missing units or dates from a financial year label.")
             accepted, candidates, rejected = [], [], []
             for candidate in batch.facts:
                 validation = validate_candidate(candidate, passage, self.company.id, profile)
@@ -278,6 +278,10 @@ class LiveResearch:
         initial = []
         # Round-robin domains and independent leads so issuer hits cannot consume the entire cap.
         queries = [(t.query, self.company.verified_ir_domains or None) for t in plan[:2]]
+        if queries:
+            # Locate the underlying disclosures before asking mechanism-specific questions.
+            # A literal cutoff day in every query can hide otherwise eligible annual filings.
+            queries[0] = (f'"{self.company.legal_name}" annual report financial results investor presentation {self.cutoff.year}', self.company.verified_ir_domains or None)
         profile = self.company.business_profiles[0]
         regulator = "RBI" if profile.value in {"bank", "nbfc"} else "IRDAI" if "insurer" in profile.value else "SEBI"
         peers = select_peers(self.company, self.store.search_companies(""), profile)
@@ -371,5 +375,5 @@ class LiveResearch:
                             historical_coverage=" / ".join(sorted({str(f.period_end) for f in self.facts if f.id in used_facts})),
                             source_coverage={"mode": "live", "synthetic": False, "documents_found": len(self.documents), "documents_used": len(documents), "eligible_origin_families": len(origins), "primary_source": True},
                             outcome=ResearchOutcome.DISCOVERY, publication_status=PublicationStatus.PUBLISHED, discoveries=[discovery], limitations=self.limitations,
-                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review", "model_id": self.settings.openai_model_research, "search_queries": self.queries},
+                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review", "provider": self.settings.llm_provider, "model_id": self.settings.model_for_role("research"), "search_queries": self.queries},
                             claims=claims, timeline_events=timeline, calculations=[c for c in self.calculations if c.id in used_calcs], facts=[f for f in self.facts if f.id in used_facts], passages=[p for p in self.passages if p.id in used_passages], documents=documents))

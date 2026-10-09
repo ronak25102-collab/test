@@ -130,6 +130,9 @@ class ResearchMachine:
         return LiveResearch(self, run_id, company, as_of, budget).run(plan)
 
     def _check_live_cost_policy(self):
+        if not self.settings.llm_configured:
+            from signal_research.providers.llm.base import ProviderNotConfigured
+            raise ProviderNotConfigured(f"{self.settings.llm_provider} key and both model roles must be configured")
         if self.settings.allow_unknown_cost:
             return
         path = self.settings.model_rate_card_path
@@ -138,7 +141,7 @@ class ResearchMachine:
         try:
             card = json.loads(path.read_text())
             models = card.get("models", [])
-            for configured in {self.settings.openai_model_research, self.settings.openai_model_extract}:
+            for configured in {self.settings.model_for_role("research"), self.settings.model_for_role("extract")}:
                 model = next((item for item in models if item.get("model_id") == configured), None)
                 if not model or any(not isinstance(model.get(key), (int, float)) or not isfinite(model[key]) or model[key] < 0 for key in ("input_usd_per_million_tokens", "output_usd_per_million_tokens")):
                     raise ValueError

@@ -23,7 +23,9 @@ class TavilySearchProvider(SearchProvider):
     def search(self, query: str, domains: list[str] | None, as_of: date, max_results: int) -> list[SearchHit]:
         if not self.settings.tavily_api_key:
             raise SearchNotConfigured("TAVILY_API_KEY is not configured")
-        response = httpx.post(self.endpoint, json={"api_key": self.settings.tavily_api_key, "query": query, "include_domains": domains or [], "max_results": min(max_results, 10), "search_depth": "basic", "topic": "finance", "end_date": as_of.isoformat(), "include_published_date": True}, timeout=self.settings.source_request_timeout_seconds)
+        # Official filings require the broad index; finance news alone can omit issuer sites.
+        topic = "general" if domains else "finance"
+        response = httpx.post(self.endpoint, json={"api_key": self.settings.tavily_api_key, "query": query, "include_domains": domains or [], "max_results": min(max_results, 10), "search_depth": "basic", "topic": topic, "end_date": as_of.isoformat(), "include_published_date": True}, timeout=self.settings.source_request_timeout_seconds)
         response.raise_for_status()
         payload = response.json()
         hits = []

@@ -1,0 +1,15 @@
+{
+  "provider": "gemini",
+  "tier": "free",
+  "models": [
+    {
+      "model_id": "gemini-3.8-flash",
+      "input_usd_per_million_tokens": 0,
+      "output_usd_per_million_tokens": 0,
+      "currency": "USD",
+      "effective_at": "2026-10-09",
+      "official_pricing_url": "https://ai.google.dev/gemini-api/docs/pricing",
+      "note": "Only valid within the Gemini free allocation; update rates if you enable billing or change models."
+    }
+  ]
+}

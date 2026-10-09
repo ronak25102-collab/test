@@ -1,6 +1,8 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,12 +15,16 @@ class Settings(BaseSettings):
     display_timezone: str = "Asia/Kolkata"
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
-    llm_provider: str = "openai"
-    openai_api_key: str = ""
+    llm_provider: Literal["openai", "gemini"] = "openai"
+    openai_api_key: str = Field(default="", repr=False)
     openai_model_research: str = ""
     openai_model_extract: str = ""
+    gemini_api_key: str = Field(default="", repr=False)
+    gemini_model_research: str = ""
+    gemini_model_extract: str = ""
+    gemini_thinking_level: Literal["minimal", "low", "medium", "high"] = "low"
     search_provider: str = "tavily"
-    tavily_api_key: str = ""
+    tavily_api_key: str = Field(default="", repr=False)
     research_mode: str = "live"
     max_run_seconds: int = 420
     max_search_calls: int = 30
@@ -29,6 +35,7 @@ class Settings(BaseSettings):
     max_active_runs: int = 1
     max_input_tokens: int = 150000
     max_output_tokens: int = 20000
+    max_model_output_tokens_per_call: int = Field(default=8192, ge=256, le=65536)
     max_run_cost_usd: float = 5.0
     search_usd_per_credit: float | None = None
     model_rate_card_path: Path = Path("./config/model-rates.json")
@@ -37,6 +44,18 @@ class Settings(BaseSettings):
     allow_fixture_provider: bool = False
     allow_unknown_cost: bool = False
     auto_start_worker: bool = False
+    pdftoppm_path: str = "pdftoppm"
+    tesseract_path: str = "tesseract"
+
+    def model_for_role(self, role: str) -> str:
+        if role not in {"extract", "research"}:
+            raise ValueError(f"unknown model role: {role}")
+        return getattr(self, f"{self.llm_provider}_model_{role}")
+
+    @property
+    def llm_configured(self) -> bool:
+        return bool(getattr(self, f"{self.llm_provider}_api_key") and
+                    self.model_for_role("research") and self.model_for_role("extract"))
 
     @property
     def sqlite_path(self) -> Path | None:

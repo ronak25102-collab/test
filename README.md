@@ -32,6 +32,21 @@ The API does not start an extra worker by default.
 
 ## Live configuration
 
+Gemini and OpenAI are supported. For Gemini configure `LLM_PROVIDER=gemini`,
+`GEMINI_API_KEY`, `GEMINI_MODEL_RESEARCH`, and `GEMINI_MODEL_EXTRACT`.
+`GEMINI_THINKING_LEVEL=low` bounds reasoning effort. Both roles may use
+`gemini-3.8-flash`; verify that your AI Studio project has sufficient quota.
+The adapter uses stateless `generateContent` with a native structured schema
+derived from Pydantic; the original Pydantic schema validates the returned values.
+Reasoning tokens are included in the usage ledger. The provider
+does not silently change models or repeat an uncertain request.
+
+Copy `config/model-rates.gemini-free.example.json` to `config/model-rates.json`
+for a Gemini free-tier project. Set `SEARCH_USD_PER_CREDIT=0` only while using
+Tavily's free credit allocation, and `MAX_RUN_COST_USD=0` to reject configured
+paid rates. Free providers still impose account quotas and capacity limits.
+Neither the application nor its setup scripts enable billing.
+
 Copy `.env.example` to `.env`. For local development set
 `DATABASE_URL=sqlite:///./data/signal.db`. Configure `OPENAI_API_KEY`,
 `TAVILY_API_KEY`, and account-accessible `OPENAI_MODEL_RESEARCH` and
@@ -39,6 +54,28 @@ Copy `.env.example` to `.env`. For local development set
 `config/model-rates.json`, filling the actual input/output USD rates for **both**
 configured models (one entry is enough if both roles use the same model).
 Set `SEARCH_USD_PER_CREDIT` for your Tavily plan.
+
+### Windows local services
+
+After configuring `.env`, run from the repository root in PowerShell:
+
+```powershell
+.venv\Scripts\python.exe scripts\doctor.py --live
+.\scripts\local.ps1 start
+.\scripts\local.ps1 status
+.\scripts\local.ps1 restart
+.\scripts\local.ps1 stop
+```
+
+The helper migrates SQLite and starts the API, worker and dashboard as hidden
+background processes bound to localhost. Logs and PID records are under
+`data/exports/local-runtime`. Restart after changing `.env`. It only stops
+processes it started, preserves the database, and refuses to reuse occupied ports.
+Install Tesseract for scanned-PDF OCR. The helper includes a portable installation
+at `data/exports/local-runtime/tesseract` in the service PATH when present;
+Poppler must also be on PATH. Alternatively set `PDFTOPPM_PATH` and
+`TESSERACT_PATH` to absolute executable paths in `.env`; these work even when
+the tools are absent from PATH. `doctor.py` reports both OCR dependencies.
 
 `ALLOW_UNKNOWN_COST=true` explicitly permits testing with hard call/token/time
 caps when prices are unavailable; in that mode the USD invoice cap cannot be
@@ -93,5 +130,6 @@ the original deadline and limits. An uncertain paid request is never replayed
 automatically; start a new run when its result cannot be recovered.
 
 See [implementation status](docs/implementation-status.md),
+[configured Windows setup](docs/LOCAL_SETUP.md),
 [fix handoff](docs/FIX_HANDOFF.md), [validation](docs/evaluation-report.md) and
 [the product specification](docs/TRACK_A_PRD_AND_IMPLEMENTATION.md).

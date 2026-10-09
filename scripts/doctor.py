@@ -24,6 +24,11 @@ def main() -> int:
         "migration_tables": len(Base.metadata.tables),
         "docker": bool(shutil.which("docker")),
         "provider_mode": settings.research_mode,
+        "llm_provider": settings.llm_provider,
+        "research_model": settings.model_for_role("research"),
+        "extract_model": settings.model_for_role("extract"),
+        "poppler": bool(shutil.which(settings.pdftoppm_path)),
+        "tesseract": bool(shutil.which(settings.tesseract_path)),
     }
     try:
         engine = build_engine(settings.database_url)
@@ -34,7 +39,7 @@ def main() -> int:
     except Exception as exc:
         checks["database"] = f"unavailable: {exc}"
     if args.live:
-        checks["openai_configured"] = bool(settings.openai_api_key and settings.openai_model_research and settings.openai_model_extract)
+        checks["llm_configured"] = settings.llm_configured
         checks["tavily_configured"] = bool(settings.tavily_api_key)
         from signal_research.worker.machine import ResearchMachine
         try:
@@ -42,7 +47,7 @@ def main() -> int:
             checks["cost_policy"] = "unknown-cost-with-hard-caps" if settings.allow_unknown_cost else "validated configured rates"
         except Exception as exc:
             checks["cost_policy"] = f"not configured: {exc}"
-        if not checks["openai_configured"] or not checks["tavily_configured"]:
+        if not checks["llm_configured"] or not checks["tavily_configured"]:
             print(json.dumps(checks, indent=2))
             print("Live provider checks require keys and account-accessible model IDs.", file=sys.stderr)
             return 2

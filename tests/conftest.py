@@ -10,6 +10,12 @@ from signal_research.settings import Settings
 from sqlalchemy.schema import CreateSchema, DropSchema
 
 
+@pytest.fixture(autouse=True)
+def isolate_local_credentials(monkeypatch):
+    """Developer .env credentials must never affect offline tests or provider selection."""
+    monkeypatch.setattr(Settings, "model_config", {**Settings.model_config, "env_file": None})
+
+
 @pytest.fixture
 def store(tmp_path: Path):
     engine = build_engine(os.getenv("TEST_DATABASE_URL", f"sqlite:///{tmp_path / 'test.db'}"))

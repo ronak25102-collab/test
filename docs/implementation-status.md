@@ -33,12 +33,16 @@ Implemented and exercised offline:
   navigation and calculation inputs in the dashboard, explicit failed/cancelled
   states, resume control, printable timeline and clickable original URLs.
 
-Validation: 69 backend tests passed locally before final packaging; the browser
+Validation: 81 backend tests passed after the Gemini/Tavily setup; the browser
 suite has four passing scenarios and the production frontend build passes.
 See evaluation-report.md for the final command results and limits of this evidence.
 
-Remaining deployment validation is external: account-backed provider calls, a
-representative live company set, public-PDF/OCR accuracy against manually checked
+Authenticated Gemini extraction and Tavily calls now pass; a real HDFC Bank run
+completed with an explicit evidence-gap abstention. See LOCAL_SETUP.md and
+evaluation-report.md for the measured results and the large-PDF timeout encountered.
+
+Remaining deployment validation is external: a representative live company set,
+public-PDF/OCR accuracy against manually checked
 disclosures, and real concurrent PostgreSQL workers. No real-provider quality or
 all-constituent success rate is claimed from mocked tests. Some issuers omit dates,
 scope, units or duration starts in retrievable spans; those cases legitimately
