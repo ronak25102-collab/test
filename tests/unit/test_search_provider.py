@@ -6,7 +6,7 @@ from signal_research.providers.search.tavily_provider import TavilySearchProvide
 from signal_research.settings import Settings
 
 
-@pytest.mark.parametrize("domains,topic", [(["issuer.example"], "general"), (None, "finance")])
+@pytest.mark.parametrize("domains,topic", [(["issuer.example"], "general"), (None, "general")])
 def test_issuer_search_uses_broad_index_and_retains_cutoff(monkeypatch, domains, topic):
     requests = []
     def post(url, **kwargs):

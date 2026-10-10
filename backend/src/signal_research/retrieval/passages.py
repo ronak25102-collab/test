@@ -43,6 +43,43 @@ def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
 
 
 def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
+    from pypdf import PdfReader
+
+    reader = PdfReader(path)
+    # Annual reports can contain hundreds of pages. Exhaustive table detection on
+    # every page is much slower than extracting text with its column positions.
+    if len(reader.pages) > 80:
+        from contextlib import ExitStack
+
+        import pdfplumber
+
+        passages, blank_pages = [], []
+        with ExitStack() as resources:
+            financial_pdf = None
+            for page_index, page in enumerate(reader.pages):
+                text = page.extract_text(extraction_mode="layout") or ""
+                method = "pdf_layout"
+                if _balance_page(text):
+                    # Use glyph-aware text extraction only on balance pages. This
+                    # recovers complete headers without detecting tables on all pages.
+                    if financial_pdf is None:
+                        financial_pdf = resources.enter_context(pdfplumber.open(path))
+                    financial_page = financial_pdf.pages[page_index]
+                    recover_rupee_glyphs(financial_page.chars)
+                    text = financial_page.extract_text() or text
+                    method = "pdf"
+                # Keep column separation without letting blank padding split headers
+                # from their rows or consume the model's input allowance.
+                text = re.sub(r"[ \t]{3,}", "  ", text)
+                if len(text.strip()) < 40:
+                    blank_pages.append(page_index)
+                parsed = _chunk(document_id, path.name, [line for line in text.splitlines() if line.strip()], method)
+                for passage in parsed.passages:
+                    passage.id = uuid5(document_id, f"layout:page:{page_index}:{passage.text}")
+                    passage.page_index = page_index
+                    passage.printed_page_label = str(page_index + 1)
+                passages.extend(parsed.passages)
+        return ParsedDocument(path.name, passages, "pdf_layout", blank_pages)
     try:
         import pdfplumber
     except ImportError as exc:
@@ -52,6 +89,7 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
     title = path.name
     with pdfplumber.open(path) as pdf:
         for page_index, page in enumerate(pdf.pages):
+            recover_rupee_glyphs(page.chars)
             text = page.extract_text() or ""
             if len(text.strip()) < 40:
                 blank_pages.append(page_index)
@@ -73,13 +111,31 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
     return ParsedDocument(title, passages, "pdf", blank_pages)
 
 
+def _balance_page(text):
+    rows = re.findall(r"(?im)^\s*(?:total\s+|gross\s+)?(?:advances|deposits|borrowings)\b[^\n]*\d", text)
+    return len(rows) >= 2 and bool(re.search(r"\b(?:standalone|consolidated)\b", text, re.I))
+
+
+def recover_rupee_glyphs(chars):
+    """Recover font-encoded rupees without changing ordinary letters or punctuation."""
+    for char in chars:
+        font = char.get("fontname", "").split("+")[-1]
+        if (font == "ITFRupee" and char.get("text") == "C") or (font in {"Rupee", "RupeeForadian"} and char.get("text") == "`"):
+            char["text"] = "\u20b9"
+
+
 def bounded_parse_pdf(document_id, path, timeout):
     """Contain CPU-heavy untrusted PDF parsing in a disposable process."""
     import json
     import subprocess
     import sys
-    result = subprocess.run([sys.executable, "-m", "signal_research.retrieval.parse_worker", str(document_id), str(path.resolve())],
-                            capture_output=True, timeout=timeout, check=True)
+    try:
+        result = subprocess.run([sys.executable, "-m", "signal_research.retrieval.parse_worker", str(document_id), str(path.resolve())],
+                                capture_output=True, timeout=timeout, check=True)
+    except subprocess.TimeoutExpired:
+        raise RuntimeError(f"PDF parsing exceeded its {timeout:g}-second limit") from None
+    except subprocess.CalledProcessError:
+        raise RuntimeError("PDF parser could not read this document") from None
     payload = json.loads(result.stdout)
     return ParsedDocument(payload["title"], [Passage.model_validate(p) for p in payload["passages"]], "pdf", payload.get("blank_page_indexes", []))
 

@@ -18,25 +18,37 @@ def ocr_required(text: str | None, table_count: int = 0) -> bool:
 
 def ocr_page(path, page_index, data_dir, timeout, pdftoppm_path="pdftoppm", tesseract_path="tesseract"):
     import csv
+    import importlib.util
     import io
     import shutil
     import subprocess
+    import sys
     from pathlib import Path
     from tempfile import TemporaryDirectory
     from time import monotonic
 
     renderer = shutil.which(pdftoppm_path)
     recognizer = shutil.which(tesseract_path)
-    if not renderer or not recognizer:
-        raise RuntimeError("OCR requires pdftoppm and tesseract (included in the backend Docker image)")
+    packaged = importlib.util.find_spec("tesserocr") and (data_dir / "tessdata" / "eng.traineddata").exists()
+    if not recognizer and not packaged:
+        raise RuntimeError("OCR requires Tesseract; configure TESSERACT_PATH or install it")
     deadline = monotonic() + timeout
     (data_dir / "parsed").mkdir(parents=True, exist_ok=True)
     with TemporaryDirectory(dir=data_dir / "parsed") as directory:
         prefix = Path(directory) / "page"
-        subprocess.run([renderer, "-f", str(page_index + 1), "-l", str(page_index + 1), "-singlefile", "-r", "180", "-png", str(path), str(prefix)], check=True, capture_output=True, timeout=max(.1, deadline - monotonic()))
-        result = subprocess.run([recognizer, str(prefix.with_suffix(".png")), "stdout", "tsv"], check=True, capture_output=True, timeout=max(.1, deadline - monotonic()))
+        command = ([renderer, "-f", str(page_index + 1), "-l", str(page_index + 1), "-singlefile", "-r", "180", "-png", str(path), str(prefix)] if renderer else
+                   [sys.executable, "-m", "signal_research.extraction.render_worker", str(path), str(page_index), str(prefix.with_suffix(".png"))])
+        subprocess.run(command, check=True, capture_output=True, timeout=max(.1, deadline - monotonic()))
+        command = ([recognizer, str(prefix.with_suffix(".png")), "stdout", "tsv"] if recognizer else
+                   [sys.executable, "-m", "signal_research.extraction.tesseract_worker", str(prefix.with_suffix(".png")), str(data_dir / "tessdata")])
+        result = subprocess.run(command, check=True, capture_output=True, timeout=max(.1, deadline - monotonic()))
         rows = list(csv.DictReader(io.StringIO(result.stdout.decode("utf-8", errors="replace")), delimiter="\t"))
         tokens = [r for r in rows if r.get("text", "").strip()]
         if any(any(c.isdigit() for c in r["text"]) and float(r.get("conf", "-1")) < 95 for r in tokens):
             raise RuntimeError("OCR numeric confidence is too low; the page was withheld")
-        return " ".join(r["text"] for r in tokens)
+        # Preserve row boundaries; flattening the page destroys table bindings.
+        lines = {}
+        for row in tokens:
+            key = tuple(row.get(field) for field in ("block_num", "par_num", "line_num"))
+            lines.setdefault(key, []).append(row["text"])
+        return "\n".join(" ".join(words) for words in lines.values())

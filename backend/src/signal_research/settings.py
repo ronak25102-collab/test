@@ -15,14 +15,18 @@ class Settings(BaseSettings):
     display_timezone: str = "Asia/Kolkata"
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
-    llm_provider: Literal["openai", "gemini"] = "openai"
+    llm_provider: Literal["openai", "gemini", "nvidia"] = "openai"
     openai_api_key: str = Field(default="", repr=False)
     openai_model_research: str = ""
     openai_model_extract: str = ""
+    nvidia_api_key: str = Field(default="", repr=False)
+    nvidia_model_research: str = ""
+    nvidia_model_extract: str = ""
     gemini_api_key: str = Field(default="", repr=False)
     gemini_model_research: str = ""
     gemini_model_extract: str = ""
     gemini_thinking_level: Literal["minimal", "low", "medium", "high"] = "low"
+    gemini_max_attempts: int = Field(default=2, ge=1, le=3)
     search_provider: str = "tavily"
     tavily_api_key: str = Field(default="", repr=False)
     research_mode: str = "live"
@@ -40,6 +44,8 @@ class Settings(BaseSettings):
     search_usd_per_credit: float | None = None
     model_rate_card_path: Path = Path("./config/model-rates.json")
     source_request_timeout_seconds: int = 25
+    pdf_parse_timeout_seconds: float = Field(default=90, gt=0, le=300)
+    model_request_timeout_seconds: float = Field(default=90, gt=0, le=300)
     max_source_bytes: int = 25_000_000
     allow_fixture_provider: bool = False
     allow_unknown_cost: bool = False

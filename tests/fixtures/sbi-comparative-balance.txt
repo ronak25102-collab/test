@@ -1,0 +1,18 @@
+Balance sheet
+₹ in Crores
+SBI SOLO SBI GROUP
+Liabilities
+Jun 25 Jun 26 YOY Growth (%) Jun 25 Jun 26 YOY Growth (%)
+Capital 892 923 3.43 892 923 3.43
+Reserves and Surplus 4,69,302 5,65,908 20.58 5,19,583 6,21,017 19.52
+Minority Interest 19,172 20,008 4.36
+Deposits 54,73,254 60,05,805 9.73 55,34,314 60,73,777 9.75
+Borrowings 5,37,749 7,68,854 42.98 5,86,170 8,20,334 39.95
+Other Liabilities & Provisions 2,87,307 3,20,795 11.66 7,84,159 8,67,171 10.59
+Total Liabilities 67,68,505 76,62,285 13.20 74,44,291 84,03,229 12.88
+SBI SOLO SBI GROUP
+Assets
+Jun 25 Jun 26 YOY Growth (%) Jun 25 Jun 26 YOY Growth (%)
+Cash & balances with RBI 2,62,777 2,11,851 -19.38 2,62,965 2,12,013 -19.38
+Net Advances 41,96,205 49,92,004 18.96 42,87,300 50,95,829 18.86
+Total Assets 67,68,505 76,62,285 13.20 74,44,291 84,03,229 12.88

@@ -53,3 +53,15 @@ def test_calculation_is_reproduced_even_with_new_checksum(store):
     attest_report(report)
     with pytest.raises(VerificationFailure, match="reproduction"):
         verify_report(report)
+
+
+def test_withheld_discovery_still_checks_retained_calculation_results(store):
+    report = build_synthetic_report(uuid4(), store.search_companies("SYNTHBANK")[0], date(2026, 10, 8))
+    from signal_research.research.report_builder import build_abstention
+    withheld = build_abstention(report.run_id, report.company, report.cutoff, report.documents,
+                               report.passages, report.facts, ["independent corroboration"])
+    withheld.calculations = report.calculations
+    verify_report(withheld)
+    withheld.calculations[0].output_value = Decimal("999999")
+    with pytest.raises(VerificationFailure, match="reproduction"):
+        verify_report(withheld)

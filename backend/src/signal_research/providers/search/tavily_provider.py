@@ -24,7 +24,9 @@ class TavilySearchProvider(SearchProvider):
         if not self.settings.tavily_api_key:
             raise SearchNotConfigured("TAVILY_API_KEY is not configured")
         # Official filings require the broad index; finance news alone can omit issuer sites.
-        topic = "general" if domains else "finance"
+        # General search includes original rating reports and regulatory PDFs.
+        # Finance-only results repeatedly returned unrelated blocked news pages.
+        topic = "general"
         response = httpx.post(self.endpoint, json={"api_key": self.settings.tavily_api_key, "query": query, "include_domains": domains or [], "max_results": min(max_results, 10), "search_depth": "basic", "topic": topic, "end_date": as_of.isoformat(), "include_published_date": True}, timeout=self.settings.source_request_timeout_seconds)
         response.raise_for_status()
         payload = response.json()

@@ -2,11 +2,44 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from signal_research.db.models import ResearchRunModel
+from pydantic import BaseModel
+from signal_research.db.models import CompanyModel, ResearchRunModel
 from signal_research.domain.enums import RunMode, RunStatus
+from signal_research.providers.llm.base import ProviderUsage
 from signal_research.research.report_builder import build_synthetic_report
 from signal_research.worker.budgets import Budget
 from signal_research.worker.calls import DurableCalls, UncertainCall
+
+
+def test_bootstrap_updates_sbi_domains_without_removing_existing_domains(store):
+    company = store.search_companies("SBIN")[0]
+    with store.session_factory() as session:
+        session.get(CompanyModel, str(company.id)).verified_ir_domains = ["sbi.co.in", "reports.sbi.co.in"]
+        session.commit()
+    store.bootstrap()
+    store.bootstrap()
+    assert store.get_company(company.id).verified_ir_domains == ["sbi.bank.in", "sbi.co.in", "reports.sbi.co.in"]
+
+
+@pytest.mark.parametrize("symbol,current,legacy", [
+    ("AXISBANK", "axis.bank.in", "axisbank.com"),
+    ("HDFCBANK", "hdfc.bank.in", "hdfcbank.com"),
+    ("ICICIBANK", "icici.bank.in", "icicibank.com"),
+    ("KOTAKBANK", "kotak.bank.in", "kotak.com"),
+    ("SBIN", "sbi.bank.in", "sbi.co.in"),
+])
+def test_bootstrap_refreshes_every_supported_bank_and_keeps_identity_history(store, symbol, current, legacy):
+    company = store.search_companies(symbol)[0]
+    with store.session_factory() as session:
+        row = session.get(CompanyModel, str(company.id))
+        row.verified_ir_domains = [legacy, "reports." + legacy]
+        row.isin = "EXISTING-ISIN"
+        session.commit()
+    store.bootstrap()
+    store.bootstrap()
+    updated = store.get_company(company.id)
+    assert updated.verified_ir_domains == [current, legacy, "reports." + legacy]
+    assert updated.isin == "EXISTING-ISIN"
 
 
 def test_snapshot_adds_unseeded_financial_identity_without_json_like(store):
@@ -55,6 +88,27 @@ def test_uncertain_provider_call_is_never_repeated(store, settings):
     with pytest.raises(UncertainCall):
         calls.invoke(["provider", "request"], "discovering", lambda: calls.budget.reserve("search_calls"), failing)
     assert count == [1] and calls.budget.search_calls == 1
+
+
+def test_model_timeout_is_separate_from_download_timeout_and_bounded_by_run(store, settings, monkeypatch):
+    class Probe(BaseModel):
+        status: str
+
+    deadlines = []
+
+    class Adapter:
+        def generate(self, schema, messages, role, deadline, outputs):
+            deadlines.append(deadline.total_seconds())
+            return Probe(status="ok"), ProviderUsage(input_tokens=10, output_tokens=10)
+
+    monkeypatch.setattr("signal_research.worker.calls.get_llm_provider", lambda s: Adapter())
+    settings.source_request_timeout_seconds = 1
+    settings.model_request_timeout_seconds = 90
+    budget = Budget(2, 2, 2, 1, deadline=datetime.now(UTC) + timedelta(seconds=60))
+    run_id = store.create_run(store.search_companies("SYNTHBANK")[0], date(2026, 10, 8), RunMode.REPLAY)
+    result = DurableCalls(store, settings, run_id, budget).model(Probe, {"test": "timeout"})
+    assert result.status == "ok"
+    assert 50 < deadlines[0] <= 60
 
 
 def test_idempotency_rejects_conflicting_request(store):

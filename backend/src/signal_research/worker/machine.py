@@ -7,7 +7,8 @@ from math import isfinite
 from uuid import UUID
 
 from signal_research.db.repositories import Store
-from signal_research.domain.enums import RunMode, RunStatus
+from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
+from signal_research.domain.errors import BudgetExceeded
 from signal_research.domain.schemas import ResearchReport
 from signal_research.research.planner import initial_plan
 from signal_research.research.report_builder import build_synthetic_report
@@ -68,7 +69,12 @@ class ResearchMachine:
                         persist=lambda value: self.store.update_run(run_id, budget=value))
         self.store.update_run(run_id, budget=budget.snapshot())
         try:
-            budget.check()
+            recovered = self.store.load_checkpoint(run_id, RunStatus.VERIFYING.value)
+            recovered_report = ResearchReport.model_validate(recovered) if recovered else None
+            # A verified partial checkpoint can be saved locally after its limit;
+            # resuming it never extends the deadline or sends provider requests.
+            if not recovered_report or recovered_report.outcome != ResearchOutcome.PARTIAL:
+                budget.check()
             self._stage(run_id, RunStatus.RESOLVING, "entity_resolved", f"Resolved {summary.company.legal_name} to {','.join(summary.company.symbols)}")
             if self._cancelled(run_id):
                 return
@@ -78,9 +84,8 @@ class ResearchMachine:
             self.store.checkpoint(run_id, RunStatus.PLANNING.value, 0, [task.query for task in plan])
             if self._cancelled(run_id):
                 return
-            recovered = self.store.load_checkpoint(run_id, RunStatus.VERIFYING.value)
-            if recovered:
-                report = ResearchReport.model_validate(recovered)
+            if recovered_report:
+                report = recovered_report
             elif summary.mode == RunMode.REPLAY:
                 report = self._process_replay(run_id, summary.as_of, summary.company, budget)
             else:
@@ -92,7 +97,8 @@ class ResearchMachine:
             report = verify_report(report)
             self.store.checkpoint(run_id, RunStatus.VERIFYING.value, 0, report.model_dump(mode="json"))
             self._set_stage(run_id, RunStatus.COMPOSING, "report_composed", "Composed the validated report from verified artifacts")
-            budget.check()
+            if report.outcome != ResearchOutcome.PARTIAL:
+                budget.check()
             self.store.update_run(run_id, progress={"sources_found": len(report.documents), "documents_parsed": len(report.documents), "calculations_completed": len(report.calculations), "counterevidence_checks": 1 if report.discoveries else 0}, budget=budget.snapshot())
             self.store.save_report(report)
         except Exception as exc:
@@ -127,7 +133,17 @@ class ResearchMachine:
 
     def _process_live(self, run_id, as_of, company, plan, budget) -> ResearchReport:
         from signal_research.research.live import LiveResearch
-        return LiveResearch(self, run_id, company, as_of, budget).run(plan)
+        research = LiveResearch(self, run_id, company, as_of, budget)
+        try:
+            return research.run(plan)
+        except BudgetExceeded as exc:
+            # Stop all provider work, then locally verify and save what has
+            # already been independently checked. A limit is not a discovery.
+            report = research.abstain(["Additional investigation within the configured research limits"])
+            report.outcome = ResearchOutcome.PARTIAL
+            report.limitations.append(f"Research stopped at its configured limit: {exc}. Verified evidence was preserved.")
+            report.generation_metadata["stopped_by_limit"] = str(exc)
+            return report
 
     def _check_live_cost_policy(self):
         if not self.settings.llm_configured:

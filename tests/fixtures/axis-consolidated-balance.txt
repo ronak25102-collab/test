@@ -1,0 +1,50 @@
+Notes :
+1. Consolidated Statement of Assets and Liabilities is given below:
+(₹ in crores)
+As on 30.06.2026 As on 31.03.2026 As on 30.06.2025
+Particulars
+(Unaudited) (Audited) (Unaudited)
+CAPITAL AND LIABILITIES
+Capital 622.16 621.63 620.24
+Employees' Stock Options Outstanding 1,473.91 1,456.43 1,205.91
+Reserves and Surplus 2,20,980.84 2,12,957.29 1,92,043.20
+Minority Interest 836.25 798.19 670.91
+Deposits 13,71,173.07 13,33,791.44 11,59,584.25
+Borrowings 2,85,257.98 2,80,510.62 2,19,991.64
+Other Liabilities and Provisions 1,05,651.34 1,15,914.69 79,373.53
+TOTAL 19,85,995.55 19,46,050.29 16,53,489.68
+ASSETS
+Cash and Balances with Reserve Bank of India 58,656.85 78,627.37 65,606.12
+Balances with Banks and Money at Call and Short Notice 76,940.40 30,724.20 36,841.93
+Investments 4,38,796.54 4,46,422.18 3,61,540.85
+Advances 13,15,862.99 12,82,392.17 11,02,649.20
+Fixed Assets 6,814.93 6,756.03 6,577.09
+Other Assets 88,634.60 1,00,839.10 79,985.25
+Goodwill on Consolidation 289.24 289.24 289.24
+TOTAL 19,85,995.55 19,46,050.29 16,53,489.68
+2. The above results represent the consolidated financial results of Axis Bank Limited and its subsidiaries & associate. As
+on 30th June 2026, the Bank has 10 subsidiaries, 2 step-down subsidiaries and 1 associate.
+3. TheaboveresultsarepreparedinaccordancewiththeprinciplessetoutinAccountingStandard21-Consolidated
+Financial Statements and Accounting Standard 23 – Accounting for Investments in Associates in Consolidated
+Financial Statements as notified under Section 133 of the Companies Act, 2013.
+4. The figures of the last quarter of the previous year are the balancing figures between audited figures in respect of the
+full financial year and the published/ unaudited year to date figures upto the end of the third quarter of the previous
+year.
+5. ThefinancialstatementsofcertainsubsidiarieshavebeenpreparedinaccordancewithnotifiedIndianAccounting
+Standards(‘Ind-AS’)witheffectfrom1stApril2018.Thefinancialstatementsofsuchsubsidiariesusedforconsolidation
+arespecialpurposefinancialstatementspreparedinaccordancewithGenerallyAcceptedAccountingPrinciplesin
+India (‘GAAP’) specified under section 133 of the Companies Act, 2013 read together with paragraph 7 of the
+Companies (Accounts) Rules, 2014 and the Companies (Accounting Standards) Amendment Rules, 2016.
+6. In accordance with RBI guidelines, banks are required to make Pillar 3 disclosures including leverage ratio and
+liquiditycoverageratioandNetStableFundingRatio(NSFR)undertheBaselIIIframework.Thesedisclosureswouldbe
+available on Bank's website at the following link: https://www.axis.bank.in/shareholders-corner/regulatory-
+disclosure/basel-III-disclosures. The disclosures have not been subjected to audit or limited review by the joint
+statutory auditors of the Bank.
+7. During the quarter, the Bank infused equity capital of ₹1,499.26 crores in Axis Finance Limited, wholly-owned
+subsidiary of the Bank. Further, during the quarter, the Bank additionally invested an amount of ₹380.60 crores in
+equity shares of Axis Max Life Insurance Limited.
+8. During Q4 of FY26, the Bank took the initiative to further strengthen its balance sheet by voluntarily enhancing its
+prudent provisioning framework for standard assets. In line with this framework, an additional one-time provision of
+₹2,001 crores was made during the quarter. This measure is entirely prudent and does not indicate any concerns
+regardingassetqualityoradversecreditdevelopmentsintheBank’sloanorinvestmentportfolioasofthereporting
+date. The Bank has not drawn down from the said provision during Q1FY27.

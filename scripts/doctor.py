@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -28,7 +29,9 @@ def main() -> int:
         "research_model": settings.model_for_role("research"),
         "extract_model": settings.model_for_role("extract"),
         "poppler": bool(shutil.which(settings.pdftoppm_path)),
-        "tesseract": bool(shutil.which(settings.tesseract_path)),
+        "tesseract": bool(shutil.which(settings.tesseract_path) or
+                          (importlib.util.find_spec("tesserocr") and (settings.data_dir / "tessdata" / "eng.traineddata").exists())),
+        "pdf_renderer": bool(shutil.which(settings.pdftoppm_path) or importlib.util.find_spec("pypdfium2")),
     }
     try:
         engine = build_engine(settings.database_url)

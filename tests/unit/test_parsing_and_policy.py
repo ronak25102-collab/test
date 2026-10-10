@@ -12,7 +12,13 @@ from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.periods import quarter
 from signal_research.research.live import derive_calculations
 from signal_research.retrieval.metadata import domain_matches, source_publication
-from signal_research.retrieval.passages import bounded_parse_pdf, parse_html, parse_xbrl
+from signal_research.retrieval.passages import (
+    bounded_parse_pdf,
+    parse_html,
+    parse_pdf,
+    parse_xbrl,
+    recover_rupee_glyphs,
+)
 from signal_research.worker.budgets import Budget
 
 
@@ -34,6 +40,51 @@ def test_pdf_process_preserves_physical_page_locator(tmp_path):
     pdf.save()
     parsed = bounded_parse_pdf(uuid4(), path, 10)
     assert {p.page_index for p in parsed.passages} == {0, 1}
+
+
+def test_large_pdf_keeps_all_pages_and_headers_without_exhaustive_tables(tmp_path, monkeypatch):
+    path = tmp_path / "annual.pdf"
+    pdf = canvas.Canvas(str(path))
+    for index in range(81):
+        pdf.drawString(50, 750, f"Page {index + 1}: INR crore at 30.06.2026")
+        pdf.drawString(50, 730, "Deposits 100; Advances 90")
+        pdf.showPage()
+    pdf.save()
+    import pdfplumber
+    monkeypatch.setattr(pdfplumber, "open", lambda *a, **k: pytest.fail("Large PDFs must avoid exhaustive table detection"))
+    identifier = uuid4()
+    parsed = parse_pdf(identifier, path)
+    assert parsed.extraction_method == "pdf_layout"
+    assert {p.page_index for p in parsed.passages} == set(range(81))
+    assert all("30.06.2026" in p.text and "Deposits 100" in p.text for p in parsed.passages)
+    assert [p.id for p in parsed.passages] == [p.id for p in parse_pdf(identifier, path).passages]
+
+
+def test_pdf_timeout_does_not_expose_local_command_or_paths(tmp_path, monkeypatch):
+    import subprocess
+    def expired(*args, **kwargs):
+        raise subprocess.TimeoutExpired("private-command", kwargs["timeout"])
+    monkeypatch.setattr(subprocess, "run", expired)
+    with pytest.raises(RuntimeError) as error:
+        bounded_parse_pdf(uuid4(), tmp_path / "private-document.pdf", 90)
+    assert str(error.value) == "PDF parsing exceeded its 90-second limit"
+
+
+def test_rupee_font_recovery_never_changes_ordinary_letters():
+    chars = [{"text": "C", "fontname": "AAATJJ+ITFRupee"},
+             {"text": "C", "fontname": "Helvetica"},
+             {"text": "1", "fontname": "AAATJJ+ITFRupee"}]
+    recover_rupee_glyphs(chars)
+    assert [char["text"] for char in chars] == ["\u20b9", "C", "1"]
+
+
+def test_bank_rupee_fonts_recover_backticks_without_changing_ordinary_backticks():
+    chars = [{"text": "`", "fontname": "ABCDEE+Rupee"},
+             {"text": "`", "fontname": "BCDKEE+RupeeForadian"},
+             {"text": "`", "fontname": "Helvetica"},
+             {"text": "C", "fontname": "Rupee"}]
+    recover_rupee_glyphs(chars)
+    assert [char["text"] for char in chars] == ["\u20b9", "\u20b9", "`", "C"]
 
 
 def test_xbrl_keeps_entity_context_dates_units_and_dimensions():

@@ -16,6 +16,11 @@ class GeminiRequestError(RuntimeError):
     code = "GEMINI_REQUEST_FAILED"
 
 
+class GeminiUnavailable(GeminiRequestError):
+    """An explicit HTTP 503 response, rather than an uncertain transport failure."""
+    code = "GEMINI_TEMPORARILY_UNAVAILABLE"
+
+
 def gemini_schema(original: dict) -> dict:
     """Inline local definitions and remove unsupported wire constraints.
 
@@ -115,6 +120,8 @@ class GeminiProvider(LLMProvider):
         except httpx.RequestError as exc:
             raise GeminiRequestError(f"Gemini transport failed ({type(exc).__name__}); the request may have been processed") from None
         if not response.is_success:
+            if response.status_code == 503:
+                raise GeminiUnavailable("Gemini is temporarily unavailable (HTTP 503); try again after capacity recovers")
             if response.status_code == 429:
                 message = "Gemini quota exceeded; inspect your AI Studio limits before starting a new run"
             elif response.status_code in {401, 403}:

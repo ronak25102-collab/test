@@ -38,17 +38,17 @@ UNIVERSE_SEED = [
 ]
 
 IR_DOMAINS = {
-    "AXISBANK": ["axisbank.com"],
+    "AXISBANK": ["axis.bank.in", "axisbank.com"],
     "BAJFINANCE": ["bajajfinserv.in"],
     "BAJAJFINSV": ["bajajfinserv.in"],
     "HDFCBANK": ["hdfc.bank.in", "hdfcbank.com"],
     "HDFCLIFE": ["hdfclife.com"],
-    "ICICIBANK": ["icicibank.com"],
+    "ICICIBANK": ["icici.bank.in", "icicibank.com"],
     "JIOFIN": ["jfs.in"],
-    "KOTAKBANK": ["kotak.com"],
+    "KOTAKBANK": ["kotak.bank.in", "kotak.com"],
     "SBILIFE": ["sbilife.co.in"],
     "SHRIRAMFIN": ["shriramfinance.in"],
-    "SBIN": ["sbi.co.in"],
+    "SBIN": ["sbi.bank.in", "sbi.co.in"],
 }
 
 
@@ -64,8 +64,10 @@ class Store:
                 company_id = str(uuid5(NAMESPACE_URL, f"signal-research/company/{symbol}"))
                 existing = session.get(CompanyModel, company_id)
                 if existing:
-                    if not existing.verified_ir_domains and symbol in IR_DOMAINS:
-                        existing.verified_ir_domains = IR_DOMAINS[symbol]
+                    if symbol in IR_DOMAINS:
+                        existing.verified_ir_domains = list(dict.fromkeys([
+                            *IR_DOMAINS[symbol], *(existing.verified_ir_domains or []),
+                        ]))
                     continue
                 session.add(CompanyModel(
                     id=company_id, legal_name=legal_name, symbols=[symbol], aliases=[legal_name],

@@ -1,6 +1,70 @@
 import { test, expect } from '@playwright/test'
 import report from './fixtures/replay.json' with { type: 'json' }
 
+test('saved bank run restores its own company, cutoff and mode without defaulting to HDFC', async ({ page }) => {
+  const company = { ...report.company, legal_name: 'Axis Bank', symbols: ['AXISBANK'] }
+  let polls = 0
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [company] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    polls++
+    return route.fulfill({ json: { id: report.run_id, company, as_of: '2026-07-17', mode: 'deep',
+      status: 'extracting', stage: 'extracting', progress: { sources_found: polls }, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await expect(page.getByRole('textbox', { name: 'Company search' })).toHaveValue('AXISBANK')
+  await expect(page.getByLabel('Cutoff date')).toHaveValue('2026-07-17')
+  await expect(page.getByRole('combobox', { name: 'Mode', exact: true })).toHaveValue('deep')
+  await expect(page.getByRole('button', { name: /Axis Bank/ })).toHaveClass(/selected/)
+  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeEnabled()
+  await page.getByRole('textbox', { name: 'Company search' }).fill('ICICIBANK')
+  await expect.poll(() => polls).toBeGreaterThan(1)
+  await expect(page.getByRole('textbox', { name: 'Company search' })).toHaveValue('ICICIBANK')
+  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeDisabled()
+})
+
+test('local startup removes a leftover root service worker', async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'serviceWorker', { value: {
+      controller: null,
+      getRegistrations: async () => [{ scope: `${location.origin}/`, unregister: async () => {
+        sessionStorage.setItem('legacy-worker-removed', 'yes'); return true
+      } }],
+    } })
+  })
+  await page.goto('/')
+  await expect(page.getByRole('heading', { name: 'Investigate a listed financial business' })).toBeVisible()
+  expect(await page.evaluate(() => sessionStorage.getItem('legacy-worker-removed'))).toBe('yes')
+})
+
+for (const outcome of ['insufficient_evidence', 'partial']) {
+test(`${outcome} still exposes verified facts, inputs and original sources`, async ({ page }) => {
+  const partial = { ...report, outcome, publication_status: 'abstained', discoveries: [],
+    claims: [], abstention: { missing_requirements: ['Independent funding corroboration'], next_evidence_needed: ['A dated independent rating report'], attempted_angles: [] },
+    limitations: ['Source unavailable: blocked publisher returned 403'] }
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: partial })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: 'completed', stage: 'completed', progress: {}, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await expect(page.getByRole('heading', { name: 'Verified evidence collected' })).toBeVisible()
+  if (outcome === 'partial') {
+    await expect(page.getByText('PARTIAL RESEARCH')).toBeVisible()
+    await expect(page.getByRole('status')).toContainText('Research reached its configured limit')
+  }
+  await expect(page.getByRole('link', { name: /Original source/ }).first()).toHaveAttribute('href', report.documents[0].canonical_url)
+  await expect(page.getByRole('heading', { name: 'Reproducible calculations' })).toBeVisible()
+  await expect(page.getByText('Independent funding corroboration')).toBeVisible()
+  await expect(page.getByText('Source unavailable: blocked publisher returned 403')).not.toBeVisible()
+  await page.getByText('Source access and coverage details').click()
+  await expect(page.getByText('Source unavailable: blocked publisher returned 403')).toBeVisible()
+})
+}
+
 test('complete report exposes sources, calculation inputs and printable timeline', async ({ page }) => {
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
@@ -43,6 +107,27 @@ test('failed run shows its reason and can resume', async ({ page }) => {
   await expect(page.getByRole('alert')).toContainText('Source request deadline exceeded')
   await page.getByRole('button', { name: 'Resume from saved work' }).click()
   await expect(page.getByRole('heading', { name: report.discoveries[0].discovery_sentence })).toBeVisible()
+})
+
+test('expired run starts a fresh investigation with the original company and cutoff', async ({ page }) => {
+  let restarted = false
+  let created: unknown
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: report })
+    if (path.endsWith('/runs') && route.request().method() === 'POST') {
+      created = route.request().postDataJSON(); restarted = true
+      return route.fulfill({ status: 202, json: { run_id: report.run_id } })
+    }
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: restarted ? 'completed' : 'failed', stage: 'failed', progress: {}, limitations: ['run deadline exceeded'] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await expect(page.getByRole('alert')).toContainText('This run reached its total time limit')
+  await expect(page.getByRole('button', { name: 'Resume from saved work' })).not.toBeVisible()
+  await page.getByRole('button', { name: 'Start a new run' }).click()
+  await expect.poll(() => created).toEqual({ company_id: report.company.id, as_of: report.cutoff, mode: 'live' })
 })
 
 test('directory resolution selects the returned listed company', async ({ page }) => {

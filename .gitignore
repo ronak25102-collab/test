@@ -19,6 +19,8 @@ data/raw/*
 data/parsed/*
 data/exports/*
 data/*.db
+data/*.db-*
+data/tessdata/*
 output/*
 config/model-rates.json
 !data/.gitkeep

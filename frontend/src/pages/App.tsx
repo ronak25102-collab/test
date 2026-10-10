@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Company, Report, RunSummary } from '../api/generated'
 import { API_BASE, api } from '../api/client'
 import { ReportPrint } from './ReportPrint'
@@ -20,11 +20,11 @@ export function App() {
   const [busy, setBusy] = useState(false)
   const [pollVersion, setPollVersion] = useState(0)
   const [claimId, setClaimId] = useState<string | null>(null)
+  const restoredFormRun = useRef<string | null>(null)
   const printable = new URLSearchParams(location.search).get('print') === '1'
 
   useEffect(() => {
     let active = true
-    setSelected(null)
     const timer = window.setTimeout(() => api.companies(query).then((data) => { if (active) setCompanies(data.items) }).catch((err) => { if (active) setError(err.message) }), 250)
     return () => { active = false; window.clearTimeout(timer) }
   }, [query])
@@ -37,6 +37,12 @@ export function App() {
         const current = await api.run(runId)
         if (!active) return
         setRun(current)
+        if (restoredFormRun.current !== runId) {
+          restoredFormRun.current = runId
+          setQuery(current.company.symbols[0] || current.company.legal_name)
+          setCompanies([current.company]); setSelected(current.company)
+          setAsOf(current.as_of); setMode(current.mode)
+        }
         const eventData = await api.events(runId)
         setEvents(eventData.items)
         if (['completed', 'failed', 'cancelled'].includes(current.status)) {
@@ -69,11 +75,11 @@ export function App() {
     catch (err) { setError((err as Error).message) }
   }
 
-  async function start() {
-    if (!selected) return
+  async function start(company: Company | null = selected, cutoff = asOf, runMode = mode) {
+    if (!company) return
     setBusy(true); setError(''); setRun(null); setClaimId(null); setReport(null); setEvents([])
     try {
-      const result = await api.createRun(selected.id, asOf, mode)
+      const result = await api.createRun(company.id, cutoff, runMode)
       setRunId(result.run_id)
       history.replaceState({}, '', `?run=${result.run_id}`)
     } catch (err) { setError((err as Error).message) } finally { setBusy(false) }
@@ -86,13 +92,13 @@ export function App() {
     <main>
       <section className="control-card" aria-labelledby="start-heading">
         <div><span className="eyebrow">PUBLIC EVIDENCE WORKBENCH</span><h2 id="start-heading">Investigate a listed financial business</h2><p className="muted">The system resolves the entity, tests competing explanations and publishes only traceable findings.</p></div>
-        <div className="form-grid"><label>Company search<input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Name or exchange symbol" /></label><label>Cutoff date<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><label>Mode<select value={mode} onChange={(e) => setMode(e.target.value)}><option value="replay">Replay · synthetic fixture</option><option value="live">Live · public sources</option><option value="deep">Deep · more candidates, same caps</option></select></label></div>
+        <div className="form-grid"><label>Company search<input value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null) }} placeholder="Name or exchange symbol" /></label><label>Cutoff date<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><label>Mode<select value={mode} onChange={(e) => setMode(e.target.value)}><option value="replay">Replay · synthetic fixture</option><option value="live">Live · public sources</option><option value="deep">Deep · more candidates, same caps</option></select></label></div>
         <div className="company-results">{companies.slice(0, 5).map((company) => <button key={company.id} className={selected?.id === company.id ? 'company selected' : 'company'} onClick={() => setSelected(company)}><strong>{company.legal_name}</strong><span>{company.symbols.join(' · ')} · {company.business_profiles.join(', ')}</span></button>)}</div>
         <button className="quiet" disabled={busy || !query.trim()} onClick={resolveCompany}>Resolve from exchange directory</button>
-        <button className="primary" disabled={!selected || busy} onClick={start}>Start autonomous research <span>→</span></button>
+        <button className="primary" disabled={!selected || busy} onClick={() => start()}>Start autonomous research <span>→</span></button>
       </section>
       {error && <div className="error" role="alert">{error}</div>}
-      {run && !report && <Progress run={run} events={events} onCancel={() => api.cancel(run.id).then(() => setPollVersion(v => v + 1)).catch(err => setError(err.message))} onResume={resume} />}
+      {run && !report && <Progress run={run} events={events} onCancel={() => api.cancel(run.id).then(() => setPollVersion(v => v + 1)).catch(err => setError(err.message))} onResume={resume} onRestart={() => start(run.company, run.as_of, run.mode)} />}
       {report && <Result report={report} onClaim={setClaimId} />}
       {report && activeClaim && <EvidenceDrawer report={report} claim={activeClaim} evidence={activeEvidence} onClose={() => setClaimId(null)} />}
     </main>
@@ -100,14 +106,29 @@ export function App() {
   </div>
 }
 
-function Progress({ run, events, onCancel, onResume }: { run: RunSummary; events: { sequence: number; stage: string; public_summary: string }[]; onCancel: () => void; onResume: () => void }) {
+function Progress({ run, events, onCancel, onResume, onRestart }: { run: RunSummary; events: { sequence: number; stage: string; public_summary: string }[]; onCancel: () => void; onResume: () => void; onRestart: () => void }) {
   const stopped = ['failed', 'cancelled'].includes(run.status)
-  return <section className="progress-card"><div className="section-head"><div><span className="eyebrow">{run.mode === 'replay' ? 'REPLAY' : 'LIVE'} RESEARCH</span><h2>{run.status === 'failed' ? 'Investigation failed' : run.status === 'cancelled' ? 'Investigation cancelled' : run.status === 'cancel_requested' ? 'Cancellation requested' : 'Investigation in progress'}</h2></div><button className="quiet" disabled={run.status === 'cancel_requested'} onClick={stopped ? onResume : onCancel}>{stopped ? 'Resume from saved work' : 'Cancel run'}</button></div><div className="progress-meta"><span>Stage <strong>{run.stage}</strong></span><span>Sources found <strong>{run.progress.sources_found || 0}</strong></span><span>Cutoff <strong>{run.as_of}</strong></span></div><p role={stopped ? 'alert' : undefined}>{run.limitations.join(' ')}</p><ol className="event-list">{events.map((event) => <li key={event.sequence} className="event"><span className="dot" /><div><strong>{event.stage}</strong><p>{event.public_summary}</p></div></li>)}</ol></section>
+  const expired = stopped && run.limitations.some(item => item.includes('run deadline exceeded'))
+  return <section className="progress-card"><div className="section-head"><div><span className="eyebrow">{run.mode === 'replay' ? 'REPLAY' : 'LIVE'} RESEARCH</span><h2>{run.status === 'failed' ? 'Investigation failed' : run.status === 'cancelled' ? 'Investigation cancelled' : run.status === 'cancel_requested' ? 'Cancellation requested' : 'Investigation in progress'}</h2></div><button className="quiet" disabled={run.status === 'cancel_requested'} onClick={expired ? onRestart : stopped ? onResume : onCancel}>{expired ? 'Start a new run' : stopped ? 'Resume from saved work' : 'Cancel run'}</button></div><div className="progress-meta"><span>Stage <strong>{run.stage}</strong></span><span>Sources found <strong>{run.progress.sources_found || 0}</strong></span><span>Cutoff <strong>{run.as_of}</strong></span></div><p role={stopped ? 'alert' : undefined}>{expired ? 'This run reached its total time limit. Start a new run to continue research.' : run.limitations.join(' ')}</p><ol className="event-list">{events.map((event) => <li key={event.sequence} className="event"><span className="dot" /><div><strong>{event.stage}</strong><p>{event.public_summary}</p></div></li>)}</ol></section>
 }
 
 function Result({ report, onClaim }: { report: Report; onClaim: (id: string) => void }) {
   const discovery = report.discoveries[0]
-  if (!discovery) return <section className="result-card abstention"><span className="eyebrow">INSUFFICIENT EVIDENCE</span><h2>No primary discovery published</h2><p>The system preserved the research gap rather than filling it with an unsupported narrative.</p><h3>What was missing</h3><ul>{report.abstention?.missing_requirements.map((item) => <li key={item}>{item}</li>)}</ul><p className="muted">{report.limitations.join(' ')}</p></section>
+  if (!discovery) return <section className="result-card abstention">
+    <span className="eyebrow">{report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}</span>
+    <h2>{report.facts.length ? 'Verified evidence collected' : 'More evidence needed'}</h2>
+    {report.outcome === 'partial' && <p role="status">Research reached its configured limit. Further investigation needs a new run.</p>}
+    <p>{report.facts.length ? `${report.facts.length} verified facts from ${report.documents.length} documents. A primary discovery remains withheld until independent evidence supports it.` : 'The run completed, but the available sources did not establish a supported finding.'}</p>
+    {!!report.facts.length && <section><h3>Verified source figures</h3><div className="facts-grid">{report.facts.map(fact => {
+      const passage = report.passages.find(p => p.id === fact.passage_id)
+      const document = report.documents.find(d => d.id === passage?.document_id)
+      return <div className="fact" key={fact.id}><span>{fact.metric_key.replaceAll('_', ' ')}</span><strong>{displayNumber(fact.value_decimal)} <small>{displayUnit(fact.unit_normalized)}</small></strong><em>{fact.period_end} · {fact.scope}</em>{document && <a href={document.canonical_url} target="_blank" rel="noreferrer">Original source{passage?.page_index != null ? ` · page ${passage.page_index + 1}` : ''}</a>}</div>
+    })}</div></section>}
+    {!!report.calculations.length && <section><h3>Reproducible calculations</h3><div className="facts-grid">{report.calculations.map(calc => <div className="fact" key={calc.id}><span>{calc.formula_id.replaceAll('_', ' ')}</span><strong>{displayNumber(calc.output_value)} <small>{displayUnit(calc.unit)}</small></strong><details><summary>Calculation inputs</summary><ol>{calc.input_fact_ids.map(id => { const fact = report.facts.find(f => f.id === id); return <li key={id}>{fact?.metric_key}: {displayNumber(fact?.value_decimal)} {displayUnit(fact?.unit_normalized)} · {fact?.period_end} · {fact?.scope}</li> })}</ol></details></div>)}</div></section>}
+    <h3>What is still missing</h3><ul>{report.abstention?.missing_requirements.map((item) => <li key={item}>{item}</li>)}</ul>
+    {!!report.abstention?.next_evidence_needed.length && <><h3>Next evidence needed</h3><ul>{report.abstention.next_evidence_needed.map(item => <li key={item}>{item}</li>)}</ul></>}
+    <details className="limitations"><summary>Source access and coverage details</summary><ul>{report.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></details>
+  </section>
   return <section className="result-card"><div className="result-banner"><span className="eyebrow">PRIMARY DISCOVERY · {report.source_coverage.mode as string}</span><div className="result-actions"><a className="quiet" href={`?run=${report.run_id}&print=1`}>Print view</a><a className="quiet" href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.json`}>JSON</a><a className="quiet" href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/facts.csv`}>CSV</a><span className={`strength ${discovery.evidence_strength.toLowerCase()}`}>{discovery.evidence_strength} evidence</span></div></div><h2>{discovery.discovery_sentence}</h2><p className="rationale">{discovery.strength_rationale}</p><div className="two-col"><section><h3>Why it matters</h3><ul className="linked-list">{discovery.why_it_matters.map((item) => <li key={item.claim_id}><button onClick={() => onClaim(item.claim_id)}>{item.text}<span>↗</span></button></li>)}</ul></section><section className="counter"><h3>Strongest counterargument</h3><p>{discovery.counterargument.statement}</p><small>{discovery.counterargument.search_summary}</small><span className="pill">Active challenge {discovery.counterargument.search_attempted ? 'completed' : 'not run'}</span></section></div><section><h3>Key numbers <span className="muted">· verified inputs</span></h3><div className="facts-grid">{report.calculations.map((calc) => <button className="fact" key={calc.id} onClick={() => onClaim(report.claims.find((claim) => claim.calculation_ids.includes(calc.id))?.id || report.claims[0].id)}><span>{calc.formula_id.replaceAll('_', ' ')}</span><strong>{displayNumber(calc.output_value)} <small>{displayUnit(calc.unit)}</small></strong><em>{calc.limitations.length ? calc.limitations[0] : 'Reproducible calculation'}</em></button>)}</div></section><section className="timeline"><h3>Timeline</h3>{report.timeline_events.map((event) => <div className="timeline-row" key={event.id}><time>{event.event_date}</time><p>{event.description}<small>Disclosed {event.published_at?.slice(0, 10)} · {event.source_ids.length} source</small></p></div>)}</section><section className="falsification"><h3>What would change this conclusion</h3>{discovery.falsification_rules.map((rule) => <p key={rule.id}><strong>{rule.observable_metric_or_event}</strong> — {rule.operator}. {rule.interpretation}</p>)}</section><details className="limitations"><summary>Coverage and limitations</summary><ul>{report.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul><p>Source cutoff: {report.cutoff} · {report.documents.length} documents · {report.source_coverage.eligible_origin_families as number} independent origins</p></details></section>
 }
 
