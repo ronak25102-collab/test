@@ -102,13 +102,17 @@ Set the value to `1` to disable retries. Timeouts, uncertain responses, authenti
 errors and quota errors are not retried automatically; models are never switched
 implicitly.
 
-Copy `.env.example` to `.env`. For local development set
-`DATABASE_URL=sqlite:///./data/signal.db`. Configure `OPENAI_API_KEY`,
-`TAVILY_API_KEY`, and account-accessible `OPENAI_MODEL_RESEARCH` and
-`OPENAI_MODEL_EXTRACT` IDs. Copy `config/model-rates.example.json` to
-`config/model-rates.json`, filling the actual input/output USD rates for **both**
-configured models (one entry is enough if both roles use the same model).
-Set `SEARCH_USD_PER_CREDIT` for your Tavily plan.
+Copy `.env.example` to `.env` and enter your own `NVIDIA_API_KEY` and
+`TAVILY_API_KEY`. The template uses NVIDIA, Tavily and local SQLite; other
+settings use the defaults in `settings.py`. Share `.env.example` with friends;
+keep your populated `.env` private.
+
+Create `config/model-rates.json` for your account. For the NVIDIA Developer
+Program prototype API, copy `config/model-rates.nvidia-free.example.json` only
+if its zero token rates apply to your account. Otherwise use
+`config/model-rates.example.json` and enter the actual rates for your configured
+models. Adjust `SEARCH_USD_PER_CREDIT` to your Tavily plan. Provider setup
+instructions above cover switching to Gemini or OpenAI.
 
 ### Windows local services
 
