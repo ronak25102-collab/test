@@ -63,6 +63,12 @@ def research(company: str = typer.Option(..., help="Legal name or exchange symbo
     if (mode == RunMode.REPLAY) != ("SYNTHBANK" in resolution.company.symbols):
         typer.echo("Replay requires SYNTHBANK; live/deep requires a real listed company", err=True)
         raise typer.Exit(2)
+    if mode != RunMode.REPLAY:
+        from signal_research.research.readiness import live_readiness
+        readiness = live_readiness(settings)
+        if not readiness["ready"]:
+            typer.echo("Live configuration incomplete: " + " ".join(readiness["issues"]), err=True)
+            raise typer.Exit(2)
     run_id = store.create_run(resolution.company, cutoff, mode, f"cli-{uuid4()}")
     owner = f"cli-{uuid4()}"
     leased = store.lease_next(owner, settings.max_active_runs)

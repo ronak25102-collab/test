@@ -27,7 +27,7 @@ class DurableCalls:
         self.store, self.settings, self.run_id, self.budget = store, settings, run_id, budget
         self.rates = {}
         if settings.model_rate_card_path.exists():
-            self.rates = {r["model_id"]: r for r in json.loads(settings.model_rate_card_path.read_text())["models"]}
+            self.rates = {r["model_id"]: r for r in json.loads(settings.model_rate_card_path.read_text(encoding="utf-8-sig"))["models"]}
 
     def invoke(self, key, stage, reserve, request, encode=lambda x: x, decode=lambda x: x, *, attempt=1):
         digest = hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
@@ -63,14 +63,15 @@ class DurableCalls:
             raise
 
     def search(self, query, domains, cutoff, stage="discovering"):
+        credits = 2 if self.settings.tavily_search_depth == 'advanced' else 1
         def request():
             hits = TavilySearchProvider(self.settings).search(query, domains, cutoff, 6)
-            return hits, {"provider": "tavily", "search_credits": 1, "estimated_cost": self.settings.search_usd_per_credit, "cost_status": "estimated" if self.settings.search_usd_per_credit is not None else "unknown"}
+            return hits, {"provider": "tavily", "search_credits": credits, "estimated_cost": self.settings.search_usd_per_credit * credits if self.settings.search_usd_per_credit is not None else None, "cost_status": "estimated" if self.settings.search_usd_per_credit is not None else "unknown"}
         def decode(payload):
             from datetime import date
             return [SearchHit(**(item | {"published_at": date.fromisoformat(item["published_at"]) if item.get("published_at") else None})) for item in payload]
-        return self.invoke(["tavily", query, domains, str(cutoff)], stage,
-                           lambda: self.budget.reserve_search(self.settings.search_usd_per_credit or 0), request,
+        return self.invoke(["tavily", query, domains, str(cutoff), self.settings.tavily_search_depth], stage,
+                           lambda: self.budget.reserve_search((self.settings.search_usd_per_credit or 0) * credits), request,
                            lambda hits: [asdict(hit) for hit in hits], decode)
 
     def model(self, schema, payload, role="research", stage="investigating", instruction=""):
@@ -92,11 +93,26 @@ class DurableCalls:
         plan_kind = f"modelplan:{cache_key([provider, model, schema.__name__, messages, request_options])}"
         plans = self.store.artifacts(self.run_id, plan_kind)
         outputs = (plans[0]["payload"]["max_output_tokens"] if plans else
-                   min(self.settings.max_model_output_tokens_per_call, self.budget.max_output_tokens - self.budget.output_tokens))
+                   min(self.settings.max_model_output_tokens_per_call, 1536 if stage == "normalizing" else 3072 if role == "extract" else 4096, self.budget.max_output_tokens - self.budget.output_tokens))
+        # Exploration must leave room for counterevidence review, composition and
+        # independent verification. Cached results below remain reusable at the cap.
+        exploration = stage not in {"challenging", "composing", "verifying"}
+        input_reserve = self.budget.max_input_tokens // 5 if exploration else 0
+        output_reserve = self.budget.max_output_tokens * 2 // 5 if exploration and self.budget.max_output_tokens >= 1024 else 0
+        call_reserve = min(3, self.budget.max_model_calls // 5) if exploration else 0
+        if not plans:
+            outputs = min(outputs, self.budget.max_output_tokens - self.budget.output_tokens - output_reserve)
         request_options["max_output_tokens"] = outputs
         if outputs <= 0:
             from signal_research.domain.errors import BudgetExceeded
             raise BudgetExceeded("output token budget exhausted")
+        minimum = min(self.settings.max_model_output_tokens_per_call,
+                      512 if stage == 'normalizing' else 1024 if role == 'extract' else 1536)
+        if len(json.dumps(schema.model_json_schema())) < 1000:
+            minimum = min(minimum, 256)
+        if not plans and outputs < minimum:
+            from signal_research.domain.errors import BudgetExceeded
+            raise BudgetExceeded("remaining response allowance is too small for complete structured evidence; verification reserve preserved")
         if not plans:
             self.store.artifact(self.run_id, plan_kind, {"max_output_tokens": outputs})
         rate = self.rates.get(model, {})
@@ -116,8 +132,16 @@ class DurableCalls:
                 return schema.model_validate(cached[0]["payload"])
         for attempt, attempt_key in enumerate(keys, start=1):
             try:
+                def reserve():
+                    from signal_research.domain.errors import BudgetExceeded
+
+                    if (self.budget.input_tokens + inputs > self.budget.max_input_tokens - input_reserve
+                            or self.budget.output_tokens + outputs > self.budget.max_output_tokens - output_reserve
+                            or self.budget.model_calls + 1 > self.budget.max_model_calls - call_reserve):
+                        raise BudgetExceeded("exploration allowance exhausted; final verification allowance preserved" if exploration else "model token or call allowance exhausted")
+                    self.budget.reserve_model(inputs, outputs, cost)
                 return self.invoke(attempt_key, stage,
-                                   lambda: self.budget.reserve_model(inputs, outputs, cost), request,
+                                   reserve, request,
                                    lambda result: result.model_dump(mode="json"), schema.model_validate, attempt=attempt)
             except GeminiUnavailable:
                 if attempt == attempts:

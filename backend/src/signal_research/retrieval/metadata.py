@@ -11,6 +11,25 @@ def publication_day(timestamp):
     return timestamp.astimezone(ZoneInfo("Asia/Kolkata")).date()
 
 
+def source_availability(published, retrieved, cutoff):
+    """Public availability is distinct from an unknown original publication date."""
+    if published:
+        return ('eligible' if publication_day(published) <= cutoff else 'ineligible', 'publication_date')
+    if retrieved and retrieved.tzinfo and publication_day(retrieved) <= cutoff:
+        return 'eligible', 'verified_retrieval'
+    return 'unknown', 'unknown'
+
+
+def available_by_cutoff(document, cutoff):
+    if document.cutoff_eligibility != 'eligible':
+        return False
+    if document.published_at:
+        return publication_day(document.published_at) <= cutoff
+    return (document.cutoff_eligibility_basis == 'verified_retrieval' and document.access_status == 'ok'
+            and bool(document.retrieved_at.tzinfo) and publication_day(document.retrieved_at) <= cutoff
+            and bool(re.fullmatch(r'[a-f0-9]{64}', document.content_hash)))
+
+
 def domain_matches(host, domain):
     host, domain = host.lower().rstrip("."), domain.lower().rstrip(".")
     return host == domain or host.endswith("." + domain)
@@ -48,6 +67,11 @@ def source_publication(raw, text):
     text = re.sub(r"\b([A-Za-z]+),\s*(?=\d{4}\b)", r"\1 ", text)
     date_pattern = r"\d{4}-\d{2}-\d{2}|\d{1,2}\s+[A-Za-z]+\s+\d{4}|[A-Za-z]+,?\s+\d{1,2},?\s+\d{4}|\d{2}[./-]\d{2}[./-]\d{4}"
     dates += re.findall(r"(?:published(?:\s+on)?|publication\s+date)\s*[:\-]?\s*(" + date_pattern + r")", text, flags=re.I)
+    # A news release's cover dateline dates the release itself, unlike a balance
+    # sheet's reporting date. Require both the release heading and city/date line.
+    cover_text = text[:1800]
+    if re.search(r"\b(?:news|press)\s+release\b", cover_text, re.I):
+        dates += re.findall(r"(?m)^\s*[A-Za-z][A-Za-z .]{1,35},\s*(" + date_pattern + r")\s*(?=\n|$)", cover_text, re.I)
     if raw.startswith(b"%PDF"):
         # A dated exchange filing cover or a formal document date identifies the
         # disclosure itself. A cited regulation/report merely described as 'dated'
@@ -76,7 +100,7 @@ def source_publication(raw, text):
         cover = text[:1200]
         cover = re.sub(r"\b(?:[A-Za-z]\s+){3,}[A-Za-z]\b", lambda m: re.sub(r"\s", "", m[0]), cover)
         cover = re.sub(r"(?<=\d)\s+(?=[\d.])|(?<=\.)\s+(?=\d)", "", cover)
-        dates += re.findall(r"(?:analyst|investor)\s*presentation\s*[|:\-]?\s*(" + date_pattern + r")\b", cover, flags=re.I)
+        dates += re.findall(r"(?:analyst|investor|earnings)\s*presentation\s*[|:\-]?\s*(" + date_pattern + r")\b", cover, flags=re.I)
     for value in dates:
         if not isinstance(value, str):
             continue
@@ -93,10 +117,19 @@ def source_origin(url, company, title, text):
     host = (urlparse(url).hostname or "").lower()
     issuer = any(domain_matches(host, d) for d in company.verified_ir_domains)
     exchange = any(domain_matches(host, d) for d in ("nseindia.com", "bseindia.com"))
+    if issuer and exchange:
+        # Exchange sites host thousands of OTHER issuers' announcements. An
+        # exchange's own domain cannot alone bind a document to that exchange.
+        name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name, flags=re.I).strip()
+        pattern = r"\s+".join(re.escape(word) for word in name.split())
+        authored = bool(re.search(r"\bFor\s+" + pattern + r"(?:\s+(?:Limited|Ltd\.?))?\b", text, re.I))
+        issuer = authored
     # Exchange copies of issuer announcements share the issuer origin.
     name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name.lower()).strip()
     identity = name in text.lower() or (company.isin and company.isin in text)
     issuer_copy = exchange and identity and any(word in title.lower() for word in ("results", "annual report", "presentation", "disclosure"))
+    if exchange and any(domain_matches(host, d) for d in company.verified_ir_domains):
+        issuer_copy = issuer
     if issuer or issuer_copy:
         return company.legal_name, f"issuer:{company.id}", "issuer_disclosure"
     wire = re.search(r"(?:source|by|copyright|©)\s*[:\-]?\s*(Reuters|PTI|Bloomberg|Associated Press)\b", text[:3000], flags=re.I)

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from signal_research.db.repositories import Store
 from signal_research.domain.schemas import Company
+from signal_research.research.identity import normalize_name
 
 
 class EntityResolutionError(ValueError):
@@ -35,11 +36,14 @@ def resolve(store: Store, query: str, refresh: bool = False) -> Resolution:
             return Resolution(None, [], f"Could not verify the entity against the public exchange directory: {exc}")
     if not candidates:
         return Resolution(None, [], "No listed financial-services entity matched the query")
+    exact = [c for c in candidates if query.strip().upper() in {s.upper() for s in c.symbols}]
+    if not exact:
+        exact = [c for c in candidates if normalize_name(query) in
+                 {normalize_name(name) for name in [c.legal_name, *c.aliases]}]
+    if len(exact) == 1:
+        candidates = exact
     if len(candidates) == 1:
         if not candidates[0].business_profiles:
             return Resolution(None, candidates, "Listed financial entity found, but its business profile needs verified disclosure evidence")
         return Resolution(candidates[0], candidates)
-    exact = [c for c in candidates if query.strip().upper() in {s.upper() for s in c.symbols}]
-    if len(exact) == 1:
-        return Resolution(exact[0], candidates)
     return Resolution(None, candidates, "The query matched multiple entities")

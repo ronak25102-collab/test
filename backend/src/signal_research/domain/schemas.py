@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
@@ -69,6 +69,7 @@ class SourceDocument(StrictModel):
     local_object_key: str | None = None
     access_status: str = "ok"
     cutoff_eligibility: str = "eligible"
+    cutoff_eligibility_basis: Literal["publication_date", "verified_retrieval", "unknown"] = "publication_date"
 
 
 class Passage(StrictModel):

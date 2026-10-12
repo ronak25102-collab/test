@@ -70,6 +70,8 @@ def test_real_axis_balance_selects_year_comparison_and_correct_consolidated_colu
         ("deposits", "11,59,584.25", date(2025, 6, 30), "consolidated"),
         ("borrowings", "2,85,257.98", date(2026, 6, 30), "consolidated"),
         ("borrowings", "2,19,991.64", date(2025, 6, 30), "consolidated"),
+        ("advances_as_reported", "13,15,862.99", date(2026, 6, 30), "consolidated"),
+        ("advances_as_reported", "11,02,649.20", date(2025, 6, 30), "consolidated"),
     ]
     for c in batch.facts:
         assert validate_candidate(c, passage, uuid4(), Profile.BANK).fact
@@ -99,3 +101,22 @@ def test_shared_balance_binding_withholds_ambiguous_rows_or_headers(change):
     text = "Axis Bank\nStandalone Balance Sheet\nINR in crore\nAs on 30.06.2026 As on 30.06.2025\nDeposits 120 100\n"
     passage = Passage(id=uuid4(), document_id=uuid4(), text=change(text))
     assert comparative_bank_batch(passage, SimpleNamespace(legal_name="Axis Bank")) is None
+
+
+def test_english_headers_require_document_identity_and_preserve_schedule_columns():
+    text = "Consolidated Balance Sheet\nINR in crore\nSchedule\nJune 30, 2026 March 31, 2026 June 30, 2025\nDeposits 3 120 110 100\nAdvances 9 90 85 80\n"
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=text)
+    company = SimpleNamespace(legal_name="Example Financial Bank")
+    assert comparative_bank_batch(passage, company) is None
+    batch = comparative_bank_batch(passage, company, document_issuer_verified=True)
+    assert [(c.metric_key, c.value_raw, c.period_end) for c in batch.facts] == [
+        ("deposits", "120", date(2026, 6, 30)), ("deposits", "100", date(2025, 6, 30)),
+        ("advances_as_reported", "90", date(2026, 6, 30)), ("advances_as_reported", "80", date(2025, 6, 30))]
+    assert all(validate_candidate(c, passage, uuid4(), Profile.BANK).fact for c in batch.facts)
+
+
+def test_document_identity_cannot_use_a_passing_issuer_mention():
+    from signal_research.research.identity import issuer_cover_identity
+    company = SimpleNamespace(legal_name="Example Financial Bank")
+    assert issuer_cover_identity("Example Financial Bank Limited\nQuarterly results", company)
+    assert not issuer_cover_identity("A subsidiary of Example Financial Bank Limited", company)

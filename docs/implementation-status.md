@@ -1,3 +1,5 @@
+> Historical document. Current Windows setup and free configuration are in [DEMO.md](DEMO.md); measured live results and the current verdict are in [LIVE-RESULTS.md](LIVE-RESULTS.md) and [READINESS.md](READINESS.md). Older model choices, limits and test counts below are not current validation.
+
 # Implementation status
 
 The previous live-path placeholder has been replaced. The same service is used by

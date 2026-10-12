@@ -1,5 +1,7 @@
 profile: asset_manager
 required_metrics: [average_aum]
 aliases: {net_flows: [net flows], fee_income: [fee income]}
-starter_questions: [Is revenue growth caused by market appreciation rather than flows?, Is product mix lowering fee realization?]
+starter_questions:
+  - Is revenue growth caused by market appreciation rather than flows?
+  - Is product mix lowering fee realization?
 calculation_ids: [yoy_growth]

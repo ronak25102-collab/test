@@ -80,6 +80,8 @@ def to_inr_crore(value: Decimal, unit: str) -> Decimal:
         return value / Decimal("10")
     if normalized in {"inr billion", "billion"}:
         return value * Decimal("100")
+    if normalized in {"inr trillion", "trillion", "inr lakh crore", "lakh crore"}:
+        return value * Decimal("100000")
     if normalized in {"inr thousand", "inr thousands", "thousand", "thousands"}:
         return value / Decimal("10000")
     if normalized in {"inr", "rupees"}:

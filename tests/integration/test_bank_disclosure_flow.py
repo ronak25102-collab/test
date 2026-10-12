@@ -10,7 +10,6 @@ from signal_research.domain.enums import RunMode
 from signal_research.providers.search.base import SearchHit
 from signal_research.research.live import LiveResearch
 from signal_research.retrieval.disclosures import (
-    BANK_DISCLOSURE_INDEXES,
     verified_disclosure_indexes,
 )
 from signal_research.retrieval.fetch import FetchResult, PublicFetcher
@@ -39,7 +38,7 @@ def test_bank_redirect_and_icon_link_reaches_dated_original_with_reviewed_compar
     settings = Settings(data_dir=tmp_path, model_rate_card_path=tmp_path / "no-rates.json")
     research = LiveResearch(SimpleNamespace(store=store, settings=settings, _cancelled=lambda _: False),
                             run_id, company, cutoff, Budget(2, 3, 3, 1))
-    index = BANK_DISCLOSURE_INDEXES[symbol] if empty_search else f"https://{legacy}/results"
+    index = verified_disclosure_indexes(company)[0].url if empty_search else f"https://{legacy}/results"
     final = f"https://{domain}/results"
     pdf_url = f"https://{domain}/financial-results-june-2026.pdf"
     buffer = io.BytesIO()

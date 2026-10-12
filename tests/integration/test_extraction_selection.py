@@ -74,10 +74,10 @@ def test_axis_complete_balance_precedes_partial_table_view_with_duplicate_numeri
         assert schema.__name__ == "FactReview"  # Complete columns need no model extraction.
         assert payload["source_text"] == balance.text
         reviews.append(payload)
-        return schema(verdicts=[{"index": i, "supported": True, "reason": "Exact columns match"} for i in range(4)])
+        return schema(verdicts=[{"index": i, "supported": True, "reason": "Exact columns match"} for i in range(len(payload["candidates"]))])
     monkeypatch.setattr(research.calls, "model", review)
     research.extract()
-    assert len(reviews) == 1 and len(research.facts) == 4
+    assert len(reviews) == 1 and len(research.facts) == 6
     assert all(f.passage_id == balance.id for f in research.facts)
     assert research.calculations
 
@@ -135,7 +135,8 @@ def test_sbi_own_balance_precedes_rrbs_and_requires_independent_review(store, tm
     research.extract()
     assert len(reviews) == 1 and "SBI SOLO" in reviews[0]["source_text"]
     assert len(research.facts) == (4 if review_supported else 0)
-    assert len(research.calculations) == (2 if review_supported else 0)
+    assert len(research.calculations) == (3 if review_supported else 0)
+    assert not any(c.formula_id in {'loan_to_deposit', 'ldr_change'} for c in research.calculations)
     assert all(f.passage_id == balance.id and f.scope.value == "standalone" for f in research.facts)
     if review_supported:
         research.extract()

@@ -26,7 +26,7 @@ def require_summary(run_id: UUID, store: Store):
 
 
 @router.post("", status_code=status.HTTP_202_ACCEPTED)
-def create_run(request: RunCreate, response: Response, store: Store = Depends(get_store), idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None):
+def create_run(request: RunCreate, response: Response, http_request: Request, store: Store = Depends(get_store), idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None):
     if request.as_of > datetime.now(ZoneInfo("Asia/Kolkata")).date():
         raise HTTPException(status_code=422, detail={"code": "INVALID_CUTOFF", "message": "cutoff cannot be in the future"})
     company = store.get_company(request.company_id)
@@ -36,6 +36,12 @@ def create_run(request: RunCreate, response: Response, store: Store = Depends(ge
         raise HTTPException(status_code=422, detail={"code": "PROFILE_UNRESOLVED", "message": "company business profile has not been resolved"})
     if (request.mode == RunMode.REPLAY) != ("SYNTHBANK" in company.symbols):
         raise HTTPException(status_code=422, detail={"code": "MODE_COMPANY_MISMATCH", "message": "Replay requires SYNTHBANK; live and deep modes require a real listed company"})
+    if request.mode != RunMode.REPLAY:
+        from signal_research.research.readiness import live_readiness
+        readiness = live_readiness(http_request.app.state.settings)
+        if not readiness["ready"]:
+            raise HTTPException(status_code=503, detail={"code": "LIVE_CONFIGURATION_INCOMPLETE",
+                "message": " ".join(readiness["issues"]), "issues": readiness["issues"]})
     try:
         run_id = store.create_run(company, request.as_of, request.mode, idempotency_key)
     except ValueError as exc:

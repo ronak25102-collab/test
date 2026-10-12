@@ -1,6 +1,26 @@
 import { test, expect } from '@playwright/test'
 import report from './fixtures/replay.json' with { type: 'json' }
 
+test('missing account configuration blocks live research while preserving replay', async ({ page }) => {
+  let created = false
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/health/configuration')) return route.fulfill({ json: {
+      ready: false, issues: ['Create config/model-rates.json with your verified account prices.'], demo_time_warning: true,
+    } })
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
+    if (path.endsWith('/runs')) created = true
+    return route.fulfill({ json: {} })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: /SYNTHBANK/ }).click()
+  await expect(page.getByRole('status')).toContainText('Live research needs configuration')
+  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeDisabled()
+  expect(created).toBe(false)
+  await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('replay')
+  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeEnabled()
+})
+
 test('saved bank run restores its own company, cutoff and mode without defaulting to HDFC', async ({ page }) => {
   const company = { ...report.company, legal_name: 'Axis Bank', symbols: ['AXISBANK'] }
   let polls = 0
@@ -17,7 +37,7 @@ test('saved bank run restores its own company, cutoff and mode without defaultin
   await expect(page.getByLabel('Cutoff date')).toHaveValue('2026-07-17')
   await expect(page.getByRole('combobox', { name: 'Mode', exact: true })).toHaveValue('deep')
   await expect(page.getByRole('button', { name: /Axis Bank/ })).toHaveClass(/selected/)
-  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeEnabled()
+  await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeDisabled()
   await page.getByRole('textbox', { name: 'Company search' }).fill('ICICIBANK')
   await expect.poll(() => polls).toBeGreaterThan(1)
   await expect(page.getByRole('textbox', { name: 'Company search' })).toHaveValue('ICICIBANK')
@@ -54,13 +74,15 @@ test(`${outcome} still exposes verified facts, inputs and original sources`, asy
   await expect(page.getByRole('heading', { name: 'Verified evidence collected' })).toBeVisible()
   if (outcome === 'partial') {
     await expect(page.getByText('PARTIAL RESEARCH')).toBeVisible()
-    await expect(page.getByRole('status')).toContainText('Research reached its configured limit')
+    await expect(page.getByRole('status')).toContainText('Research stopped before discovery verification finished')
   }
   await expect(page.getByRole('link', { name: /Original source/ }).first()).toHaveAttribute('href', report.documents[0].canonical_url)
+  await page.getByText('Source passage', { exact: true }).first().click()
+  await expect(page.locator('blockquote').first()).toHaveText(report.passages[0].text)
   await expect(page.getByRole('heading', { name: 'Reproducible calculations' })).toBeVisible()
   await expect(page.getByText('Independent funding corroboration')).toBeVisible()
   await expect(page.getByText('Source unavailable: blocked publisher returned 403')).not.toBeVisible()
-  await page.getByText('Source access and coverage details').click()
+  await page.getByText('Source access and coverage details', { exact: true }).click()
   await expect(page.getByText('Source unavailable: blocked publisher returned 403')).toBeVisible()
 })
 }
@@ -138,4 +160,92 @@ test('directory resolution selects the returned listed company', async ({ page }
   await page.getByRole('button', { name: 'Resolve from exchange directory' }).click()
   await expect(page.getByRole('button', { name: /Start autonomous research/ })).toBeEnabled()
   await expect(page.getByRole('button', { name: /New Bank Limited/ })).toBeVisible()
+})
+
+
+test('long source passage opens without widening the dashboard', async ({ page }) => {
+  const text = 'SourceHeader'.repeat(300)
+  const partial = { ...report, outcome: 'insufficient_evidence', publication_status: 'abstained', discoveries: [], claims: [],
+    passages: report.passages.map((p, index) => index === 0 ? { ...p, text } : p),
+    abstention: { missing_requirements: ['Independent corroboration'], next_evidence_needed: [], attempted_angles: [] } }
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: partial })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: 'completed', stage: 'completed', progress: {}, limitations: [] } })
+  })
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto(`/?run=${report.run_id}`)
+  await page.getByText('Source passage', { exact: true }).first().click()
+  await expect(page.locator('blockquote').first()).toHaveText(text)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+})
+
+
+test('queued research cannot be duplicated by repeated start clicks', async ({ page }) => {
+  let starts = 0
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/runs') && route.request().method() === 'POST') {
+      starts++
+      return route.fulfill({ json: { run_id: report.run_id } })
+    }
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'replay', status: 'queued', stage: 'queued', progress: {}, limitations: [] } })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: /SYNTHBANK/ }).click()
+  await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('replay')
+  const start = page.getByRole('button', { name: /Start autonomous research/ })
+  await start.evaluate(el => { (el as HTMLButtonElement).click(); (el as HTMLButtonElement).click() })
+  await expect(page.getByRole('status')).toContainText('Research is queued')
+  await expect(start).toBeDisabled()
+  expect(starts).toBe(1)
+})
+
+
+test('lost creation response reuses the same idempotency key on retry', async ({ page }) => {
+  const keys: (string | undefined)[] = []
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/runs') && route.request().method() === 'POST') {
+      keys.push(route.request().headers()['idempotency-key'])
+      if (keys.length === 1) return route.abort('connectionfailed')
+      return route.fulfill({ json: { run_id: report.run_id } })
+    }
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'replay', status: 'queued', stage: 'queued', progress: {}, limitations: [] } })
+  })
+  await page.goto('/')
+  await page.getByRole('button', { name: /SYNTHBANK/ }).click()
+  await page.getByRole('combobox', { name: 'Mode', exact: true }).selectOption('replay')
+  const start = page.getByRole('button', { name: /Start autonomous research/ })
+  await start.click()
+  await expect(page.getByRole('alert')).toBeVisible()
+  await start.click()
+  await expect(page.getByRole('status')).toContainText('Research is queued')
+  expect(keys).toHaveLength(2)
+  expect(keys[0]).toBeTruthy()
+  expect(keys[0]).toBe(keys[1])
+})
+
+test('saved run polling reconnects after a temporary local API failure', async ({ page }) => {
+  let polls = 0
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
+    polls++
+    if (polls <= 2) return route.fulfill({ status: 503, json: { message: 'Controlled temporary API outage' } })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: 'queued', stage: 'queued', progress: {}, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await expect(page.getByRole('alert')).toContainText('Controlled temporary API outage')
+  await expect(page.getByRole('status')).toContainText('Research is queued', { timeout: 10000 })
+  await expect(page.getByRole('alert')).not.toBeVisible()
+  expect(polls).toBeGreaterThanOrEqual(2)
 })

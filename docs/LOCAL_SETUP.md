@@ -1,3 +1,5 @@
+> Historical document. Current Windows setup and free configuration are in [DEMO.md](DEMO.md); measured live results and the current verdict are in [LIVE-RESULTS.md](LIVE-RESULTS.md) and [READINESS.md](READINESS.md). Older model choices, limits and test counts below are not current validation.
+
 # Beyond local setup — 9 October 2026
 
 The Windows checkout is configured with SQLite, a separate API and worker, and the

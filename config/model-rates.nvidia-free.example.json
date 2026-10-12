@@ -3,7 +3,7 @@
   "account_scope": "NVIDIA Developer Program hosted prototype API only",
   "models": [
     {
-      "model_id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "model_id": "nvidia/nemotron-3-super-120b-a12b",
       "input_usd_per_million_tokens": 0,
       "output_usd_per_million_tokens": 0,
       "currency": "USD",

@@ -114,3 +114,9 @@ def test_signed_financial_results_datelines_date_the_document(signature):
 ])
 def test_unlabelled_dates_and_approval_references_do_not_date_a_source(text):
     assert source_publication(b"%PDF test", text) is None
+
+
+def test_cms_pdf_formats_and_quarter_labels_are_dynamic_document_leads():
+    raw = b'<a href="https://assets.example.org/is/content/results?fmt=pdf">Investor Presentation Q1 FY27</a><a href="/financials/q1fy27.pdf">Q1 FY27</a>'
+    hits = linked_disclosures(raw, 'https://example.org/financials', ['example.org'])
+    assert {hit.url for hit in hits} == {'https://assets.example.org/is/content/results?fmt=pdf', 'https://example.org/financials/q1fy27.pdf'}

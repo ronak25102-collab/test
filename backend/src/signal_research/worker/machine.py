@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import json
 import logging
 from datetime import UTC, datetime, timedelta
-from math import isfinite
 from uuid import UUID
 
 from signal_research.db.repositories import Store
@@ -71,6 +69,11 @@ class ResearchMachine:
         try:
             recovered = self.store.load_checkpoint(run_id, RunStatus.VERIFYING.value)
             recovered_report = ResearchReport.model_validate(recovered) if recovered else None
+            if recovered_report is None and datetime.now(UTC) >= deadline:
+                evidence = self.store.load_checkpoint(run_id, "evidence_collected", iteration=None)
+                snapshot = ResearchReport.model_validate(evidence) if evidence else None
+                if snapshot and snapshot.outcome == ResearchOutcome.PARTIAL and snapshot.facts:
+                    recovered_report = verify_report(snapshot)
             # A verified partial checkpoint can be saved locally after its limit;
             # resuming it never extends the deadline or sends provider requests.
             if not recovered_report or recovered_report.outcome != ResearchOutcome.PARTIAL:
@@ -132,7 +135,12 @@ class ResearchMachine:
         return report
 
     def _process_live(self, run_id, as_of, company, plan, budget) -> ResearchReport:
+        import httpx
+
+        from signal_research.providers.llm.nvidia_provider import NvidiaRequestError
+        from signal_research.providers.search.account import FreeQuotaUnavailable
         from signal_research.research.live import LiveResearch
+        from signal_research.worker.calls import UncertainCall
         research = LiveResearch(self, run_id, company, as_of, budget)
         try:
             return research.run(plan)
@@ -144,27 +152,23 @@ class ResearchMachine:
             report.limitations.append(f"Research stopped at its configured limit: {exc}. Verified evidence was preserved.")
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
+        except (NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
+            if not research.facts:
+                raise
+            report = research.abstain(["Provider access recovery and additional independently verified evidence"])
+            report.outcome = ResearchOutcome.PARTIAL
+            report.limitations.append(f"Provider work stopped: {exc}. Previously verified evidence was preserved; no discovery was substituted.")
+            report.generation_metadata['provider_failure'] = getattr(exc, 'code', type(exc).__name__)
+            return report
 
     def _check_live_cost_policy(self):
         if not self.settings.llm_configured:
             from signal_research.providers.llm.base import ProviderNotConfigured
             raise ProviderNotConfigured(f"{self.settings.llm_provider} key and both model roles must be configured")
-        if self.settings.allow_unknown_cost:
-            return
-        path = self.settings.model_rate_card_path
-        if not path.exists():
-            raise CostPolicyError("model rate card is unavailable; set ALLOW_UNKNOWN_COST=true only to use hard token and call caps")
-        try:
-            card = json.loads(path.read_text())
-            models = card.get("models", [])
-            for configured in {self.settings.model_for_role("research"), self.settings.model_for_role("extract")}:
-                model = next((item for item in models if item.get("model_id") == configured), None)
-                if not model or any(not isinstance(model.get(key), (int, float)) or not isfinite(model[key]) or model[key] < 0 for key in ("input_usd_per_million_tokens", "output_usd_per_million_tokens")):
-                    raise ValueError
-            if self.settings.search_usd_per_credit is None or not isfinite(self.settings.search_usd_per_credit) or self.settings.search_usd_per_credit < 0:
-                raise ValueError
-        except (OSError, ValueError, TypeError, json.JSONDecodeError) as exc:
-            raise CostPolicyError("model rate card has no validated rates for the configured models; set ALLOW_UNKNOWN_COST=true only to use hard token and call caps") from exc
+        from signal_research.research.readiness import live_readiness
+        readiness = live_readiness(self.settings)
+        if not readiness["ready"]:
+            raise CostPolicyError(" ".join(readiness["issues"]))
 
     def _set_stage(self, run_id, status, event_type, summary):
         if self.lease_error:

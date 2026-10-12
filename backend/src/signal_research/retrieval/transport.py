@@ -4,6 +4,7 @@ import ssl
 
 import httpcore
 import httpx
+import truststore
 
 from .url_policy import UnsafeURL, _is_private
 
@@ -22,4 +23,4 @@ class PublicTransport(httpx.HTTPTransport):
     def __init__(self):
         super().__init__(trust_env=False, retries=0)
         self._pool.close()
-        self._pool = httpcore.ConnectionPool(ssl_context=ssl.create_default_context(), network_backend=PublicNetworkBackend(), retries=0)
+        self._pool = httpcore.ConnectionPool(ssl_context=truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT), network_backend=PublicNetworkBackend(), retries=0)

@@ -1,5 +1,7 @@
 profile: life_insurer
 required_metrics: [ape, vnb]
 aliases: {ape: [annual premium equivalent], vnb: [value of new business]}
-starter_questions: [Does premium growth translate into new-business value?, Is distribution or product mix changing profitability?]
+starter_questions:
+  - Does premium growth translate into new-business value?
+  - Is distribution or product mix changing profitability?
 calculation_ids: [yoy_growth, share_pct]

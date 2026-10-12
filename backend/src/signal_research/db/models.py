@@ -109,6 +109,7 @@ class SourceDocumentModel(Base):
     local_object_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     access_status: Mapped[str] = mapped_column(String(40), default="ok")
     cutoff_eligibility: Mapped[str] = mapped_column(String(30), default="eligible")
+    cutoff_eligibility_basis: Mapped[str] = mapped_column(String(30), default="publication_date")
 
 
 class PassageModel(Base):

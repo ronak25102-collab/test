@@ -7,6 +7,12 @@ from sqlalchemy import select, text
 router = APIRouter(prefix="/health", tags=["health"])
 
 
+@router.get("/configuration")
+def configuration(request: Request):
+    from signal_research.research.readiness import live_readiness
+    return live_readiness(request.app.state.settings)
+
+
 @router.get("/live")
 def live():
     return {"status": "ok", "service_version": "0.1.0"}

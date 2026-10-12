@@ -1,5 +1,7 @@
 profile: general_insurer
 required_metrics: [combined_ratio]
 aliases: {earned_premium: [earned premium], claims: [claims ratio]}
-starter_questions: [Is growth improving underwriting economics?, Do reserve changes explain earnings movement?]
+starter_questions:
+  - Is growth improving underwriting economics?
+  - Do reserve changes explain earnings movement?
 calculation_ids: [change_pp]

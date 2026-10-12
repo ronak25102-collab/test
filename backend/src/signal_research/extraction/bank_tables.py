@@ -6,6 +6,8 @@ import re
 from datetime import date
 from decimal import Decimal
 
+from signal_research.research.identity import identity_aliases, issuer_named
+
 from .models import ExtractedFactBatch, ExtractedFactCandidate
 
 MONTHS = {name.lower(): index for index in range(1, 13)
@@ -22,8 +24,8 @@ def scope_in_text(scope, text: str) -> bool:
     label = getattr(scope, "value", scope)
     if re.search(r"\b" + re.escape(label) + r"\b", text, re.I):
         return True
-    alias = {"standalone": r"\bSBI\s+SOLO\b", "consolidated": r"\bSBI\s+GROUP\b"}.get(label)
-    return bool(alias and re.search(alias, text, re.I))
+    alias = {"standalone": r"\bSOLO\b", "consolidated": r"\bGROUP\b"}.get(label)
+    return bool(alias and re.search(r"\b\w+\s+SOLO\s+\w+\s+GROUP\b", text, re.I) and re.search(alias, text, re.I))
 
 
 def month_end_columns(text: str) -> list[tuple[str, date]]:
@@ -48,14 +50,18 @@ def month_end_columns(text: str) -> list[tuple[str, date]]:
     return []
 
 
-def comparative_bank_batch(passage, company) -> ExtractedFactBatch | None:
+def comparative_bank_batch(passage, company, *, document_issuer_verified=False) -> ExtractedFactBatch | None:
     """Bind unambiguous comparative stock tables; all candidates still need review."""
     text = passage.text
     if subsidiary_only(text):
         return None
-    if company.legal_name != "State Bank of India" or not re.search(r"SBI\s+SOLO\s+SBI\s+GROUP", text, re.I):
-        return _explicit_bank_balance(passage, company)
-    if not re.search(r"SBI\s+SOLO\s+SBI\s+GROUP", text, re.I):
+    if not re.search(r"\bSOLO\s+\w+\s+GROUP\b", text, re.I):
+        return _explicit_bank_balance(passage, company, document_issuer_verified=document_issuer_verified)
+    aliases = [*identity_aliases(company.legal_name), *getattr(company, "aliases", [])]
+    if not issuer_named(text, company) and not any(
+        re.search(r"\b" + re.escape(alias) + r"\s+SOLO\s+" + re.escape(alias) + r"\s+GROUP\b", text, re.I)
+        for alias in aliases
+    ):
         return None
     if not re.search(r"(?:\u20b9|INR|Rs\.?)\s+in\s+Crores?\b", text, re.I):
         return None
@@ -82,23 +88,35 @@ def comparative_bank_batch(passage, company) -> ExtractedFactBatch | None:
                 scope="standalone", passage_id=passage.id, extraction_confidence=Decimal(".99")))
         if len(facts) == 6:
             break
-    return ExtractedFactBatch(facts=facts, notes=["Values bound to explicit SBI SOLO comparative balance columns."]) if facts else None
+    return ExtractedFactBatch(facts=facts, notes=["Values bound to explicit standalone/group comparative balance columns."]) if facts else None
 
 
-def _explicit_bank_balance(passage, company) -> ExtractedFactBatch | None:
+def _explicit_bank_balance(passage, company, *, document_issuer_verified=False) -> ExtractedFactBatch | None:
     """Common issuer balance tables with full dates and one explicit scope."""
     text = passage.text
     if not re.search(r"\bbalance\s*sheet\b|\bstatement\s+of\s+assets\s+and\s+liabilities\b", text, re.I):
         return None
     # An issuer website may also host subsidiary reports. Do not automatically
     # assign a table without its issuer identity and an explicit financial scope.
-    if not re.search(r"\b" + re.escape(company.legal_name) + r"\b", text, re.I):
+    if not issuer_named(text, company) and not document_issuer_verified:
         return None
     if not re.search(r"(?:\u20b9|INR|Rs\.?)\s*(?:in\s+)?(?:crores?|cr)\b", text, re.I):
         return None
     header = None
     columns = []
+    from .dates import COMPLETE_DATE, source_dates
+    # Preserve left-to-right column order, rather than sorting source dates.
+    first_row = re.search(r'(?im)^\s*(?:Total\s+)?Deposits\s+[^\n]*\d', text)
+    if first_row:
+        for line in text[:first_row.start()].splitlines():
+            normalized = re.sub(r'\s+', ' ', line.replace(',', ' '))
+            dates = [source_dates(match[0])[0] for match in COMPLETE_DATE.finditer(normalized)]
+            if len(dates) >= 2 and len(set(dates)) == len(dates):
+                header, columns = line, dates
+                break
     for line in text.splitlines():
+        if header is not None:
+            break
         labels = re.findall(r"(?<!\d)\d{2}[./-]\d{2}[./-]20\d{2}(?!\d)", line)
         if len(labels) < 2 or not re.search(r"\bas\s+(?:on|at)\b", line, re.I):
             continue
@@ -121,11 +139,13 @@ def _explicit_bank_balance(passage, company) -> ExtractedFactBatch | None:
     previous = next((d for d in columns if d.year == latest.year - 1 and (d.month, d.day) == (latest.month, latest.day)),
                     max(d for d in columns if d < latest))
     facts = []
-    for metric, label in (("deposits", "Deposits"), ("borrowings", "Borrowings")):
+    for metric, label in (("deposits", "Deposits"), ("borrowings", "Borrowings"), ("advances_as_reported", "Advances"), ("gross_advances", "Gross Advances")):
         rows = re.findall(r"(?im)^\s*(?:Total\s+)?" + label + r"\s+([^\n]+)$", text)
         if len(rows) != 1:
             continue
         cells = re.findall(r"(?<![\w.])-?\d[\d,]*(?:\.\d+)?(?![\w.])", rows[0])
+        if len(cells) == len(columns) + 1 and re.search(r'\bSchedule\b', prefix, re.I) and re.fullmatch(r'\d{1,2}', cells[0]):
+            cells = cells[1:]
         if len(cells) != len(columns):
             continue  # Growth percentages, footnotes and broken columns are ambiguous.
         for period in (latest, previous):

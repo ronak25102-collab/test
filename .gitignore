@@ -22,6 +22,7 @@ data/*.db
 data/*.db-*
 data/tessdata/*
 output/*
+tmp/
 config/model-rates.json
 !data/.gitkeep
 !output/.gitkeep

@@ -28,7 +28,9 @@ class Settings(BaseSettings):
     gemini_thinking_level: Literal["minimal", "low", "medium", "high"] = "low"
     gemini_max_attempts: int = Field(default=2, ge=1, le=3)
     search_provider: str = "tavily"
+    free_services_only: bool = False
     tavily_api_key: str = Field(default="", repr=False)
+    tavily_search_depth: Literal["basic", "advanced"] = "basic"
     research_mode: str = "live"
     max_run_seconds: int = 420
     max_search_calls: int = 30

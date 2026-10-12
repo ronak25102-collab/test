@@ -11,6 +11,7 @@ from sqlalchemy import func, or_, select
 
 from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.schemas import Company, ResearchReport, RunEvent, RunSummary
+from signal_research.research.identity import identity_aliases, normalize_name
 
 from .models import (
     CompanyModel,
@@ -38,6 +39,7 @@ UNIVERSE_SEED = [
 ]
 
 IR_DOMAINS = {
+    "BSE": ["bseindia.com"],
     "AXISBANK": ["axis.bank.in", "axisbank.com"],
     "BAJFINANCE": ["bajajfinserv.in"],
     "BAJAJFINSV": ["bajajfinserv.in"],
@@ -64,22 +66,24 @@ class Store:
                 company_id = str(uuid5(NAMESPACE_URL, f"signal-research/company/{symbol}"))
                 existing = session.get(CompanyModel, company_id)
                 if existing:
+                    existing.aliases = list(dict.fromkeys([*(existing.aliases or []), *identity_aliases(legal_name)]))
                     if symbol in IR_DOMAINS:
                         existing.verified_ir_domains = list(dict.fromkeys([
                             *IR_DOMAINS[symbol], *(existing.verified_ir_domains or []),
                         ]))
                     continue
                 session.add(CompanyModel(
-                    id=company_id, legal_name=legal_name, symbols=[symbol], aliases=[legal_name],
+                    id=company_id, legal_name=legal_name, symbols=[symbol], aliases=identity_aliases(legal_name),
                     verified_ir_domains=IR_DOMAINS.get(symbol, []), business_profiles=[profile], identity_source_ids=[],
                 ))
             session.commit()
 
     def search_companies(self, query: str) -> list[Company]:
         lowered = query.strip().lower()
+        normalized = normalize_name(query)
         with self.session_factory() as session:
             rows = session.scalars(select(CompanyModel).order_by(CompanyModel.legal_name)).all()
-            matches = [r for r in rows if lowered in r.legal_name.lower() or any(lowered in s.lower() for s in (r.symbols or []) + (r.aliases or []))]
+            matches = [r for r in rows if lowered in r.legal_name.lower() or any(lowered in s.lower() for s in (r.symbols or []) + (r.aliases or [])) or any(normalized in normalize_name(name) for name in [r.legal_name, *(r.aliases or [])])]
             matches.sort(key=lambda r: (lowered not in [s.lower() for s in r.symbols], r.legal_name))
             return [company_schema(row) for row in matches[:20]]
 
@@ -116,10 +120,20 @@ class Store:
                 industry = " ".join(str(row.get(key, "")) for key in ("Industry", "Sector", "ISIN Code")).lower()
                 profile = infer_profile(f"{industry} {legal_name.lower()}")
                 if profile or "financial" in industry:
-                    session.add(CompanyModel(id=company_id, legal_name=legal_name.strip(), symbols=[symbol], isin=row.get("ISIN Code") or row.get("ISIN NUMBER"), exchange="NSE", aliases=[legal_name.strip()], verified_ir_domains=[], business_profiles=[profile] if profile else [], identity_source_ids=[]))
+                    session.add(CompanyModel(id=company_id, legal_name=legal_name.strip(), symbols=[symbol], isin=row.get("ISIN Code") or row.get("ISIN NUMBER"), exchange="NSE", aliases=identity_aliases(legal_name.strip()), verified_ir_domains=[], business_profiles=[profile] if profile else [], identity_source_ids=[]))
                     added += 1
             session.commit()
             return added
+
+    def add_verified_issuer_domains(self, company_id, domains, source_id):
+        """Persist exchange-disclosure provenance together with its website references."""
+        with self.session_factory() as session:
+            row = session.get(CompanyModel, str(company_id))
+            if not row:
+                raise KeyError("company not found")
+            row.verified_ir_domains = list(dict.fromkeys([*(row.verified_ir_domains or []), *domains]))
+            row.identity_source_ids = list(dict.fromkeys([*(row.identity_source_ids or []), str(source_id)]))
+            session.commit()
 
     def get_company(self, company_id: UUID | str) -> Company | None:
         with self.session_factory() as session:
@@ -249,7 +263,9 @@ class Store:
     def load_checkpoint(self, run_id, stage, iteration=0):
         from .models import ArtifactModel
         with self.session_factory() as session:
-            row = session.scalar(select(StageCheckpointModel).where(StageCheckpointModel.run_id == str(run_id), StageCheckpointModel.stage == stage, StageCheckpointModel.iteration == iteration))
+            query = select(StageCheckpointModel).where(StageCheckpointModel.run_id == str(run_id), StageCheckpointModel.stage == stage)
+            query = query.order_by(StageCheckpointModel.iteration.desc()) if iteration is None else query.where(StageCheckpointModel.iteration == iteration)
+            row = session.scalar(query)
             if not row or not row.output_artifact_ids:
                 return None
             artifact = session.get(ArtifactModel, row.output_artifact_ids[0])

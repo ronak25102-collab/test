@@ -18,6 +18,17 @@ class ParsedDocument:
     blank_page_indexes: list[int] = field(default_factory=list)
 
 
+def prioritized_ocr_pages(parsed: ParsedDocument) -> list[int]:
+    """Use nearby source text to prioritize financial scans under a fixed OCR cap."""
+    financial_pages = {p.page_index for p in parsed.passages if p.page_index is not None and
+        re.search(r"balance\s*sheet|financial\s+results|assets\s+and\s+liabilities|value\s+of\s+new\s+business|assets\s+under\s+management", p.text, re.I)}
+    def score(page):
+        # A cover can establish issuer/publication identity. Nearby financial
+        # headings are retrieval leads only; OCR confidence still gates numbers.
+        return (page == 0, any(abs(page - other) <= 2 for other in financial_pages), -page)
+    return sorted(parsed.blank_page_indexes, key=score, reverse=True)
+
+
 def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
     soup = BeautifulSoup(raw, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "noscript"]):

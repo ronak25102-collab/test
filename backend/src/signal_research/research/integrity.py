@@ -11,6 +11,12 @@ from signal_research.domain.enums import EvidenceRelation, VerificationStatus
 
 def report_digest(report):
     payload = report.model_dump(mode="json")
+    # Legacy reports predate the explicit availability basis. Its original
+    # publication-date default adds no evidence; preserve their attestation.
+    # Any retrieval-based eligibility remains part of the reviewed digest.
+    for document in payload.get("documents", []):
+        if document.get("cutoff_eligibility_basis") == "publication_date":
+            document.pop("cutoff_eligibility_basis", None)
     payload["generation_metadata"].pop("verification_digest", None)
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 

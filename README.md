@@ -6,6 +6,25 @@ generates hypotheses, searches supporting and opposing evidence, and independent
 reviews every material statement before publishing the eight required fields.
 It abstains when the evidence is inadequate.
 
+## Current Windows demo setup
+
+Start with [Windows transfer and demo instructions](docs/DEMO.md),
+[measured live results](docs/LIVE-RESULTS.md), and [readiness](docs/READINESS.md).
+The current source has unpushed fixes; transfer the local source archive rather
+than assuming a remote clone contains them. No billing or paid services are enabled.
+
+```powershell
+.\scripts\setup.ps1 -InstallOCR
+# Enter existing keys privately in .env, then:
+.\.venv\Scripts\python.exe scripts/configure_free.py
+.\.venv\Scripts\python.exe -m signal_research.cli universe refresh
+.\scripts\local.ps1 start
+```
+
+The current `.env.example` uses free NVIDIA Nemotron Super for both roles and
+Tavily advanced search within its included allowance. The eight-minute research
+cap does not guarantee a successful discovery. SYNTHBANK remains synthetic.
+
 ## Local setup / WSL
 
 Python 3.12, uv and Node.js 22 are required. From the repository root:
@@ -33,24 +52,26 @@ The API does not start an extra worker by default.
 ## Live configuration
 
 NVIDIA, Gemini and OpenAI are supported. For NVIDIA configure `LLM_PROVIDER=nvidia`,
-`NVIDIA_API_KEY`, `NVIDIA_MODEL_RESEARCH`, and `NVIDIA_MODEL_EXTRACT`. Both roles
-can use `nvidia/nemotron-3.5-lightning-30b-a3b` on NVIDIA's hosted API. The adapter
+`NVIDIA_API_KEY`, `NVIDIA_MODEL_RESEARCH`, and `NVIDIA_MODEL_EXTRACT`. Both current roles
+use `nvidia/nemotron-3-super-120b-a12b` on NVIDIA's hosted free prototype API. The adapter
 requests JSON with a schema derived from Pydantic, generates Decimal values as
 numbers to avoid unsupported regex syntax, and validates returned values against
 the original model locally. Reasoning is disabled for structured extraction. Requests use the fixed
 NVIDIA endpoint and are not retried or redirected implicitly.
 Responses stream incrementally using NVIDIA's supported SSE transport, then are
 validated only after the stream finishes. Partial JSON is never accepted as evidence.
-For the hosted service, set `MODEL_REQUEST_TIMEOUT_SECONDS=300` to allow up to
-five minutes for queueing and generation; this bounds the whole request even if
+The current `MODEL_REQUEST_TIMEOUT_SECONDS=90` allows up to 90 seconds per request; this bounds the whole request even if
 the server keeps sending heartbeat chunks. A timeout remains an uncertain call
 and is not resubmitted automatically. The error message identifies this limit.
 Independent fact reviews have an exact verdict count and short explanations to
 prevent runaway generation; duplicate or missing candidate indices are rejected.
-For long filings on the hosted service, `MAX_RUN_SECONDS=900` allows fifteen
-minutes for the full workflow; each model request still has its separate timeout.
-Copy `config/model-rates.nvidia-free.example.json` to `config/model-rates.json`
-only when using the [free NVIDIA Developer Program prototype API](https://docs.api.nvidia.com/nim/docs/run-anywhere).
+The current free-only configuration targets `MAX_RUN_SECONDS=480` (eight minutes),
+with a separate 90-second model timeout. A completed abstention is not a successful
+discovery; see docs/LIVE-RESULTS.md and docs/READINESS.md. Longer research can be
+configured explicitly but does not meet the provisional live-demo target.
+Run `scripts/configure_free.py` to verify access and generate the private card
+when using the [free NVIDIA Developer Program prototype API](https://docs.api.nvidia.com/nim/docs/run-anywhere).
+The example card is illustrative; it does not establish your account entitlement.
 Keep the rate card consistent with your account and `SEARCH_USD_PER_CREDIT`
 consistent with your Tavily plan. Token, call, time and dollar limits still apply.
 
@@ -79,7 +100,10 @@ links use their filenames as leads, and formal document dates accept ordinal day
 such as `18th July, 2026`. Signed financial results can also supply a city/date
 dateline within a board or issuer signature block with an executive role.
 Filenames, quarter labels, board-meeting references and balance dates never establish
-publication timing. Bank discovery prioritizes shorter financial results before
+publication timing. An undated document successfully fetched today can establish
+public availability by today's cutoff through its timestamped receipt and content
+hash; original publication date stays unknown. This cannot authorize historical
+cutoffs before retrieval, and prevents a Strong label based on unknown dates. Bank discovery prioritizes shorter financial results before
 large annual reports. Verified financial-results indexes provide direct leads even
 when search returns no official-domain matches. Initial bank retrieval preserves
 time for independent verification and stops when explicit comparable balance
@@ -87,7 +111,7 @@ columns are ready for review. Explicit comparative balance tables can bind depos
 borrowings to their own dates and scope before mandatory independent source review.
 `MODEL_REQUEST_TIMEOUT_SECONDS=90` allows structured generation more time than
 document downloads (`SOURCE_REQUEST_TIMEOUT_SECONDS=25`), while the overall run
-deadline still bounds every call. `PDF_PARSE_TIMEOUT_SECONDS=90` gives large annual
+deadline still bounds every call. `PDF_PARSE_TIMEOUT_SECONDS=45` gives large annual
 reports a separate parsing limit; reports over 80 pages use column-preserving text
 extraction instead of exhaustive table detection, with glyph-aware extraction on
 balance pages. ITFRupee, Rupee and RupeeForadian currency glyphs and explicit thousand-rupee units
@@ -106,6 +130,28 @@ Copy `.env.example` to `.env` and enter your own `NVIDIA_API_KEY` and
 `TAVILY_API_KEY`. The template uses NVIDIA, Tavily and local SQLite; other
 settings use the defaults in `settings.py`. Share `.env.example` with friends;
 keep your populated `.env` private.
+
+Live runs now perform a secret-free configuration check before entering the queue.
+The dashboard shows missing account configuration; the API returns HTTP 503 with
+`LIVE_CONFIGURATION_INCOMPLETE`, and the CLI exits with an actionable message.
+Inspect `http://127.0.0.1:8000/api/v1/health/configuration` for the same preflight.
+Create the rate card with verified prices for your account; do not assume that
+the NVIDIA free-rate example applies. Replay does not require provider credentials.
+
+Research instructions and table parsing are shared by business type rather than
+issuer. Company names and domains are reference identity data. New issuer domains
+can be verified from dated exchange disclosures that identify the company and ISIN
+and explicitly reference its website; search results alone do not authorize a domain.
+Same-issuer investor-relations navigation is bounded. If identity or evidence cannot
+be established, the run withholds a discovery rather than trusting a guessed source.
+
+The offline suite includes the entire seeded 12-company roster with mocked search,
+HTTP documents and model responses. It checks extraction, calculations and honest
+abstention; it does not establish real-provider discovery quality. Before the finals,
+run the real roster plus unseen companies and manually validate sources, novelty,
+falsification, runtime and cost. For a ten-minute presentation, reserve presentation
+time and select a measured research limit; the example 900-second limit is not a
+demo readiness guarantee.
 
 Create `config/model-rates.json` for your account. For the NVIDIA Developer
 Program prototype API, copy `config/model-rates.nvidia-free.example.json` only
@@ -201,10 +247,10 @@ A partial result does not publish an unsupported discovery. A verified partial
 checkpoint can be saved after an interruption without extending its deadline.
 
 Bank extraction prioritizes comparative issuer balance sheets and excludes
-sponsored rural-bank and welfare-trust slides from issuer totals. SBI's explicit
-SOLO/GROUP balance columns preserve standalone/consolidated scope; comparative
+sponsored rural-bank and welfare-trust slides from issuer totals. Explicit
+issuer SOLO/GROUP balance columns preserve standalone/consolidated scope; comparative
 month-year headers with YoY labels are normalized to calendar month ends.
-Supported SBI tables and explicit dated balance tables across other banks bind raw
+Supported comparative issuer tables and explicit dated balance tables bind raw
 deposits and borrowings directly to their columns, then require independent source
 review. Ambiguous scope, units and columns are withheld. Net advances are never relabelled as
 gross advances. Model extraction keeps the original source passage and restricts

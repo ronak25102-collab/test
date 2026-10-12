@@ -9,8 +9,10 @@ from signal_research.domain.enums import FactStatus, Profile
 from signal_research.domain.schemas import Fact, Passage
 from signal_research.finance.registry import METRICS
 from signal_research.finance.units import parse_numeric, to_inr_crore
+from signal_research.research.identity import normalize_name
 
 from .bank_tables import month_end_columns, scope_in_text, subsidiary_only
+from .dates import declared_duration_periods, source_dates
 from .models import ExtractedFactCandidate
 
 
@@ -23,6 +25,8 @@ class FactValidation:
 def date_in_text(value: date | None, text: str, *, allow_month_end: bool = False) -> bool:
     if value is None:
         return False
+    if value in source_dates(text):
+        return True
     normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text.lower())
     normalized = re.sub(r"[,.]", " ", normalized)
     normalized = re.sub(r"\s+", " ", normalized)
@@ -69,22 +73,27 @@ def validate_candidate(
     lowered = text.lower()
     if subsidiary_only(text):
         return FactValidation(None, "passage reports a subsidiary or sponsored bank, not issuer totals")
+    if candidate.metric_key == "advances_as_reported" and not re.search(r"(?im)^\s*(?:total\s+)?advances\s+[^\n]*\d", text):
+        return FactValidation(None, "reported advances require an explicit balance row; interest on advances is not a lending stock")
+    if candidate.metric_key == "gross_advances" and not re.search(r"\bgross\s+(?:advances|loans)\b", text, re.I):
+        return FactValidation(None, "plain or net advances cannot establish gross advances")
     aliases = (*metric.aliases, metric.key.replace("_", " "))
     if not any(re.search(r"\b" + re.escape(alias.lower()) + r"\b", lowered) for alias in aliases):
         return FactValidation(None, "metric label is absent from the cited span")
     if not numeric_token_present(candidate.value_raw, text):
         return FactValidation(None, "raw value does not occur in the cited passage")
-    if candidate.metric_key == "gross_advances" and re.search(r"\bnet\s+advances\b", text, re.I) and not re.search(r"\bgross\s+(?:advances|loans)\b", text, re.I):
-        return FactValidation(None, "net advances cannot establish gross advances")
     if not date_in_text(candidate.period_end, text, allow_month_end=profile == Profile.BANK and candidate.period_type.value == "instant"):
         return FactValidation(None, "period end is absent from the cited span")
-    if candidate.period_type.value == "duration" and not date_in_text(candidate.period_start, text):
-        return FactValidation(None, "duration start is absent from the cited span")
+    if candidate.period_type.value == "duration":
+        declared = any(p['period_start'] == candidate.period_start and p['period_end'] == candidate.period_end
+                       for p in declared_duration_periods(text))
+        if not date_in_text(candidate.period_start, text) and not declared:
+            return FactValidation(None, "duration start is absent or not bound to an explicit duration and end date")
     if not scope_in_text(candidate.scope, text):
         return FactValidation(None, "scope is absent from the cited span")
     if candidate.segment != "all" and candidate.segment.lower() not in lowered:
         return FactValidation(None, "segment is absent from the cited span")
-    if entity_name and entity_name.lower() not in passage.text.lower():
+    if entity_name and " " + normalize_name(entity_name) + " " not in " " + normalize_name(passage.text) + " ":
         return FactValidation(None, "entity is absent from the cited passage")
     parsed = parse_numeric(candidate.value_raw)
     if parsed.value is None:
@@ -92,12 +101,14 @@ def validate_candidate(
     unit = (candidate.unit_raw or "").lower()
     value = parsed.value
     if metric.unit == "INR_crore":
-        scale = next((s for s in ("crore", "lakh", "million", "billion", "thousand", "rupees") if re.search(r"\b" + s + r"s?\b", unit)), None)
+        scale = 'lakh crore' if re.search(r'\blakhs?\s+crores?\b', unit) else next((s for s in ("crore", "lakh", "million", "billion", "trillion", "thousand", "rupees") if re.search(r"\b" + s + r"s?\b", unit)), None)
         if scale is None and re.fullmatch(r"(?:(?:inr|rs\.?|\u20b9)\s*)?(?:in\s*)?['\u2018\u2019]?000", unit.strip()):
             scale = "thousand"
         if scale is None and re.search(r"\bcr\b", unit):
             scale = "crore"
         source_scale = scale if scale != "crore" else "(?:crores?|cr)"
+        if scale == 'lakh crore':
+            source_scale = r'lakhs?\s+crores?'
         source_thousands = scale == "thousand" and bool(re.search(r"\bin\s*['\u2018\u2019]?000\b", lowered))
         if not scale or not (source_thousands or re.search(r"\b" + source_scale + r"s?\b", lowered)):
             return FactValidation(None, "monetary scale is absent from the source")

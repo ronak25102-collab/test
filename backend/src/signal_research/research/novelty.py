@@ -12,7 +12,8 @@ class Novelty(StrEnum):
 
 def classify_novelty(headline: str, contemporaneous_titles: list[str]) -> Novelty:
     normalized = headline.lower()
-    if any(normalized in title.lower() or title.lower() in normalized for title in contemporaneous_titles):
+    titles = [title.lower().strip() for title in contemporaneous_titles if len(title.split()) >= 6]
+    if any(normalized == title or normalized in title or title in normalized for title in titles):
         return Novelty.ALREADY_COVERED
     if not contemporaneous_titles:
         return Novelty.UNKNOWN

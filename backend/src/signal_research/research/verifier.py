@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from signal_research.domain.enums import FactStatus, VerificationStatus
+from signal_research.domain.enums import ClaimKind, FactStatus, VerificationStatus
 from signal_research.domain.schemas import ResearchReport
 from signal_research.evidence.citation_checks import citation_coverage
+from signal_research.evidence.claim_origins import supporting_origins
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.research.integrity import report_digest
-from signal_research.retrieval.metadata import publication_day
+from signal_research.retrieval.metadata import available_by_cutoff
 
 
 class VerificationFailure(ValueError):
@@ -52,13 +53,21 @@ def verify_report(report: ResearchReport) -> ResearchReport:
             used_documents.add(passage.document_id)
     for identifier in used_documents:
         document = documents[identifier]
-        if document.cutoff_eligibility != "eligible" or not document.published_at or publication_day(document.published_at) > report.cutoff:
-            raise VerificationFailure("unknown or ineligible publication date")
+        if not available_by_cutoff(document, report.cutoff):
+            raise VerificationFailure("unknown or ineligible source availability by cutoff")
     if report.publication_status.value == "published":
+        alternative_claims = {identifier for discovery in report.discoveries
+                              for identifier in discovery.counterargument.evidence_claim_ids}
+        for claim in report.claims:
+            if claim.kind == ClaimKind.INFERRED and claim.id not in alternative_claims and len(supporting_origins(claim, facts, passages, documents)) < 2:
+                raise VerificationFailure("material inferred claims require independently originated supporting evidence")
         families = {documents[i].origin_family_id for i in used_documents}
         if len(families) < 2 or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
             raise VerificationFailure("discovery requires primary evidence and independent relevant origins")
         for discovery in report.discoveries:
+            headline = next((claim for claim in report.claims if claim.text == discovery.discovery_sentence), None)
+            if not headline or len(supporting_origins(headline, facts, passages, documents)) < 2:
+                raise VerificationFailure("discovery headline requires independently originated supporting evidence")
             if not discovery.counterargument.search_attempted:
                 raise VerificationFailure("counterevidence was not searched")
             claim_map = {c.id: c.text for c in report.claims}

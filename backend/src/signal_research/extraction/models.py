@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import Field, create_model
@@ -29,7 +29,7 @@ class ExtractedFactCandidate(StrictModel):
 class ExtractedFactBatch(StrictModel):
     facts: list[ExtractedFactCandidate] = Field(default_factory=list, max_length=20)
     missing_metrics: list[str] = Field(default_factory=list, max_length=30)
-    notes: list[str] = Field(default_factory=list, max_length=10)
+    notes: list[Annotated[str, Field(max_length=200)]] = Field(default_factory=list, max_length=3)
 
 
 def source_fact_batch_schema(metric_keys: list[str], passage_id: UUID, period_dates: list[date] | None = None):

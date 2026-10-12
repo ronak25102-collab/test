@@ -14,6 +14,8 @@ def test_indian_grouping_and_missingness():
 def test_inr_scales():
     assert to_inr_crore(Decimal("10"), "INR million") == Decimal("1")
     assert to_inr_crore(Decimal("1"), "INR billion") == Decimal("100")
+    assert to_inr_crore(Decimal('29.5'), 'INR lakh crore') == Decimal('2950000')
+    assert to_inr_crore(Decimal('29.5'), 'INR trillion') == Decimal('2950000')
 
 
 def test_march_fiscal_quarter():

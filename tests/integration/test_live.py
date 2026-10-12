@@ -20,7 +20,7 @@ from signal_research.worker.machine import ResearchMachine
 
 def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=False, dated=True, linked=False, no_facts=False, duplicate_review=False):
     settings = Settings(data_dir=tmp_path, allow_unknown_cost=True, auto_start_worker=False,
-                        openai_api_key="test-only", tavily_api_key="test-only", openai_model_extract="extract", openai_model_research="research")
+                        tavily_api_key="test-only", openai_api_key="test-only", openai_model_extract="extract", openai_model_research="research")
     company = store.search_companies("HDFCBANK")[0]
     issuer = "https://www.hdfc.bank.in/about-us/investor-relations/financial-results"
     context = "https://independent.example/sector-review"
@@ -78,10 +78,10 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
             context_ids = [v["id"] for v in p["passages"] if "Independent banking" in v["text"]]
             gap = next(c["id"] for c in p["calculations"] if c["formula_id"] == "growth_gap")
             def statement(text, kind="derived", contextual=False):
-                return {"text": text, "kind": kind, "fact_ids": [] if contextual else ids, "passage_ids": context_ids if contextual else [], "calculation_ids": [] if contextual else [gap]}
+                return {"text": text, "kind": kind, "fact_ids": ids, "passage_ids": context_ids if contextual else [], "calculation_ids": [] if contextual else [gap]}
             headline = statement("HDFC Bank advances grew faster than deposits on comparable consolidated year-end balances; funding stress is not established.")
             headline["passage_ids"] = context_ids
-            output = schema(headline=headline, why_it_matters=[statement("Advances grew 20%, while deposits grew 10%."), statement("The reproducible growth gap is 10 percentage points."), statement("Independent context requires funding-composition evidence before inferring stress.", "inferred", True)], counterargument=statement("Expansion can create a growth gap without funding stress.", "inferred", True), falsification="Reconsider if later comparable disclosures reverse the advances/deposit growth gap.")
+            output = schema(headline=headline, why_it_matters=[statement("Advances grew 20%, while deposits grew 10%."), statement("The reproducible growth gap is 10 percentage points."), statement("Independent context requires funding-composition evidence before inferring stress.", "inferred", True)], counterargument=statement("Expansion can create a growth gap without funding stress.", "inferred", True), falsification="Reconsider if later comparable disclosures reverse the advances/deposit growth gap.", falsification_window="Next two comparable quarterly disclosures", falsification_source="Dated issuer financial results")
         elif schema.__name__ == "SemanticReview":
             output = schema(verdicts=[{"claim_id": c["id"], "supported": not reject_claim, "reason": "All linked source spans, inputs and qualifications reviewed"} for c in p["claims"]], falsification_is_observable=True, contains_investment_recommendation=False)
         else:
@@ -105,8 +105,25 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.source_coverage["synthetic"] is False
     assert report.discoveries[0].counterargument.unresolved
     assert report.discoveries[0].evidence_strength.value == "Weak"
-    assert calls["search"] == 5 and calls["fetch"] == 2
+    assert calls["search"] == 6 and calls["fetch"] == 2
     assert summary.budget["model_calls"] == calls["model"]
+
+
+def test_duplicate_semantic_verdicts_cannot_publish(store, tmp_path, monkeypatch):
+    settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
+    original = OpenAIProvider.generate
+
+    def duplicate(self, schema, *args, **kwargs):
+        output, usage = original(self, schema, *args, **kwargs)
+        if schema.__name__ == "SemanticReview":
+            output.verdicts.append(output.verdicts[0])
+        return output, usage
+
+    monkeypatch.setattr(OpenAIProvider, "generate", duplicate)
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report.outcome.value == "insufficient_evidence"
+    assert any("semantic review rejected" in limitation for limitation in report.limitations)
 
 
 def test_duplicate_review_indices_cannot_approve_any_facts(store, tmp_path, monkeypatch):
@@ -327,3 +344,109 @@ def test_expired_partial_checkpoint_recovers_after_publication_crash(store, tmp_
     assert store.get_summary(run_id).status.value == "completed"
     assert store.get_report(run_id).outcome.value == "partial"
     assert calls == before and store.get_summary(run_id).budget == budget
+
+@pytest.mark.parametrize('kind', ['input_tokens', 'output_tokens', 'model_calls'])
+def test_exploration_preserves_final_review_allowance(store, tmp_path, monkeypatch, kind):
+    from pydantic import BaseModel
+    from signal_research.domain.errors import BudgetExceeded
+    from signal_research.providers.llm.base import ProviderUsage
+    from signal_research.providers.llm.openai_provider import OpenAIProvider
+    from signal_research.worker.budgets import Budget
+    from signal_research.worker.calls import DurableCalls
+
+    class Result(BaseModel):
+        supported: bool
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    settings.max_model_output_tokens_per_call = 256
+    budget = Budget(10, 10, 10, 0, max_input_tokens=60000, max_output_tokens=10000)
+    setattr(budget, kind, {'input_tokens': 48000, 'output_tokens': 8000, 'model_calls': 8}[kind])
+    requested = []
+    def generate(self, schema, messages, role, deadline, max_output_tokens):
+        requested.append(max_output_tokens)
+        return schema(supported=True), ProviderUsage(input_tokens=100, output_tokens=20)
+    monkeypatch.setattr(OpenAIProvider, 'generate', generate)
+    calls = DurableCalls(store, settings, run_id, budget)
+    with pytest.raises(BudgetExceeded):
+        calls.model(Result, {'evidence': 'bounded'}, stage='extracting')
+    assert requested == []
+    assert calls.model(Result, {'evidence': 'bounded'}, stage='verifying').supported
+    assert requested == [256]
+
+
+def test_nvidia_failure_after_fact_review_preserves_evidence_without_discovery(store, tmp_path, monkeypatch):
+    from signal_research.providers.llm.nvidia_provider import NvidiaTimeout
+    from signal_research.research.live import LiveResearch
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    def unavailable(self, hypothesis):
+        raise NvidiaTimeout('Controlled provider timeout; no real NVIDIA call was made')
+    monkeypatch.setattr(LiveResearch, 'challenge', unavailable)
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report.outcome.value == 'partial'
+    assert report.facts and report.calculations and not report.discoveries
+    assert report.generation_metadata['provider_failure'] == 'NVIDIA_RESPONSE_TIMEOUT'
+
+
+def test_empty_search_and_inaccessible_sources_abstain_without_model_or_dummy_data(store, tmp_path, monkeypatch):
+    settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
+    monkeypatch.setattr(TavilySearchProvider, 'search', lambda *args, **kwargs: [])
+    monkeypatch.setattr(PublicFetcher, 'fetch', lambda self, url: FetchResult(url, url, 403, 'text/html', None, None, error='Controlled inaccessible source; no real HTTP request'))
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert store.get_summary(run_id).status.value == 'completed'
+    assert report.outcome.value == 'insufficient_evidence'
+    assert report.abstention and not report.facts and not report.discoveries
+    assert calls['model'] == 0
+    assert any('Controlled inaccessible source' in item for item in report.limitations)
+
+
+def test_malformed_pdf_is_reported_without_silent_synthetic_substitution(store, tmp_path, monkeypatch):
+    settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
+    settings.max_fetch_documents = 1
+    path = tmp_path / 'malformed.pdf'
+    path.write_bytes(b'%PDF-1.7\ninvalid body, no trailer or objects')
+    monkeypatch.setattr(PublicFetcher, 'fetch', lambda self, url: FetchResult(url, url, 200, 'application/pdf', hashlib.sha256(path.read_bytes()).hexdigest(), str(path)))
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report and report.outcome.value == 'insufficient_evidence'
+    assert not report.facts and not report.discoveries and calls['model'] == 0
+    assert any('Source parse failed' in item for item in report.limitations)
+
+
+def test_expired_run_recovers_last_complete_evidence_without_provider_calls(store, tmp_path, monkeypatch):
+    from datetime import UTC, datetime, timedelta
+
+    from signal_research.db.models import ResearchRunModel
+    from signal_research.research.live import LiveResearch
+    settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
+    original = LiveResearch.extract
+    def interrupted(self, *args, **kwargs):
+        original(self, *args, **kwargs)
+        raise RuntimeError('Controlled power interruption after reviewed extraction')
+    monkeypatch.setattr(LiveResearch, 'extract', interrupted)
+    ResearchMachine(store, settings).process(run_id)
+    assert store.get_summary(run_id).status.value == 'failed'
+    checkpoint = store.load_checkpoint(run_id, 'evidence_collected', iteration=None)
+    assert checkpoint['facts'] and checkpoint['calculations'] and not checkpoint['discoveries']
+    with store.session_factory() as session:
+        row = session.get(ResearchRunModel, str(run_id))
+        row.budget_json = row.budget_json | {'deadline': (datetime.now(UTC) - timedelta(seconds=1)).isoformat()}
+        session.commit()
+    before = calls.copy()
+    store.resume(run_id); store.lease_next('evidence-recovery')
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report and report.outcome.value == 'partial' and report.facts and not report.discoveries
+    assert calls == before
+
+
+def test_latest_empty_evidence_checkpoint_does_not_resurrect_withheld_figures(store):
+    from signal_research.domain.enums import RunMode
+    company = store.search_companies('SYNTHBANK')[0]
+    run_id = store.create_run(company, date(2026, 10, 8), RunMode.REPLAY)
+    store.lease_next('checkpoint-order')
+    store.checkpoint(run_id, 'evidence_collected', 0, {'facts': ['old']})
+    store.checkpoint(run_id, 'evidence_collected', 1, {'facts': []})
+    assert store.load_checkpoint(run_id, 'evidence_collected', iteration=None) == {'facts': []}
+    assert store.load_checkpoint(run_id, 'evidence_collected') == {'facts': ['old']}

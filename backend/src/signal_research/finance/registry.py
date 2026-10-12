@@ -17,12 +17,14 @@ class MetricDefinition:
 COMMON = (Profile.BANK, Profile.NBFC, Profile.LIFE_INSURER, Profile.GENERAL_INSURER, Profile.EXCHANGE, Profile.ASSET_MANAGER, Profile.DIVERSIFIED)
 
 METRICS: dict[str, MetricDefinition] = {
-    "gross_advances": MetricDefinition("gross_advances", ("advances", "gross loans"), "INR_crore", "stock", (Profile.BANK, Profile.NBFC), "quarterly results"),
+    "advances_as_reported": MetricDefinition("advances_as_reported", ("advances",), "INR_crore", "stock", (Profile.BANK,), "audited balance sheet", ("do not infer gross or net definition",)),
+    "credit_deposit_ratio": MetricDefinition("credit_deposit_ratio", ("credit-deposit ratio", "credit deposit ratio", "loan-to-deposit ratio"), "percent", "stock", (Profile.BANK,), "issuer ratio disclosure"),
+    "gross_advances": MetricDefinition("gross_advances", ("gross advances", "gross loans"), "INR_crore", "stock", (Profile.BANK, Profile.NBFC), "quarterly results"),
     "deposits": MetricDefinition("deposits", ("total deposits",), "INR_crore", "stock", (Profile.BANK,), "quarterly results"),
     "casa_ratio": MetricDefinition("casa_ratio", ("CASA",), "percent", "stock", (Profile.BANK,), "investor presentation"),
     "nim": MetricDefinition("nim", ("net interest margin",), "percent", "duration", (Profile.BANK, Profile.NBFC), "quarterly results"),
     "gnpa": MetricDefinition("gnpa", ("gross NPA",), "percent", "stock", (Profile.BANK, Profile.NBFC), "asset-quality disclosure"),
-    "aum": MetricDefinition("aum", ("assets under management",), "INR_crore", "stock", (Profile.NBFC, Profile.ASSET_MANAGER), "quarterly results"),
+    "aum": MetricDefinition("aum", ("assets under management",), "INR_crore", "stock", (Profile.NBFC, Profile.ASSET_MANAGER, Profile.LIFE_INSURER), "quarterly results"),
     "vnb": MetricDefinition("vnb", ("value of new business",), "INR_crore", "duration", (Profile.LIFE_INSURER,), "annual report"),
     "ape": MetricDefinition("ape", ("annual premium equivalent",), "INR_crore", "duration", (Profile.LIFE_INSURER,), "annual report"),
     "combined_ratio": MetricDefinition("combined_ratio", ("combined ratio",), "percent", "duration", (Profile.GENERAL_INSURER,), "annual report"),
@@ -33,6 +35,10 @@ METRICS: dict[str, MetricDefinition] = {
 
 # Profile-native measures are registered centrally, never added for a specific issuer.
 for key, aliases, unit, kind, profiles in (
+    ("co_lending_aum", ("co-lending AUM", "co lending assets"), "INR_crore", "stock", (Profile.NBFC,)),
+    ("bank_borrowings", ("borrowings from banks", "bank borrowings"), "INR_crore", "stock", (Profile.NBFC, Profile.DIVERSIFIED)),
+    ("bond_borrowings", ("debt securities", "bonds and debentures"), "INR_crore", "stock", (Profile.NBFC, Profile.DIVERSIFIED)),
+    ("segment_revenue", ("segment revenue",), "INR_crore", "duration", (Profile.DIVERSIFIED,)),
     ("funding_cost", ("cost of funds", "funding cost"), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("credit_cost", ("credit cost",), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("nnpa", ("net NPA", "net non-performing assets ratio"), "percent", "stock", (Profile.BANK, Profile.NBFC)),

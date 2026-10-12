@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from time import monotonic, sleep
 
@@ -21,6 +22,7 @@ class FetchResult:
     local_path: str | None
     error: str | None = None
     attempts: int = 1
+    retrieved_at: str | None = None
 
 
 class PublicFetcher:
@@ -79,7 +81,8 @@ class PublicFetcher:
                                 temporary = path.with_name(f"{path.name}.{uuid4()}.tmp")
                                 temporary.write_bytes(body)
                                 temporary.replace(path)
-                            return FetchResult(url, current, response.status_code, mime, digest, str(path), None, attempt)
+                            return FetchResult(url, current, response.status_code, mime, digest, str(path), None, attempt,
+                                               retrieved_at=datetime.now(UTC).isoformat())
             except UnsafeURL as exc:
                 return FetchResult(url, None, None, None, None, None, str(exc), attempt)
             except (httpx.HTTPError, OSError) as exc:

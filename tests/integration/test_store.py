@@ -29,7 +29,7 @@ def test_cancel_is_terminal_request(store):
 
 
 def test_live_pipeline_validates_model_facts_before_abstaining(store, tmp_path, monkeypatch):
-    settings = Settings(database_url=f"sqlite:///{tmp_path / 'live.db'}", data_dir=tmp_path, allow_unknown_cost=True, openai_api_key="configured", openai_model_extract="extractor", openai_model_research="researcher", auto_start_worker=False)
+    settings = Settings(database_url=f"sqlite:///{tmp_path / 'live.db'}", data_dir=tmp_path, allow_unknown_cost=True, tavily_api_key="test-only", openai_api_key="configured", openai_model_extract="extractor", openai_model_research="researcher", auto_start_worker=False)
     company = store.search_companies("HDFCBANK")[0]
     run_id = store.create_run(company, date(2026, 10, 8), RunMode.LIVE)
     store.lease_next("live-integration")
