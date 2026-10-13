@@ -18,3 +18,11 @@ thresholds are weakened to manufacture success.
 ## Stage evidence
 
 Results and remaining issues are added here as each stage completes.
+
+- Stage 1: all fourteen packaged-profile/planning checks passed; frontend production
+  build passed. The initial full suite passed 344 existing tests and exposed seven
+  missing-test-credential failures; the corrected seven planning tests then passed.
+- Stage 2: analytical context now represents independent origins, selects exact
+  hypothesis-relevant spans even late in documents, preserves full cited numeric
+  evidence, and keeps explicitly cited passages present during final review.
+  Independent recovery searches use the actual candidate question.

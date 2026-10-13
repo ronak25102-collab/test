@@ -44,6 +44,7 @@ from signal_research.extraction.models import source_fact_batch_schema
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
+from signal_research.research.context import diverse_context, exact_excerpt, relevance
 from signal_research.research.identity import identity_aliases, issuer_cover_identity, issuer_named
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -473,47 +474,33 @@ class LiveResearch:
         self.store.checkpoint(self.run_id, "evidence_collected", self.evidence_iteration, snapshot.model_dump(mode="json"))
         self.evidence_iteration += 1
 
-    def payload(self):
+    def payload(self, hypothesis=None, required_passage_ids=()):
         documents = {d.id: d for d in self.documents if d.cutoff_eligibility == "eligible"}
         used = {fact.passage_id for fact in self.facts}
         supporting = [p for p in self.passages if p.id in used and p.document_id in documents]
         context = [p for p in self.passages if p.document_id in documents and
                    not documents[p.document_id].document_type.startswith("issuer")]
-        metrics = metrics_for_profile(self.company.business_profiles[0])
         identities = [*identity_aliases(self.company.legal_name), *self.company.aliases, *self.company.symbols]
+        question = (hypothesis.statement + ' ' + hypothesis.mechanism if hypothesis else
+                    CONTEXT_TERMS[self.company.business_profiles[0]])
         def context_score(passage):
-            text = passage.text.lower()
-            issuer = any(re.search(r"\b" + re.escape(name.lower()) + r"\b", text) for name in identities)
-            return (issuer, sum(alias.lower() in text for metric in metrics for alias in metric.aliases))
-        context.sort(key=context_score, reverse=True)
+            return relevance(passage.text, identities, question)
         # Keep only cited issuer spans plus bounded original context. Sending an
         # entire annual report again would exhaust the token cap before analysis.
-        bounded_context, counts = [], {}
-        for passage in context:
-            if counts.get(passage.document_id, 0) >= 2:
-                continue
-            bounded_context.append(passage)
-            counts[passage.document_id] = counts.get(passage.document_id, 0) + 1
-            if len(bounded_context) == 4:
-                break
+        bounded_context = diverse_context(context, documents, identities, question)
         used_documents = {p.document_id for p in supporting}
         qualifiers = [p for p in self.passages if p.document_id in used_documents and p.id not in used and
             re.search(r'\bmerger|amalgamation|restatement|reclassification|scope\s+of\s+consolidation|change\s+in\s+accounting', p.text, re.I)]
         qualifiers.sort(key=context_score, reverse=True)
-        selected = supporting + qualifiers[:2] + bounded_context
+        required = [p for p in self.passages if p.id in required_passage_ids and p.document_id in documents]
+        selected = list({p.id: p for p in [*supporting, *qualifiers[:2], *bounded_context, *required]}.values())
         source_spans = []
         for passage in selected:
-            offset = 0
-            if len(passage.text) > 2000:
-                anchors = [f.value_raw for f in self.facts if f.passage_id == passage.id]
-                anchors += [self.company.legal_name]
-                positions = [passage.text.lower().find(anchor.lower()) for anchor in anchors if anchor]
-                positions = [position for position in positions if position >= 0]
-                if positions:
-                    offset = max(0, min(positions) - 500)
+            anchors = [f.value_raw for f in self.facts if f.passage_id == passage.id]
+            excerpt = exact_excerpt(passage.text, anchors, question,
+                                    limit=max(2000, len(passage.text)) if anchors else 2000)
             source_spans.append({"id": passage.id, "document_id": passage.document_id,
-                                 "text": passage.text[offset:offset + 2000], "source_character_offset": offset,
-                                 "excerpt_only": len(passage.text) > 2000})
+                                 **excerpt})
         selected_documents = {p.document_id for p in selected}
         return {"company": self.company.model_dump(mode="json"), "cutoff": self.cutoff,
                 "facts": [{key: value for key, value in f.model_dump(mode="json").items() if key in {
@@ -539,7 +526,11 @@ class LiveResearch:
 
     def focused_query(self, query):
         prefix = f'"{self.company.legal_name}"'
-        return query if self.company.legal_name.lower() in query.lower() else f"{prefix} {query}"
+        if prefix.lower() in query.lower():
+            return query
+        if self.company.legal_name.lower() in query.lower():
+            return re.sub(re.escape(self.company.legal_name), lambda _: prefix, query, flags=re.I)
+        return f"{prefix} {query}"
 
     def recover_context(self, hypothesis, force=False):
         """Search original independent reports before giving up on a candidate."""
@@ -551,13 +542,13 @@ class LiveResearch:
             return
         self.stage("discovering", "Searching original independent rating reports to corroborate the funding observation")
         domains = ["icra.in", "crisil.com", "crisilratings.com", "indiaratings.co.in", "fitchratings.com"]
-        query = f'"{self.company.legal_name}" {CONTEXT_TERMS[self.company.business_profiles[0]]} independent analysis {self.cutoff.year}'
+        query = self.focused_query(hypothesis.next_query) + f' rating rationale {self.cutoff.year}'
         hits = self.search(query, domains)
         self.stage("fetching", "Retrieving independent rating reports within the remaining source budget")
         self.ingest(hits[:3], time_reserve=self.time_reserve(120), parse_limit=25)
 
     def challenge(self, hypothesis):
-        payload = self.payload() | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
+        payload = self.payload(hypothesis) | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
         schema = create_model("Challenge", __base__=Challenge, relevant_passage_ids=(list[UUID], Field(json_schema_extra={"items": {
             "type": "string", "enum": [str(p["id"]) for p in payload['passages']]}})))
         return self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails.")
@@ -691,7 +682,7 @@ class LiveResearch:
                     self.limitations.append("Candidate lacked independently originated relevant evidence or was refuted by the additional check.")
                     continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
-            draft_payload = self.payload() | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
+            draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
             draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write a qualified discovery headline, 3–5 significance statements and the strongest counterargument. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
@@ -709,7 +700,7 @@ class LiveResearch:
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
-        review = self.calls.model(SemanticReview, self.payload() | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Detect investment recommendations.")
+        review = self.calls.model(SemanticReview, self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
         if len(review.verdicts) != len(claims) or set(verdicts) != {c.id for c in claims} or review.contains_investment_recommendation or not review.falsification_is_observable or any(c.id not in verdicts or not verdicts[c.id].supported for c in claims):
             self.limitations.append("Independent semantic review rejected a material statement; candidate withheld.")
