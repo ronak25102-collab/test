@@ -334,7 +334,7 @@ class LiveResearch:
                 domains = exchange_issuer_domains(raw, text, fetched.final_url or hit.url, self.company)
                 if domains:
                     self.store.add_verified_issuer_domains(self.company.id, domains, document_id)
-                    self.company.verified_ir_domains = list(dict.fromkeys([*self.company.verified_ir_domains, *domains]))
+                    self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
                     self.store.artifact(self.run_id, "issuer_domain_verification", {
                         "source_url": fetched.final_url or hit.url, "document_id": str(document_id), "domains": domains,
                         "availability_basis": eligibility_basis, "published_at": published, "retrieved_at": receipt,
@@ -599,6 +599,25 @@ class LiveResearch:
         if needs_history(self.facts):
             self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
 
+    def recover_issuer_identity(self):
+        """Re-check authoritative website references when existing domains yield no facts."""
+        if (self.facts or not self.company.isin
+                or self.budget.search_calls >= self.budget.max_search_calls - 3
+                or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
+                or self.budget.remaining_seconds() <= self.time_reserve(180)):
+            return
+        self.stage('discovering', 'Checking authoritative issuer website references after financial retrieval failed')
+        hits = self.search(f'"{self.company.legal_name}" "{self.company.isin}" website',
+                           ['nseindia.com', 'bseindia.com'])
+        before = set(self.company.verified_ir_domains)
+        self.ingest(hits[:1], time_reserve=self.time_reserve(150), parse_limit=20, document_reserve=2)
+        if set(self.company.verified_ir_domains) != before:
+            self.stage('discovering', 'Seeking disclosures on the newly verified issuer website')
+            hits = self.search(f'"{self.company.legal_name}" "financial results" {self.cutoff.year}',
+                               self.company.verified_ir_domains)
+            self.ingest(hits[:1], time_reserve=self.time_reserve(120), parse_limit=25, document_reserve=1)
+            self.extract(limit=1)
+
     def recover_context(self, hypothesis, force=False):
         """Search original independent reports before giving up on a candidate."""
         if self.budget.search_calls >= self.budget.max_search_calls or self.budget.fetch_documents >= self.budget.max_fetch_documents:
@@ -694,6 +713,7 @@ class LiveResearch:
             self.ingest(hits[:2], time_reserve=self.time_reserve(150), document_reserve=1)
             self.stage("extracting", "Checking newly retrieved statements without relaxing figure bindings")
             self.extract(limit=2)
+        self.recover_issuer_identity()
         if not self.calculations:
             if not self.facts:
                 eligible_issuer = any(d.document_type.startswith("issuer") and d.cutoff_eligibility == "eligible" for d in self.documents)

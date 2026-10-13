@@ -83,3 +83,12 @@ also unbounded. These responses now have explicit bounds. Final semantic review
 has exactly one generated verdict slot per existing claim; duplicate/missing
 verdicts still fail local validation. All 42 focused response-bound/live checks
 and all 27 NVIDIA adapter checks passed. This does not retry an uncertain call.
+
+Further shared coverage corrections add explicit insurer premium measures,
+British/American APE labels and separate 13-month/61-month persistency cohorts.
+Audited exchange statements can establish their subject without a signing-letter
+phrase; an exchange addressee still cannot establish authorship. Both newly
+verified and legacy issuer websites have bounded entrypoints. When existing
+domains yield no verified facts, the pipeline can seek a dated exchange reference
+to a changed website rather than guessing a new domain. All 86 focused pipeline
+checks and 38 additional coverage/disclosure/date checks passed.

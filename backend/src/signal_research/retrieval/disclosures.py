@@ -16,7 +16,7 @@ from .url_policy import UnsafeURL, validate_public_url
 def verified_disclosure_indexes(company) -> list[SearchHit]:
     """Company-neutral entry points; search and page links locate actual reports."""
     hits = []
-    for domain in company.verified_ir_domains[:1]:
+    for domain in company.verified_ir_domains[:2]:
         url = f"https://{domain}/"
         try:
             validate_public_url(url, resolve_dns=False)

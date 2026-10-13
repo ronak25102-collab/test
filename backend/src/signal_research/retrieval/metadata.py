@@ -123,7 +123,10 @@ def source_origin(url, company, title, text):
         name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name, flags=re.I).strip()
         pattern = r"\s+".join(re.escape(word) for word in name.split())
         authored = bool(re.search(r"\bFor\s+" + pattern + r"(?:\s+(?:Limited|Ltd\.?))?\b", text, re.I))
-        issuer = authored
+        # Audited reports can establish their subject without a signing letter
+        # addressed 'For <issuer>'. An exchange mention/address is insufficient.
+        audited_subject = bool(re.search(r'\b(?:standalone|consolidated)\s+financial\s+statements?\s+of\s+(?:the\s+)?' + pattern + r'(?:\s+(?:Limited|Ltd\.?))?\b', text, re.I))
+        issuer = authored or audited_subject
     # Exchange copies of issuer announcements share the issuer origin.
     name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name.lower()).strip()
     identity = name in text.lower() or (company.isin and company.isin in text)
