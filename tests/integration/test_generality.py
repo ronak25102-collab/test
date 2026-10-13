@@ -135,6 +135,13 @@ def test_exchange_reference_verifies_unseen_website_without_trusting_search_resu
     assert exchange_issuer_domains(raw, 'Quartz Financial Bank', 'https://www.nseindia.com/disclosure', company) == []
 
 
+def test_malformed_website_references_do_not_abort_remaining_identity_evidence():
+    company = Company(id=uuid4(), legal_name='Quartz Financial Bank', symbols=['QFB'], isin='INE000000001', business_profiles=[Profile.BANK])
+    raw = b'<a href="https://[broken">Company website</a><a href="https://example.com:invalid/">Company website</a><a href="https://quartz.example">Company website</a>'
+    text = 'Quartz Financial Bank INE000000001 Website: https://[broken'
+    assert exchange_issuer_domains(raw, text, 'https://www.nseindia.com/disclosure', company) == ['quartz.example']
+
+
 def test_navigation_follows_same_issuer_only():
     raw = b'<nav><a href="/investors">Investor Relations</a><a href="https://evil.example">Financial results</a></nav>'
     hits = issuer_navigation(raw, 'https://quartz.example/', ['quartz.example'])

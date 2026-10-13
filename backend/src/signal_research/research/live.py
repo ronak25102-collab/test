@@ -4,7 +4,7 @@ import re
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 from uuid import UUID, uuid4, uuid5
 
 from pydantic import Field, create_model
@@ -221,7 +221,15 @@ class LiveResearch:
         self.source_titles.extend(hit.title for hit in hits if hit.title)
         # Search metadata ranks retrieval leads only. It never verifies issuer
         # identity, a publication date or a financial figure.
-        return sorted(hits, key=lambda hit: (
+        financial_search = bool(re.search(r'financial results|financial statements|annual report|investor presentation', query.replace('"', ''), re.I))
+        annual_search = bool(re.search(r'annual report', query.replace('"', ''), re.I))
+        # Filter before callers take their bounded slice. Otherwise previously
+        # fetched releases can occupy both slots and hide a new useful document.
+        fresh_hits = [hit for hit in hits if hit.url not in self.seen_urls]
+        return sorted(fresh_hits, key=lambda hit: (
+            not bool(re.search(r'\bsubsidiar(?:y|ies)\b', re.sub(r'[-_/]+', ' ', unquote(hit.url)), re.I)) if financial_search else False,
+            bool(re.search(r'annual[-_\s]+report|integrated[-_\s]+report|(?:^|[^a-z])iar(?:[^a-z]|$)', unquote(hit.url) + ' ' + hit.title, re.I)) if annual_search else False,
+            bool(re.search(r'(?:un)?audited[-_\s]+financial[-_\s]+results|statement[-_\s]+of[-_\s]+assets|balance[-_\s]+sheet', unquote(hit.url) + ' ' + hit.title, re.I)) if financial_search else False,
             issuer_named(hit.title, self.company),
             issuer_named(hit.title + " " + hit.snippet, self.company),
             bool(re.search(r"\.pdf(?:[/?#]|$)", hit.url, re.I)),
@@ -364,7 +372,15 @@ class LiveResearch:
             rows = len(re.findall(r"(?m)^\s*(?:total\s+|gross\s+|net\s+)?(?:advances|deposits|borrowings)\b[^\n]*\d", text))
             bindings = any(scope_in_text(scope, text) for scope in ("standalone", "consolidated"))
             dates = bool(month_end_columns(p.text) or re.search(r"\b\d{1,2}[./-]\d{1,2}[./-]20\d{2}\b|\b(?:march|june|september|december)\b[^\n]*20\d{2}", text))
-            return (bindings and dates, rows > 0 if profile.value == "bank" else labels > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else labels, published[p.document_id], labels)
+            # A readable, explicitly denominated table beats an OCR-damaged
+            # newer page or a narrative that merely mentions metric names.
+            unit_header = bool(re.search(r"(?:₹|INR|Rs\.?)\s*(?:in\s+)?(?:crores?|cr|lakhs?|thousands?|[‘’']?000|millions?|billions?)\b", p.text[:1200], re.I))
+            financial_rows = sum(bool(re.search(r"(?im)^\s*(?:\d+[.)]?\s+)?" + re.escape(alias) + r"\b[^\n]*\d", p.text))
+                                 for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
+            periods = [period for period in source_dates(p.text) if period <= self.cutoff]
+            periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
+            latest_period = max(periods).toordinal() if periods else 0
+            return (bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
         ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.document_id in eligible and
                          not subsidiary_only(p.text) and self.financial_passage(p)], key=score, reverse=True)
         passages, pages = [], set()
@@ -608,9 +624,11 @@ class LiveResearch:
                 and self.budget.model_calls < self.budget.max_model_calls - 5
                 and self.budget.remaining_seconds() > self.time_reserve(180)):
             # A press-release lead can have figures without unambiguous financial
-            # scope or columns. Seek the underlying statements rather than guessing.
+            # scope or columns. Seek an original annual disclosure rather than
+            # requiring both "standalone" and "consolidated" in a search result;
+            # a valid statement can legitimately contain only one scope.
             self.stage("discovering", "Seeking financial statements after initial figures failed period or scope checks")
-            query = f'"{self.company.legal_name}" "financial statements" "standalone" "consolidated" {self.cutoff.year} filetype:pdf'
+            query = f'"{self.company.legal_name}" "annual report" {self.cutoff.year - 1} {self.cutoff.year} filetype:pdf'
             hits = self.search(query, self.company.verified_ir_domains or None)
             self.stage("fetching", "Retrieving underlying statements within the remaining evidence budget")
             self.ingest(hits[:2], time_reserve=self.time_reserve(150), document_reserve=1)

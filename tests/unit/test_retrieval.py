@@ -13,3 +13,10 @@ def test_url_policy_blocks_private_destinations():
 def test_url_normalization_preserves_filing_query_identity():
     assert normalize_url("HTTPS://Example.com/file?b=2&a=1#page") == "https://example.com/file?a=1&b=2"
     assert origin_family("Issuer", "Results", "same text") == origin_family("Issuer", "Results", "same text")
+
+
+@pytest.mark.parametrize("url", ["https://[broken", "https://[not-an-ip]/", "https://example.com:invalid/", "https://example.com:99999/"])
+@pytest.mark.parametrize("resolve_dns", [False, True])
+def test_malformed_urls_use_the_source_rejection_exception(url, resolve_dns):
+    with pytest.raises(UnsafeURL, match="malformed"):
+        validate_public_url(url, resolve_dns=resolve_dns)

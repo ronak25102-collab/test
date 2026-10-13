@@ -1,5 +1,11 @@
 # ATMOS Track A final audit — 12 October 2026
 
+**13 October follow-up:** extraction/selection corrections and 343 passing backend
+tests are documented in EXTRACTION-FIX-2026-10-13.md. Actual new HDFC/Axis runs
+retained 12/6 facts and 10/5 calculations, respectively; neither published a
+discovery. The twelve-company results below describe the preserved earlier matrix,
+not a new test of every issuer on the corrected revision. NOT READY remains valid.
+
 **NOT READY for a judge-selected live discovery.** The local application and its
 safety/recovery paths work in verified tests; the research-quality acceptance
 criterion does not. The final twelve real runs produced zero discoveries, two

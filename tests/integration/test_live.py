@@ -216,6 +216,12 @@ def test_linked_pdf_without_publication_date_remains_ineligible(store, tmp_path,
 
 def test_extraction_gaps_are_explained_in_the_report(store, tmp_path, monkeypatch):
     settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch, linked=True, no_facts=True)
+    original_search = TavilySearchProvider.search
+    queries = []
+    def search(self, query, domains, cutoff, max_results):
+        queries.append(query)
+        return original_search(self, query, domains, cutoff, max_results)
+    monkeypatch.setattr(TavilySearchProvider, 'search', search)
     ResearchMachine(store, settings).process(run_id)
     report = store.get_report(run_id)
     assert report.outcome.value == "insufficient_evidence"
@@ -224,6 +230,8 @@ def test_extraction_gaps_are_explained_in_the_report(store, tmp_path, monkeypatc
     artifact = store.artifacts(run_id, "fact_extraction")[0]["payload"]
     assert artifact["missing_metrics"] == ["gross_advances"]
     assert artifact["notes"]
+    assert any('"annual report"' in query for query in queries)
+    assert not any('"standalone" "consolidated"' in query for query in queries)
 
 
 def test_live_recovers_a_dated_annual_disclosure_when_initial_sources_are_undated(store, tmp_path, monkeypatch):

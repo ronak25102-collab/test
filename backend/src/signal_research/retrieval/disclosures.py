@@ -32,7 +32,11 @@ def issuer_navigation(raw: bytes, page_url: str, domains: list[str], limit: int 
     hits, seen = [], set()
     for anchor in BeautifulSoup(raw, "html.parser").find_all("a", href=True):
         label = anchor.get_text(" ", strip=True) or anchor.get("aria-label", "")
-        url = urldefrag(urljoin(page_url, anchor["href"]))[0]
+        try:
+            url = urldefrag(urljoin(page_url, anchor["href"]))[0]
+            validate_public_url(url, resolve_dns=False)
+        except ValueError:
+            continue
         if not re.search(r"investor\s*relations|financials?|financial\s*results|annual\s*reports?|shareholders", label, re.I):
             continue
         if url == page_url or url in seen or ".pdf" in urlparse(url).path.lower():
@@ -59,7 +63,11 @@ def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int
     leads = []
     seen = set()
     for anchor in soup.find_all("a", href=True):
-        url = urldefrag(urljoin(page_url, anchor["href"]))[0]
+        try:
+            url = urldefrag(urljoin(page_url, anchor["href"]))[0]
+            validate_public_url(url, resolve_dns=False)
+        except ValueError:
+            continue
         host = urlparse(url).hostname or ""
         label = anchor.get_text(" ", strip=True) or anchor.get("aria-label") or anchor.get("title") or ""
         pdf_lead = (".pdf" in urlparse(url).path.lower() or

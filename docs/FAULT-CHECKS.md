@@ -28,3 +28,18 @@ warning. Actual HTTP/hash source checks do not validate every cited financial cl
 Tavily's conservative free ledger does not automatically refund uncertain usage or
 accept a monthly replenishment; resolve that explicitly before a future demo.
 NVIDIA remaining quota has no verified documented endpoint in this validation.
+
+## 13 October: malformed URL crash
+
+Actual HDFC run `cc4c461f-88db-4040-b039-bcafe750b628` failed while collecting
+issuer identity, before any model call. A malformed website reference triggered
+`ValueError: Invalid IPv6 URL` in Python URL parsing; the per-reference rejection
+handler expected `UnsafeURL`. The shared URL validator now translates parse,
+hostname and invalid-port errors into `UnsafeURL`. Official navigation and document
+link discovery also skip malformed links before parsing their hosts.
+
+74 targeted URL, disclosure, generality and fetch-security tests passed (one
+existing Starlette deprecation warning), including bad links followed by usable
+issuer links. Ruff and whitespace checks passed. These tests do not establish a
+successful new live HDFC discovery. The original failed run remains unchanged;
+start a new run with the restarted worker to use the correction.

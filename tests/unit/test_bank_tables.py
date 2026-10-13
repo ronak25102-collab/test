@@ -27,6 +27,21 @@ def test_real_sbi_columns_preserve_dates_scope_and_amounts():
         assert not validate_candidate(candidate.model_copy(update={"period_end": date(2026, 3, 31)}), passage, uuid4(), Profile.BANK).fact
 
 
+def test_thousand_unit_balance_preserves_scale_schedule_and_comparative_columns():
+    from decimal import Decimal
+    company = SimpleNamespace(legal_name='Quartz Financial Bank')
+    text = "Quartz Financial Bank\nSTANDALONE BALANCE SHEET\n(₹ in ‘000)\nSchedule\nMarch 31, 2026 March 31, 2025\nDeposits 3 31,052,504,740 27,147,148,959\nBorrowings 4 4,893,946,381 5,479,308,926\nAdvances 9 29,371,662,693 26,196,086,171"
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=text)
+    batch = comparative_bank_batch(passage, company)
+    assert len(batch.facts) == 6
+    facts = [validate_candidate(candidate, passage, uuid4(), Profile.BANK).fact for candidate in batch.facts]
+    assert all(facts)
+    assert facts[0].value_decimal == Decimal('3105250.474')
+    assert facts[2].value_decimal == Decimal('489394.6381')
+    assert all(f.unit_raw == 'INR thousand' for f in facts)
+    assert not any(f.metric_key == 'gross_advances' for f in facts)
+
+
 @pytest.mark.parametrize("label,ending", [("Dec 25", date(2025, 12, 31)), ("Feb 24", date(2024, 2, 29)), ("Feb 25", date(2025, 2, 28))])
 def test_comparative_month_headers_use_actual_calendar_end(label, ending):
     assert month_end_columns(TEXT.replace("Jun 26", label))[1][1] == ending

@@ -13,6 +13,64 @@ from signal_research.settings import Settings
 from signal_research.worker.budgets import Budget
 
 
+def test_statement_search_prioritizes_actual_results_over_named_calls_and_subsidiaries(store, tmp_path, monkeypatch):
+    from signal_research.providers.search.base import SearchHit
+    company = store.search_companies('AXISBANK')[0]
+    research = LiveResearch(SimpleNamespace(store=store, settings=Settings(data_dir=tmp_path)),
+                            uuid4(), company, date(2026, 10, 13), Budget(1, 1, 1, 1))
+    statement = SearchHit('https://issuer.example/unaudited-financial-results.pdf', 'Unaudited financial results', '', 3, 'tavily')
+    call = SearchHit('https://issuer.example/earnings-call.pdf', company.legal_name + ' Earnings Call', '', 1, 'tavily')
+    subsidiary = SearchHit('https://issuer.example/for-subsidiaries/annual.pdf', company.legal_name + ' Annual Report', '', 2, 'tavily')
+    monkeypatch.setattr(research.calls, 'search', lambda *args: [call, subsidiary, statement])
+    ranked = research.search(f'"{company.legal_name}" "annual report" 2026')
+    assert ranked == [statement, call, subsidiary]
+    # Independent/mechanism searches retain the original issuer-relevance order.
+    assert research.search('funding regulation')[0] == call
+
+
+def test_annual_fallback_keeps_new_report_ahead_of_reused_release_and_subsidiary(store, tmp_path, monkeypatch):
+    from signal_research.providers.search.base import SearchHit
+    company = store.search_companies('HDFCBANK')[0]
+    research = LiveResearch(SimpleNamespace(store=store, settings=Settings(data_dir=tmp_path)),
+                            uuid4(), company, date(2026, 10, 13), Budget(1, 1, 1, 1))
+    old = SearchHit('https://issuer.example/press-release.pdf', company.legal_name + ' Release', '', 1, 'tavily')
+    annual = SearchHit('https://issuer.example/disclosures/Final_IAR.pdf', 'July 10, 2026', '', 3, 'tavily')
+    quarter = SearchHit('https://issuer.example/financial-results.pdf', company.legal_name + ' Financial Results', '', 4, 'tavily')
+    subsidiary = SearchHit('https://issuer.example/annual-reports-of-the-subsidiaries/annual.pdf', company.legal_name + ' Annual Report', '', 2, 'tavily')
+    research.seen_urls.add(old.url)
+    monkeypatch.setattr(research.calls, 'search', lambda *args: [old, subsidiary, annual, quarter])
+    assert research.search(f'"{company.legal_name}" "annual report" 2026')[:2] == [annual, quarter]
+
+
+def test_readable_denominated_balance_precedes_newer_damaged_table(store, tmp_path, monkeypatch):
+    company = store.search_companies('AXISBANK')[0]
+    run_id = store.create_run(company, date(2026, 10, 13), RunMode.LIVE)
+    store.lease_next('table-quality')
+    research = LiveResearch(SimpleNamespace(store=store, settings=Settings(data_dir=tmp_path)),
+                            run_id, company, date(2026, 10, 13), Budget(1, 1, 1, 1))
+    doc = SourceDocument(id=uuid4(), canonical_url='https://axis.bank.in/annual.pdf',
+        final_url='https://axis.bank.in/annual.pdf', publisher=company.legal_name,
+        origin_family_id=f'issuer:{company.id}', title='Annual report',
+        document_type='issuer_disclosure', retrieved_at='2026-10-13T00:00:00Z', published_at='2026-04-18T00:00:00Z',
+        content_hash='annual', mime_type='application/pdf', cutoff_eligibility='eligible')
+    text = 'Axis Bank\nConsolidated balance sheet\n(INR in crore)\nAs at 31.03.2026 31.03.2025\nDeposits 1000 900\nBorrowings 200 220\nAdvances 800 700'
+    good = Passage(id=uuid4(), document_id=doc.id, page_index=17, text=text, extraction_method='pdf')
+    newer = SourceDocument.model_validate(doc.model_dump() | {'id': uuid4(), 'published_at': '2026-07-18T00:00:00Z'})
+    damaged = Passage(id=uuid4(), document_id=newer.id, page_index=2,
+        text=text.replace('(INR in crore)', '(in crore)').replace('31.03.', '30.06.'), extraction_method='pdf')
+    research.documents, research.passages = [newer, doc], [damaged, good]
+    reviewed = []
+    def review(schema, payload, *args):
+        reviewed.append(payload['source_text'])
+        return schema(verdicts=[{'index': i, 'supported': True, 'reason': 'Explicit columns match'}
+                               for i in range(len(payload['candidates']))])
+    monkeypatch.setattr(research.calls, 'model', review)
+    research.extract()
+    assert reviewed == [good.text]
+    assert len(research.facts) == 6
+    assert all(f.passage_id == good.id for f in research.facts)
+
+
 def test_independent_review_cannot_grow_beyond_its_candidate_count_or_reason_limit():
     schema = fact_review_schema(2)
     verdict = {"index": 0, "supported": True, "reason": "Exact row and column match."}

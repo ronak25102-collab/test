@@ -54,7 +54,7 @@ def test_large_pdf_keeps_all_pages_and_headers_without_exhaustive_tables(tmp_pat
     monkeypatch.setattr(pdfplumber, "open", lambda *a, **k: pytest.fail("Large PDFs must avoid exhaustive table detection"))
     identifier = uuid4()
     parsed = parse_pdf(identifier, path)
-    assert parsed.extraction_method == "pdf_layout"
+    assert parsed.extraction_method == "pdf_pdfium"
     assert {p.page_index for p in parsed.passages} == set(range(81))
     assert all("30.06.2026" in p.text and "Deposits 100" in p.text for p in parsed.passages)
     assert [p.id for p in parsed.passages] == [p.id for p in parse_pdf(identifier, path).passages]

@@ -36,6 +36,16 @@ def parse_numeric(raw: str | None, unit: str | None = None) -> ParsedNumber:
     if not original or original.lower() in {"-", "—", "–", "na", "n/a", "nm", "not disclosed"}:
         return ParsedNumber(original, None, unit, "not_disclosed")
     text = original.replace("₹", "").replace("%", "").strip()
+    # A comma may be a genuine Indian/Western grouping separator, or a damaged
+    # decimal point in a PDF's OCR layer. Never turn 3170830,09 into 317083009.
+    for token in re.findall(r"[+-]?\d[\d,.]*", text):
+        parts = token.lstrip("+-").split(".")
+        if len(parts) > 2 or (len(parts) == 2 and ',' in parts[1]):
+            return ParsedNumber(original, None, unit, "ambiguous")
+        integer = parts[0]
+        if "," in integer and not (re.fullmatch(r"\d{1,3}(?:,\d{3})+", integer)
+                                   or re.fullmatch(r"\d{1,2}(?:,\d{2})*,\d{3}", integer)):
+            return ParsedNumber(original, None, unit, "ambiguous")
     text = re.sub(r"[†*‡#,\s]", "", text)
     negative = text.startswith("(") and text.endswith(")")
     if negative:

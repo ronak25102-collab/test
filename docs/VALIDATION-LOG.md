@@ -140,3 +140,21 @@ interrupted Jio run. Focused and full checks are being recorded separately.
   Round 1 draft now state NOT READY explicitly. The draft was rendered and visually
   checked after updating its actual validation results. Source and validation archives
   remain local, with credential screening and content hash manifests.
+
+## 13 October: extraction and document selection
+
+See EXTRACTION-FIX-2026-10-13.md for shared native-PDF, explicit-unit, numeric-grouping,
+ranking and fallback changes. Actual HDFC retained twelve figures/ten calculations
+in 140.4 seconds; final Axis retest retained six/five in 176.0 seconds. All 18 cells
+and 15 calculations were independently checked against rendered source pages.
+Both are partial evidence with no discovery; corroboration and budget limitations
+remain explicit. Earlier unsuccessful Axis retests remain preserved. The final full
+backend suite passed 343 tests (one existing Starlette deprecation warning).
+No evidence check was weakened and no company-specific analysis was introduced.
+
+Later HDFC repeat `f960b8f8...` exposed an unfetched annual report despite its
+presence in search results. Fresh-lead filtering now occurs before bounded slicing,
+and annual-search ranking respects report type. Retest `cf970bfb...`: 205.5 seconds,
+twelve retained figures/ten calculations, still PARTIAL with no discovery. Figures
+and arithmetic match the previously visually checked unchanged source. The latest
+complete backend suite passed 344 tests. See the extraction-fix follow-up section.

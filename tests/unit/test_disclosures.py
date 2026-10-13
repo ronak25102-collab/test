@@ -5,6 +5,14 @@ from signal_research.retrieval.disclosures import linked_disclosures
 from signal_research.retrieval.metadata import source_publication
 
 
+def test_malformed_links_do_not_abort_official_navigation_or_discovery():
+    from signal_research.retrieval.disclosures import issuer_navigation
+    raw = b'<a href="https://[broken">Financial results</a><a href="https://issuer.example:invalid/">Annual report</a><a href="/investors">Investor relations</a><a href="/financial-results.pdf">Financial Results</a>'
+    page = 'https://issuer.example/'
+    assert [hit.url for hit in issuer_navigation(raw, page, ['issuer.example'])] == ['https://issuer.example/investors']
+    assert [hit.url for hit in linked_disclosures(raw, page, ['issuer.example'])] == ['https://issuer.example/financial-results.pdf']
+
+
 def test_disclosure_links_exclude_navigation_foreign_hosts_and_unrelated_pdfs():
     raw = b'''<html><nav><a href="/nav.pdf">Annual Report FY29</a></nav>
     <a href="/forms.pdf">Account application form</a>

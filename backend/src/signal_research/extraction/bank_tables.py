@@ -100,8 +100,10 @@ def _explicit_bank_balance(passage, company, *, document_issuer_verified=False) 
     # assign a table without its issuer identity and an explicit financial scope.
     if not issuer_named(text, company) and not document_issuer_verified:
         return None
-    if not re.search(r"(?:\u20b9|INR|Rs\.?)\s*(?:in\s+)?(?:crores?|cr)\b", text, re.I):
+    unit_match = re.search(r"(?:\u20b9|INR|Rs\.?)\s*(?:in\s+)?(?P<scale>crores?|cr|thousands?|[‘’']?000)\b", text, re.I)
+    if not unit_match:
         return None
+    unit_raw = "INR thousand" if re.search(r"thousand|000", unit_match['scale'], re.I) else "INR crore"
     header = None
     columns = []
     from .dates import COMPLETE_DATE, source_dates
@@ -150,6 +152,6 @@ def _explicit_bank_balance(passage, company, *, document_issuer_verified=False) 
             continue  # Growth percentages, footnotes and broken columns are ambiguous.
         for period in (latest, previous):
             facts.append(ExtractedFactCandidate(metric_key=metric, value_raw=cells[columns.index(period)],
-                unit_raw="INR crore", currency="INR", period_end=period, scope=scopes[0],
+                unit_raw=unit_raw, currency="INR", period_end=period, scope=scopes[0],
                 passage_id=passage.id, extraction_confidence=Decimal(".99")))
     return ExtractedFactBatch(facts=facts, notes=["Values bound to explicit dated issuer balance columns and financial scope."]) if facts else None

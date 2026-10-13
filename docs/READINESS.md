@@ -1,5 +1,11 @@
 # Track A readiness — 12 October 2026
 
+**13 October update:** shared selection/parser corrections improved actual HDFC
+from zero facts to twelve facts/ten calculations, and Axis to six/five. Both
+retained partial evidence; neither published a discovery. The latest full backend
+suite passed 343 tests. See EXTRACTION-FIX-2026-10-13.md; the historical full roster
+matrix below is not a new final-revision success matrix. The verdict remains NOT READY.
+
 **NOT READY for a judge-selected live discovery.** The Windows application starts,
 installation is reproducible, and evidence checks reject unsupported outputs.
 The final 12-company live matrix, two unseen issuers, two repeated runs and a

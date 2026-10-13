@@ -57,19 +57,30 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
     from pypdf import PdfReader
 
     reader = PdfReader(path)
-    # Annual reports can contain hundreds of pages. Exhaustive table detection on
-    # every page is much slower than extracting text with its column positions.
+    # Annual reports can contain hundreds of pages. Use bounded native text
+    # extraction, with glyph-aware full headers only on financial balance pages.
     if len(reader.pages) > 80:
         from contextlib import ExitStack
 
         import pdfplumber
+        import pypdfium2 as pdfium
 
         passages, blank_pages = [], []
         with ExitStack() as resources:
             financial_pdf = None
-            for page_index, page in enumerate(reader.pages):
-                text = page.extract_text(extraction_mode="layout") or ""
-                method = "pdf_layout"
+            document = pdfium.PdfDocument(path)
+            resources.callback(document.close)
+            for page_index in range(len(document)):
+                page = document[page_index]
+                try:
+                    textpage = page.get_textpage()
+                    try:
+                        text = textpage.get_text_bounded() or ""
+                    finally:
+                        textpage.close()
+                finally:
+                    page.close()
+                method = "pdf_pdfium"
                 if _balance_page(text):
                     # Use glyph-aware text extraction only on balance pages. This
                     # recovers complete headers without detecting tables on all pages.
@@ -90,7 +101,7 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
                     passage.page_index = page_index
                     passage.printed_page_label = str(page_index + 1)
                 passages.extend(parsed.passages)
-        return ParsedDocument(path.name, passages, "pdf_layout", blank_pages)
+        return ParsedDocument(path.name, passages, "pdf_pdfium", blank_pages)
     try:
         import pdfplumber
     except ImportError as exc:

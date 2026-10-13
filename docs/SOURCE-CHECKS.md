@@ -1,5 +1,12 @@
 # Human source and arithmetic checks
 
+**13 October follow-up:** rendered HDFC annual pages 378/496 and Axis quarterly
+page 7 were independently inspected for the new extraction retests. All eighteen
+retained raw figures and fifteen reported calculations matched separately
+transcribed source cells and Decimal arithmetic. See EXTRACTION-FIX-2026-10-13.md
+and `data/exports/extraction-fix-2026-10-13/manual-HDFC-verified.json` /
+`manual-AXIS-verified.json`. Both runs are partial evidence, not discoveries.
+
 These checks are distinct from automated verification and model reviews. They do
 not establish a discovery when a run abstains. Live artifacts remain under
 `data/exports/finals-validation`; original reports are preserved for audit.
