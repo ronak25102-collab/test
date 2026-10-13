@@ -26,3 +26,10 @@ Results and remaining issues are added here as each stage completes.
   hypothesis-relevant spans even late in documents, preserves full cited numeric
   evidence, and keeps explicitly cited passages present during final review.
   Independent recovery searches use the actual candidate question.
+  All 40 focused context/extraction/live checks passed.
+- Stage 3: shared explicit table binding now covers NBFCs, insurers, exchanges,
+  asset managers and diversified businesses. Ambiguous scope, units, damaged
+  cells and extra columns remain withheld. Managed assets, on-book loans and
+  net advances retain distinct definitions. Funding shares, profit margins and
+  transaction-revenue shares use registered arithmetic with comparable inputs.
+  Full backend/security suite: 374 passed; Ruff and whitespace checks passed.

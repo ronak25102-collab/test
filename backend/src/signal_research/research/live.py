@@ -40,6 +40,7 @@ from signal_research.extraction.bank_tables import (
     subsidiary_only,
 )
 from signal_research.extraction.dates import declared_duration_periods, source_dates
+from signal_research.extraction.financial_tables import financial_table_batch
 from signal_research.extraction.models import source_fact_batch_schema
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
@@ -179,17 +180,30 @@ def derive_calculations(facts):
             if prior:
                 add("change_pp" if current.unit_normalized == "percent" else "yoy_growth", [current, prior])
                 pairs.append((current, prior))
+    growth_relationships = {
+        ('gross_advances', 'deposits'), ('advances_as_reported', 'deposits'),
+        ('net_advances', 'deposits'), ('borrowings', 'deposits'),
+        ('aum', 'borrowings'), ('on_book_loans', 'borrowings'),
+        ('vnb', 'ape'), ('net_profit', 'revenue'),
+        ('transaction_revenue', 'revenue'), ('fee_revenue', 'average_aum'),
+    }
     for a, b in pairs:
-        if a.metric_key not in {"gross_advances", "advances_as_reported", "borrowings"}:
+        if a.unit_normalized == 'percent':
             continue
         for c, d in pairs:
-            if c.metric_key == "deposits":
+            if (a.metric_key, c.metric_key) in growth_relationships:
                 add("growth_gap", [a, b, c, d])
                 if a.metric_key == "gross_advances":
                     add("ldr_change", [a, b, c, d])
                     add("loan_to_deposit", [a, c])
                     add("loan_to_deposit", [b, d])
-    for numerator, denominator, formula in (("vnb", "ape", "vnb_to_ape"), ("fee_revenue", "average_aum", "fee_yield")):
+    for numerator, denominator, formula in (
+        ("vnb", "ape", "vnb_to_ape"), ("fee_revenue", "average_aum", "fee_yield"),
+        ("bank_borrowings", "borrowings", "funding_share"),
+        ("bond_borrowings", "borrowings", "funding_share"),
+        ("net_profit", "revenue", "profit_margin"),
+        ("transaction_revenue", "revenue", "transaction_revenue_share"),
+    ):
         for a in facts:
             if a.metric_key == numerator:
                 for b in facts:
@@ -400,6 +414,8 @@ class LiveResearch:
             identity_passages = [p for p in identity_passages if issuer_cover_identity(p.text, self.company)]
             issuer_bound = bool(identity_passages)
             batch = comparative_bank_batch(passage, self.company, document_issuer_verified=issuer_bound) if profile.value == "bank" else None
+            if batch is None:
+                batch = financial_table_batch(passage, self.company, profile, document_issuer_verified=issuer_bound)
             extraction_method = "explicit_comparative_columns" if batch else "model"
             if batch is None:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})

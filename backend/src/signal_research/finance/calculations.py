@@ -99,6 +99,9 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
     "ldr_change": ("1.0", _ldr_change, "percentage_points"),
     "vnb_to_ape": ("1.0", _share, "percent"),
     "fee_yield": ("1.0", _share, "percent"),
+    "funding_share": ("1.0", _share, "percent"),
+    "profit_margin": ("1.0", _share, "percent"),
+    "transaction_revenue_share": ("1.0", _share, "percent"),
 }
 
 
@@ -143,9 +146,16 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError("ratio periods differ")
         if formula_id == "loan_to_deposit" and [f.metric_key for f in facts] != ["gross_advances", "deposits"]:
             raise ValueError("LDR requires advances and deposits")
-        expected_keys = {"vnb_to_ape": ["vnb", "ape"], "fee_yield": ["fee_revenue", "average_aum"]}
+        expected_keys = {"vnb_to_ape": ["vnb", "ape"], "fee_yield": ["fee_revenue", "average_aum"],
+                         "profit_margin": ["net_profit", "revenue"],
+                         "transaction_revenue_share": ["transaction_revenue", "revenue"]}
         if formula_id in expected_keys and [f.metric_key for f in facts] != expected_keys[formula_id]:
             raise ValueError("ratio metric definitions differ")
+        if formula_id == "funding_share":
+            if facts[0].metric_key not in {"bank_borrowings", "bond_borrowings"} or facts[1].metric_key != "borrowings":
+                raise ValueError("funding share requires a disclosed borrowing component and total borrowings")
+        if formula_id in {"funding_share", "transaction_revenue_share"} and not (0 <= facts[0].value <= facts[1].value):
+            raise ValueError("disclosed component must be non-negative and no larger than its total")
     return ["same entity, unit, currency, scope, segment and period type", "formula-specific metric and period checks passed"]
 
 

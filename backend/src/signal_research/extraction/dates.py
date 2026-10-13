@@ -36,6 +36,17 @@ def declared_duration_periods(text):
     """
     normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text, flags=re.I)
     normalized = re.sub(r"\s+", " ", normalized.replace(',', ' '))
+    # A uniform comparative header ('Year ended <date> | <date>') applies
+    # the explicitly stated duration to each date column on that header line.
+    # Mixed quarter/year headers are deliberately not expanded.
+    for line in text.splitlines():
+        labels = re.findall(r"\b(year|quarter|three months|six months|nine months|twelve months|3 months|6 months|9 months|12 months)\s+ended\b", line, re.I)
+        matches = list(COMPLETE_DATE.finditer(line.replace(',', ' ')))
+        if len(matches) >= 2 and len({label.lower() for label in labels}) == 1:
+            remainder = COMPLETE_DATE.sub('', line.replace(',', ' '))
+            remainder = re.sub(r"\b(?:" + re.escape(labels[0]) + r")\s+ended|audited|unaudited", '', remainder, flags=re.I)
+            if not remainder.strip(' |:()\t'):
+                normalized += ' ' + '; '.join(f'{labels[0]} ended {match[0]}' for match in matches)
     # 'Quarter and nine months ended <complete date>' explicitly supplies both
     # durations. It must not be mistaken for a bare fiscal-quarter label.
     duration = r"year|quarter|three months|six months|nine months|twelve months|3 months|6 months|9 months|12 months"
