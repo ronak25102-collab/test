@@ -13,15 +13,15 @@ from signal_research.domain.schemas import StrictModel
 
 class ExtractedFactCandidate(StrictModel):
     evidence_quote: str | None = None
-    metric_key: str
-    value_raw: str
-    unit_raw: str | None = None
-    currency: str | None = None
+    metric_key: str = Field(max_length=80)
+    value_raw: str = Field(max_length=80)
+    unit_raw: str | None = Field(default=None, max_length=80)
+    currency: str | None = Field(default=None, max_length=3)
     period_start: date | None = None
     period_end: date | None = None
     period_type: PeriodType = PeriodType.INSTANT
     scope: Scope
-    segment: str = "all"
+    segment: str = Field(default='all', max_length=120)
     passage_id: UUID
     extraction_confidence: Decimal = Field(ge=0, le=1)
 

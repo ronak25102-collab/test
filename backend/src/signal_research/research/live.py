@@ -123,32 +123,33 @@ class Challenge(StrictModel):
     unresolved: bool
     strongest_alternative: str = Field(max_length=600)
     reason: str = Field(max_length=800)
-    relevant_passage_ids: list[UUID]
+    relevant_passage_ids: list[UUID] = Field(max_length=8)
     novelty_status: Literal['additional_supported_synthesis', 'already_covered', 'simple_restatement', 'novelty_unknown'] = 'novelty_unknown'
     novelty_rationale: str = Field(default='', max_length=600)
     published_explanation: str = Field(default='', max_length=600)
 
 
 class Statement(StrictModel):
-    text: str
+    text: str = Field(max_length=600)
     kind: ClaimKind
-    fact_ids: list[UUID]
-    passage_ids: list[UUID]
-    calculation_ids: list[UUID]
+    fact_ids: list[UUID] = Field(max_length=8)
+    passage_ids: list[UUID] = Field(max_length=6)
+    calculation_ids: list[UUID] = Field(max_length=6)
 
 
 class DiscoveryDraft(StrictModel):
     headline: Statement
     why_it_matters: list[Statement] = Field(min_length=3, max_length=5)
     counterargument: Statement
-    falsification: str
+    falsification: str = Field(max_length=500)
     falsification_window: str = Field(min_length=5, max_length=300)
     falsification_source: str = Field(min_length=5, max_length=300)
 
 
 def cited_draft_schema(payload):
     """Give the provider an explicit choice of existing evidence identifiers."""
-    fields = {name: (list[UUID], Field(json_schema_extra={"items": {
+    limits = {'fact_ids': 8, 'passage_ids': 6, 'calculation_ids': 6}
+    fields = {name: (list[UUID], Field(max_length=limits[name], json_schema_extra={"items": {
         "type": "string", "enum": [str(item["id"]) for item in payload[source]]}}))
         for name, source in (("fact_ids", "facts"), ("passage_ids", "passages"), ("calculation_ids", "calculations"))}
     statement = create_model("CitedStatement", __base__=Statement, **fields)
@@ -167,6 +168,13 @@ class SemanticReview(StrictModel):
     falsification_is_observable: bool
     contains_investment_recommendation: bool
     non_obvious_synthesis_supported: bool = False
+
+
+def semantic_review_schema(claim_ids):
+    verdict = create_model('BoundClaimVerdict', __base__=ClaimVerdict,
+        claim_id=(UUID, Field(json_schema_extra={'enum': [str(identifier) for identifier in claim_ids]})))
+    return create_model('SemanticReview', __base__=SemanticReview,
+        verdicts=(list[verdict], Field(min_length=len(claim_ids), max_length=len(claim_ids))))
 
 
 def derive_calculations(facts):
@@ -610,7 +618,7 @@ class LiveResearch:
 
     def challenge(self, hypothesis):
         payload = self.payload(hypothesis) | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
-        schema = create_model("Challenge", __base__=Challenge, relevant_passage_ids=(list[UUID], Field(json_schema_extra={"items": {
+        schema = create_model("Challenge", __base__=Challenge, relevant_passage_ids=(list[UUID], Field(max_length=8, json_schema_extra={"items": {
             "type": "string", "enum": [str(p["id"]) for p in payload['passages']]}})))
         return self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails. Assess novelty using the supplied original passages: identify the published explanation and describe the additional cross-metric or cross-source synthesis. Different headline wording is not novelty. Mark simple_restatement for ordinary reported results, already_covered if the relationship is already explained by the sources, and novelty_unknown when evidence is insufficient. historical_series describes observed coverage; two snapshots cannot establish onset, a sustained trend or causality.")
 
@@ -771,7 +779,7 @@ class LiveResearch:
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
-        review = self.calls.model(SemanticReview, self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
+        review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
         if len(review.verdicts) != len(claims) or set(verdicts) != {c.id for c in claims} or review.contains_investment_recommendation or not review.non_obvious_synthesis_supported or not review.falsification_is_observable or any(c.id not in verdicts or not verdicts[c.id].supported for c in claims):
             self.limitations.append("Independent semantic review rejected a material statement; candidate withheld.")

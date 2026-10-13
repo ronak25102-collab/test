@@ -74,3 +74,12 @@ was cancelled and preserved; further fresh tests use a 14 October cutoff. Tempor
 runtime overrides restrict validation to verified included search credits, a
 zero-dollar cap, 14 searches, 18 fetches, 480 seconds and 90 seconds per model
 request. The private `.env` is not rewritten and provider/model selection is kept.
+
+The 14 October HDFC retest `d7b88e1b-3d1b-4056-8b09-3057c99766c0`
+retained five calculations but stopped when NVIDIA hit its structured-response
+output allowance. Partial evidence was preserved. The challenger previously had
+an unbounded citation array; draft citation arrays and statement strings were
+also unbounded. These responses now have explicit bounds. Final semantic review
+has exactly one generated verdict slot per existing claim; duplicate/missing
+verdicts still fail local validation. All 42 focused response-bound/live checks
+and all 27 NVIDIA adapter checks passed. This does not retry an uncertain call.
