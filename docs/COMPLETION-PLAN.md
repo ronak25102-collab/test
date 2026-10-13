@@ -47,3 +47,7 @@ Results and remaining issues are added here as each stage completes.
   Large-PDF glyph recovery now recognizes financial rows across business types.
   All 90 focused portal, parsing, date and live-pipeline tests passed.
   Portals requiring arbitrary JavaScript execution remain a retrieval limitation.
+- Stage 6: dashboard and print view expose comparable fact histories with original
+  source links, retrieved-origin coverage, novelty reasoning and explicitly
+  unpublished candidate decisions. Scope, definition, unit and period boundaries
+  remain separate in charts. New formula explanations appear in claim evidence.

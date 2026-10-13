@@ -1,5 +1,6 @@
 import type { Report } from '../api/generated'
 import { displayNumber, displayUnit } from './format'
+import { ResearchAudit } from './ResearchAudit'
 
 export function ReportPrint({ report }: { report: Report }) {
   const discovery = report.discoveries[0]
@@ -14,6 +15,7 @@ export function ReportPrint({ report }: { report: Report }) {
       <section><h2>Falsification</h2>{discovery.falsification_rules.map((rule) => <p key={rule.id}><strong>{rule.observable_metric_or_event}:</strong> {rule.interpretation}</p>)}</section>
     </> : <section><h2>Insufficient evidence</h2><p>No primary discovery was published.</p><ul>{report.abstention?.missing_requirements.map((item) => <li key={item}>{item}</li>)}</ul></section>}
     <section><h2>Evidence register</h2><p>{report.documents.length} documents · {report.passages.length} passages · {report.facts.length} normalized facts.</p><ul>{report.documents.map((document) => <li key={document.id}><a href={document.canonical_url}>{document.title}</a> — {document.publisher} — {document.published_at?.slice(0, 10) || 'publication date unknown'}{document.cutoff_eligibility_basis === 'verified_retrieval' && ` (public availability verified ${document.retrieved_at})`} — {document.canonical_url}</li>)}</ul></section>
+    <ResearchAudit report={report} />
     <section><h2>Limitations</h2><ul>{report.limitations.map(item => <li key={item}>{item}</li>)}</ul></section>
     <footer>Public evidence research · no investment recommendation · source cutoff {report.cutoff}</footer>
   </article>

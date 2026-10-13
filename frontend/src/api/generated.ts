@@ -34,6 +34,7 @@ export type Report = {
   documents: Document[]
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
+  generation_metadata?: { novelty_rationale?: string; research_decisions?: { candidate: string; disposition: string; reason: string; published: boolean }[] }
 }
 
 export type Discovery = {
@@ -52,6 +53,6 @@ export type Discovery = {
 export type Claim = { id: string; text: string; kind: string; verification_status: string; calculation_ids: string[]; evidence_links: { passage_or_fact_id: string; relation: string; reason: string }[] }
 export type TimelineEvent = { id: string; event_date?: string; description: string; published_at?: string; source_ids: string[] }
 export type Calculation = { id: string; formula_id: string; formula_version: string; parameters: Record<string, unknown>; output_value?: string; unit?: string; input_fact_ids: string[]; limitations: string[]; comparability_checks: string[] }
-export type Fact = { id: string; metric_key: string; value_raw?: string; value_decimal?: string; unit_raw?: string; unit_normalized?: string; period_end?: string; scope: string; passage_id?: string }
+export type Fact = { id: string; metric_key: string; value_raw?: string; value_decimal?: string; unit_raw?: string; unit_normalized?: string; period_start?: string; period_end?: string; period_type?: string; scope: string; segment?: string; currency?: string; definition_id?: string; passage_id?: string }
 export type Document = { id: string; title: string; publisher: string; canonical_url: string; published_at?: string; retrieved_at?: string; cutoff_eligibility_basis?: string; origin_family_id: string; document_type: string; content_hash: string; cutoff_eligibility: string }
 export type Passage = { id: string; document_id: string; section?: string; row_label?: string; column_label?: string; text: string; page_index?: number }

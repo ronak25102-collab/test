@@ -1,6 +1,29 @@
 import { test, expect } from '@playwright/test'
 import report from './fixtures/replay.json' with { type: 'json' }
 
+test('comparable charts retain source links and withheld candidates stay labelled', async ({ page }) => {
+  const partial = { ...report, outcome: 'partial', publication_status: 'abstained', discoveries: [],
+    generation_metadata: { research_decisions: [{ candidate: 'Unconfirmed funding mechanism', disposition: 'withheld',
+      reason: 'Independent corroboration was insufficient.', published: false }] } }
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: partial })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff,
+      mode: 'live', status: 'completed', stage: 'completed', progress: {}, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  const audit = page.getByLabel('Research coverage and decisions')
+  await expect(audit.getByRole('img')).toBeVisible()
+  await expect(audit.getByRole('combobox', { name: 'Comparable metric' })).toBeVisible()
+  await expect(audit.getByRole('link', { name: 'Source', exact: true }).first()).toHaveAttribute('href', report.documents[0].canonical_url)
+  await expect(audit.getByText(/Two snapshots establish a comparison/)).toBeVisible()
+  await audit.getByText('Candidate decisions (1)', { exact: true }).click()
+  await expect(audit.getByText('These investigation candidates were not published as findings.')).toBeVisible()
+  await expect(audit.getByText(/Independent corroboration was insufficient/)).toBeVisible()
+})
+
 test('missing account configuration blocks live research while preserving replay', async ({ page }) => {
   let created = false
   await page.route('**/api/v1/**', route => {
