@@ -51,3 +51,26 @@ Results and remaining issues are added here as each stage completes.
   source links, retrieved-origin coverage, novelty reasoning and explicitly
   unpublished candidate decisions. Scope, definition, unit and period boundaries
   remain separate in charts. New formula explanations appear in claim evidence.
+  Production build and all 15 Edge browser tests passed. The complete backend
+  suite passed 389 tests. GitHub CI passed for each of the first six stage commits.
+
+## Live follow-up, 14 October
+
+The initial 13 October HDFC run `2c7cb0e9-d7d5-4a1c-81da-5726a72bed14`
+retained five facts and one calculation, but withheld a hypothesis containing an
+unsupported deposit-growth percentage. It is not a successful discovery.
+Its source fingerprints, report and usage remain under
+`data/exports/completion-validation-2026-10-13`.
+
+Inspection identified a shared retrieval defect: one headline growth calculation
+could suppress the annual-statement fallback even though no cross-metric
+relationship was calculable. Recovery now continues until there is relationship
+evidence or the existing source/time/call allowance stops it. Independent context
+must match multiple candidate terms before it suppresses focused recovery.
+All 61 focused history, live-pipeline and generality tests passed after this fix.
+
+The client date rolled over to 14 October during validation. The owned Bajaj run
+was cancelled and preserved; further fresh tests use a 14 October cutoff. Temporary
+runtime overrides restrict validation to verified included search credits, a
+zero-dollar cap, 14 searches, 18 fetches, 480 seconds and 90 seconds per model
+request. The private `.env` is not rewritten and provider/model selection is kept.

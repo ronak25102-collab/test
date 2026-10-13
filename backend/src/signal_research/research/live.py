@@ -47,7 +47,11 @@ from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
-from signal_research.research.history import comparable_series, needs_history
+from signal_research.research.history import (
+    comparable_series,
+    has_relationship_evidence,
+    needs_history,
+)
 from signal_research.research.identity import identity_aliases, issuer_cover_identity, issuer_named
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -593,7 +597,9 @@ class LiveResearch:
             return
         context_texts = [" ".join(p.text.lower() for p in self.passages if p.document_id == d.id)
                          for d in self.documents if d.document_type == "public_context" and d.cutoff_eligibility == "eligible"]
-        if not force and any(self.company.legal_name.lower() in text or any(term in text for term in CONTEXT_TERMS[self.company.business_profiles[0]].split()) for text in context_texts):
+        identities = [self.company.legal_name, *self.company.aliases, *self.company.symbols]
+        question = hypothesis.statement + ' ' + hypothesis.mechanism
+        if not force and any(relevance(text, identities, question)[1] >= 2 for text in context_texts):
             return
         self.stage("discovering", "Searching original independent rating reports to corroborate the funding observation")
         domains = ["icra.in", "crisil.com", "crisilratings.com", "indiaratings.co.in", "fitchratings.com"]
@@ -665,7 +671,7 @@ class LiveResearch:
                 self.ingest(annual_hits[:2], time_reserve=self.time_reserve(240), document_reserve=3)
         self.stage("extracting", "Extracting exact source spans and independently checking metric bindings")
         self.extract()
-        if (not self.calculations and self.budget.search_calls < self.budget.max_search_calls
+        if (not has_relationship_evidence(self.facts, self.calculations) and self.budget.search_calls < self.budget.max_search_calls
                 and self.budget.fetch_documents < self.budget.max_fetch_documents - 1
                 and self.budget.model_calls < self.budget.max_model_calls - 5
                 and self.budget.remaining_seconds() > self.time_reserve(180)):

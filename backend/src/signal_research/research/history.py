@@ -40,3 +40,15 @@ def comparable_series(facts):
 
 def needs_history(facts):
     return not any(series['comparable_periods'] >= 3 for series in comparable_series(facts))
+
+
+def has_relationship_evidence(facts, calculations):
+    """A lone headline growth number is insufficient for cross-metric research."""
+    by_id = {fact.id: fact for fact in facts}
+    for calculation in calculations:
+        if len({by_id[identifier].metric_key for identifier in calculation.input_fact_ids
+                if identifier in by_id}) >= 2:
+            return True
+    compared = {by_id[identifier].metric_key for calculation in calculations
+                for identifier in calculation.input_fact_ids if identifier in by_id}
+    return len(compared) >= 2

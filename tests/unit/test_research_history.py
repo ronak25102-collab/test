@@ -1,7 +1,11 @@
 from uuid import uuid4
 
 from signal_research.domain.schemas import Fact
-from signal_research.research.history import comparable_series, needs_history
+from signal_research.research.history import (
+    comparable_series,
+    has_relationship_evidence,
+    needs_history,
+)
 
 
 def make_fact(entity, period, *, scope='standalone', definition='aum_as_reported_v1'):
@@ -28,3 +32,15 @@ def test_mismatched_endpoint_scope_entity_and_definition_cannot_prove_a_trend():
     assert needs_history(facts)
     assert max(s['comparable_periods'] for s in comparable_series(facts)) == 2
     assert all(s['limitations'] for s in comparable_series(facts))
+
+
+def test_one_growth_metric_does_not_stop_financial_statement_recovery():
+    from types import SimpleNamespace
+
+    entity = uuid4()
+    a, b = make_fact(entity, '2026-03-31'), make_fact(entity, '2025-03-31')
+    single = SimpleNamespace(input_fact_ids=[a.id, b.id])
+    assert not has_relationship_evidence([a, b], [single])
+    c = make_fact(entity, '2026-03-31').model_copy(update={'metric_key': 'borrowings'})
+    relationship = SimpleNamespace(input_fact_ids=[a.id, c.id])
+    assert has_relationship_evidence([a, b, c], [single, relationship])
