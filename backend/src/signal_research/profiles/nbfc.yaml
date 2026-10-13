@@ -2,6 +2,6 @@ profile: nbfc
 required_metrics: [aum, gnpa, nim]
 aliases: {aum: [assets under management], stage_3: [stage 3]}
 starter_questions:
-  - Is funding becoming more concentrated?
-  - Is growth migrating into a riskier product or borrower mix?
+  - "Is funding becoming more concentrated?"
+  - "Is growth migrating into a riskier product or borrower mix?"
 calculation_ids: [yoy_growth, change_pp]
