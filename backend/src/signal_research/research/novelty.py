@@ -17,4 +17,6 @@ def classify_novelty(headline: str, contemporaneous_titles: list[str]) -> Novelt
         return Novelty.ALREADY_COVERED
     if not contemporaneous_titles:
         return Novelty.UNKNOWN
-    return Novelty.ADDITIONAL_SYNTHESIS
+    # Different wording proves neither novelty nor additional reasoning.
+    # The source-based challenge and independent final review assess synthesis.
+    return Novelty.UNKNOWN

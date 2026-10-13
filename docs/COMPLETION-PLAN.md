@@ -33,3 +33,10 @@ Results and remaining issues are added here as each stage completes.
   net advances retain distinct definitions. Funding shares, profit margins and
   transaction-revenue shares use registered arithmetic with comparable inputs.
   Full backend/security suite: 374 passed; Ruff and whitespace checks passed.
+- Stage 4: comparable histories retain entity, scope, definition, duration and
+  endpoint boundaries. Bounded earlier-disclosure collection precedes hypothesis
+  generation when allowance permits. Two snapshots are explicitly qualified.
+  The challenge and independent final review must both establish additional
+  supported synthesis; differing headline wording no longer implies novelty.
+  Refuted/withheld candidates and their reasons remain in saved reports.
+  All 65 focused history, report-verification, live-pipeline and generality checks passed.

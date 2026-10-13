@@ -22,6 +22,11 @@ def verify_report(report: ResearchReport) -> ResearchReport:
     calculations = {c.id: c for c in report.calculations}
     used_documents = set()
     if report.publication_status.value == "published":
+        if report.generation_metadata.get('pipeline', '').endswith('-review-v2'):
+            if (report.generation_metadata.get('novelty_status') != 'additional_supported_synthesis'
+                    or not report.generation_metadata.get('non_obvious_synthesis_reviewed')
+                    or not report.generation_metadata.get('novelty_rationale')):
+                raise VerificationFailure('live discovery lacks reviewed additional synthesis')
         if report.generation_metadata.get("verification_digest") != report_digest(report):
             raise VerificationFailure("report content changed after semantic review or was never reviewed")
         for claim in report.claims:

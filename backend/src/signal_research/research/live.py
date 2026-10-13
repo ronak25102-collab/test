@@ -4,6 +4,7 @@ import re
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 from urllib.parse import unquote, urlparse
 from uuid import UUID, uuid4, uuid5
 
@@ -46,6 +47,7 @@ from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
+from signal_research.research.history import comparable_series, needs_history
 from signal_research.research.identity import identity_aliases, issuer_cover_identity, issuer_named
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -117,6 +119,9 @@ class Challenge(StrictModel):
     strongest_alternative: str = Field(max_length=600)
     reason: str = Field(max_length=800)
     relevant_passage_ids: list[UUID]
+    novelty_status: Literal['additional_supported_synthesis', 'already_covered', 'simple_restatement', 'novelty_unknown'] = 'novelty_unknown'
+    novelty_rationale: str = Field(default='', max_length=600)
+    published_explanation: str = Field(default='', max_length=600)
 
 
 class Statement(StrictModel):
@@ -156,6 +161,7 @@ class SemanticReview(StrictModel):
     verdicts: list[ClaimVerdict] = Field(max_length=20)
     falsification_is_observable: bool
     contains_investment_recommendation: bool
+    non_obvious_synthesis_supported: bool = False
 
 
 def derive_calculations(facts):
@@ -221,6 +227,7 @@ class LiveResearch:
         self.seen_urls, self.extracted, self.queries, self.limitations = set(), set(), [], []
         self.source_titles = []
         self.evidence_iteration = 0
+        self.decisions = []
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
@@ -530,12 +537,15 @@ class LiveResearch:
                                "published_at": d.published_at, "origin_family_id": d.origin_family_id,
                                "document_type": d.document_type} for d in documents.values() if d.id in selected_documents],
                 "passages": source_spans,
+                "historical_series": comparable_series(self.facts),
                 "coverage_note": "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
     def abstain(self, reasons):
         report = build_abstention(self.run_id, self.company, self.cutoff, self.documents, self.passages, self.facts, reasons, mode="live")
         report.limitations += self.limitations
         report.generation_metadata["search_queries"] = self.queries
+        report.generation_metadata["research_decisions"] = self.decisions
+        report.source_coverage['historical_series'] = comparable_series(self.facts)
         # A withheld hypothesis must not discard independently verified arithmetic.
         report.calculations = self.calculations
         return report
@@ -547,6 +557,33 @@ class LiveResearch:
         if self.company.legal_name.lower() in query.lower():
             return re.sub(re.escape(self.company.legal_name), lambda _: prefix, query, flags=re.I)
         return f"{prefix} {query}"
+
+    def record_decision(self, hypothesis, disposition, reason, passage_ids=()):
+        decision = {'candidate': hypothesis.statement, 'disposition': disposition,
+                    'reason': reason, 'fact_ids': hypothesis.fact_ids,
+                    'calculation_ids': hypothesis.calculation_ids,
+                    'passage_ids': list(passage_ids), 'published': False}
+        self.decisions.append(decision)
+        self.store.artifact(self.run_id, 'research_decision', decision)
+
+    def collect_history(self):
+        if not self.calculations or not needs_history(self.facts):
+            return
+        if (self.budget.search_calls >= self.budget.max_search_calls - 4
+                or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
+                or self.budget.model_calls >= self.budget.max_model_calls - 6
+                or self.budget.remaining_seconds() <= self.time_reserve(210)):
+            self.limitations.append('Historical coverage remains two snapshots or less; further collection would consume final verification allowance.')
+            return
+        oldest = min(f.period_end.year for f in self.facts if f.period_end)
+        self.stage('discovering', 'Seeking earlier comparable disclosures and changes in reporting boundaries')
+        hits = self.search(f'"{self.company.legal_name}" "annual report" {oldest - 1} {oldest}',
+                           self.company.verified_ir_domains or None)
+        self.ingest(hits[:1], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
+        self.extract(limit=1)
+        self.store.artifact(self.run_id, 'historical_coverage', {'series': comparable_series(self.facts)})
+        if needs_history(self.facts):
+            self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
 
     def recover_context(self, hypothesis, force=False):
         """Search original independent reports before giving up on a candidate."""
@@ -567,7 +604,7 @@ class LiveResearch:
         payload = self.payload(hypothesis) | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
         schema = create_model("Challenge", __base__=Challenge, relevant_passage_ids=(list[UUID], Field(json_schema_extra={"items": {
             "type": "string", "enum": [str(p["id"]) for p in payload['passages']]}})))
-        return self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails.")
+        return self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails. Assess novelty using the supplied original passages: identify the published explanation and describe the additional cross-metric or cross-source synthesis. Different headline wording is not novelty. Mark simple_restatement for ordinary reported results, already_covered if the relationship is already explained by the sources, and novelty_unknown when evidence is insufficient. historical_series describes observed coverage; two snapshots cannot establish onset, a sustained trend or causality.")
 
     def run(self, plan):
         self.stage("discovering", "Searching issuer disclosures and independent sector, regulatory and peer context")
@@ -647,6 +684,7 @@ class LiveResearch:
                 requirement = "verified issuer facts with complete metric, value, period, unit and scope bindings" if eligible_issuer else "dated official issuer financial disclosures"
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
+        self.collect_history()
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms with explicit tests")
         batch = self.calls.model(HypothesisBatch, self.payload(), instruction="Propose up to three non-obvious relationships grounded in the calculations. Separate observation from mechanism. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_value with ordinary rounding; do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
         self.store.artifact(self.run_id, "hypotheses", batch.model_dump(mode="json"))
@@ -661,9 +699,11 @@ class LiveResearch:
             cited_facts = [f for f in self.facts if f.id in hypothesis.fact_ids]
             cited_calcs = [c for c in self.calculations if c.id in hypothesis.calculation_ids]
             if not supported_percentages(hypothesis.statement + ' ' + hypothesis.mechanism, cited_facts, cited_calcs):
+                self.record_decision(hypothesis, 'withheld', 'A numerical claim lacks linked verified inputs.')
                 self.limitations.append("Candidate contained a percentage absent from its linked verified facts/calculations; candidate withheld before further retrieval.")
                 continue
             if classify_novelty(hypothesis.statement, self.source_titles) == Novelty.ALREADY_COVERED:
+                self.record_decision(hypothesis, 'already_covered', 'The candidate repeats a discovered source headline.')
                 self.limitations.append("Candidate repeats an existing source headline; seeking additional synthesis.")
                 continue
             self.stage("investigating", f"Following candidate {iteration + 1} with a targeted evidence query")
@@ -678,6 +718,7 @@ class LiveResearch:
             self.store.artifact(self.run_id, "challenge", challenge.model_dump(mode="json"))
             self.progress(iteration + 1)
             if challenge.refuted:
+                self.record_decision(hypothesis, 'refuted', challenge.reason, challenge.relevant_passage_ids)
                 self.limitations.append(f"Candidate rejected: {challenge.reason}")
                 continue
             relevant = [p for p in self.passages if p.id in challenge.relevant_passage_ids]
@@ -696,13 +737,19 @@ class LiveResearch:
                     origins = {d.origin_family_id for d in self.documents if d.cutoff_eligibility == "eligible" and d.id in {p.document_id for p in relevant}}
                 if challenge.refuted or len(origins) < 2:
                     self.limitations.append("Candidate lacked independently originated relevant evidence or was refuted by the additional check.")
+                    self.record_decision(hypothesis, 'withheld', challenge.reason, challenge.relevant_passage_ids)
                     continue
+            if challenge.novelty_status != 'additional_supported_synthesis' or not challenge.novelty_rationale:
+                self.record_decision(hypothesis, challenge.novelty_status, challenge.novelty_rationale or 'Additional synthesis was not established.', challenge.relevant_passage_ids)
+                self.limitations.append('Candidate did not establish additional supported synthesis beyond reported results or published explanations.')
+                continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
             draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write a qualified discovery headline, 3–5 significance statements and the strongest counterargument. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
+            self.record_decision(hypothesis, 'withheld', 'The drafted conclusion failed independent final verification.', challenge.relevant_passage_ids)
         return self.abstain(batch.missing_evidence or ["a discovery that survives counterevidence and semantic verification"])
 
     def compose(self, draft, challenge, opposing_query):
@@ -716,9 +763,9 @@ class LiveResearch:
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
-        review = self.calls.model(SemanticReview, self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Detect investment recommendations.")
+        review = self.calls.model(SemanticReview, self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
-        if len(review.verdicts) != len(claims) or set(verdicts) != {c.id for c in claims} or review.contains_investment_recommendation or not review.falsification_is_observable or any(c.id not in verdicts or not verdicts[c.id].supported for c in claims):
+        if len(review.verdicts) != len(claims) or set(verdicts) != {c.id for c in claims} or review.contains_investment_recommendation or not review.non_obvious_synthesis_supported or not review.falsification_is_observable or any(c.id not in verdicts or not verdicts[c.id].supported for c in claims):
             self.limitations.append("Independent semantic review rejected a material statement; candidate withheld.")
             return None
         for claim in claims:
@@ -765,5 +812,5 @@ class LiveResearch:
                             historical_coverage=" / ".join(sorted({str(f.period_end) for f in self.facts if f.id in used_facts})),
                             source_coverage={"mode": "live", "synthetic": False, "documents_found": len(self.documents), "documents_used": len(documents), "eligible_origin_families": len(origins), "primary_source": True},
                             outcome=ResearchOutcome.DISCOVERY, publication_status=PublicationStatus.PUBLISHED, discoveries=[discovery], limitations=self.limitations,
-                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review", "provider": self.settings.llm_provider, "model_id": self.settings.model_for_role("research"), "search_queries": self.queries},
+                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review-v2", "provider": self.settings.llm_provider, "model_id": self.settings.model_for_role("research"), "search_queries": self.queries, "research_decisions": self.decisions, "novelty_status": challenge.novelty_status, "novelty_rationale": challenge.novelty_rationale, "published_explanation": challenge.published_explanation, "non_obvious_synthesis_reviewed": review.non_obvious_synthesis_supported},
                             claims=claims, timeline_events=timeline, calculations=[c for c in self.calculations if c.id in used_calcs], facts=[f for f in self.facts if f.id in used_facts], passages=[p for p in self.passages if p.id in used_passages], documents=documents))

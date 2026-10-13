@@ -72,7 +72,7 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
         elif schema.__name__ == "HypothesisBatch":
             output = schema(candidates=[{"statement": "Advances outpaced deposits", "mechanism": "Balance expansion may change the funding mix", "fact_ids": [f["id"] for f in p["facts"]], "calculation_ids": [c["id"] for c in p["calculations"]], "next_query": "HDFC Bank funding mix disclosures", "opposing_query": "HDFC Bank reclassification acquisition funding growth alternative", "falsification": "A comparable reversal of the growth gap", "significance": 4, "novelty": 3}], missing_evidence=[])
         elif schema.__name__ == "Challenge":
-            output = schema(refuted=refuted, unresolved=True, strongest_alternative="Growth alone does not establish funding stress", reason="Composition and cost remain untested", relevant_passage_ids=[v["id"] for v in p["passages"]])
+            output = schema(refuted=refuted, unresolved=True, strongest_alternative="Growth alone does not establish funding stress", reason="Composition and cost remain untested", relevant_passage_ids=[v["id"] for v in p["passages"]], novelty_status="additional_supported_synthesis", novelty_rationale="The linked cross-metric comparison qualifies the sector explanation.", published_explanation="Sector review does not quantify the issuer growth gap.")
         elif schema.__name__ == "DiscoveryDraft":
             ids = [f["id"] for f in p["facts"]]
             context_ids = [v["id"] for v in p["passages"] if "Independent banking" in v["text"]]
@@ -83,7 +83,7 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
             headline["passage_ids"] = context_ids
             output = schema(headline=headline, why_it_matters=[statement("Advances grew 20%, while deposits grew 10%."), statement("The reproducible growth gap is 10 percentage points."), statement("Independent context requires funding-composition evidence before inferring stress.", "inferred", True)], counterargument=statement("Expansion can create a growth gap without funding stress.", "inferred", True), falsification="Reconsider if later comparable disclosures reverse the advances/deposit growth gap.", falsification_window="Next two comparable quarterly disclosures", falsification_source="Dated issuer financial results")
         elif schema.__name__ == "SemanticReview":
-            output = schema(verdicts=[{"claim_id": c["id"], "supported": not reject_claim, "reason": "All linked source spans, inputs and qualifications reviewed"} for c in p["claims"]], falsification_is_observable=True, contains_investment_recommendation=False)
+            output = schema(verdicts=[{"claim_id": c["id"], "supported": not reject_claim, "reason": "All linked source spans, inputs and qualifications reviewed"} for c in p["claims"]], falsification_is_observable=True, contains_investment_recommendation=False, non_obvious_synthesis_supported=True)
         else:
             raise AssertionError(schema)
         return output, type("Usage", (), {"input_tokens": 100, "output_tokens": 100})()
@@ -105,7 +105,7 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.source_coverage["synthetic"] is False
     assert report.discoveries[0].counterargument.unresolved
     assert report.discoveries[0].evidence_strength.value == "Weak"
-    assert calls["search"] == 6 and calls["fetch"] == 2
+    assert calls["search"] == 7 and calls["fetch"] == 2
     assert summary.budget["model_calls"] == calls["model"]
 
 
@@ -124,6 +124,27 @@ def test_duplicate_semantic_verdicts_cannot_publish(store, tmp_path, monkeypatch
     report = store.get_report(run_id)
     assert report.outcome.value == "insufficient_evidence"
     assert any("semantic review rejected" in limitation for limitation in report.limitations)
+
+
+@pytest.mark.parametrize('stage', ['Challenge', 'SemanticReview'])
+def test_plain_summary_cannot_publish_as_a_novel_discovery(store, tmp_path, monkeypatch, stage):
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    original = OpenAIProvider.generate
+    def summary_only(self, schema, *args, **kwargs):
+        output, usage = original(self, schema, *args, **kwargs)
+        if schema.__name__ == stage:
+            if stage == 'Challenge':
+                output.novelty_status = 'simple_restatement'
+                output.novelty_rationale = 'This is an ordinary issuer growth summary.'
+            else:
+                output.non_obvious_synthesis_supported = False
+        return output, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', summary_only)
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert not report.discoveries and report.facts and report.calculations
+    decisions = report.generation_metadata['research_decisions']
+    assert decisions and not any(d['published'] for d in decisions)
 
 
 def test_duplicate_review_indices_cannot_approve_any_facts(store, tmp_path, monkeypatch):
@@ -257,7 +278,8 @@ def test_live_recovers_a_dated_annual_disclosure_when_initial_sources_are_undate
     ResearchMachine(store, settings).process(run_id)
     summary = store.get_summary(run_id)
     assert summary.status.value == "completed", summary.limitations
-    assert len(annual_queries) == 1 and annual_queries[0][1] == store.search_companies("HDFCBANK")[0].verified_ir_domains
+    assert annual_queries[0][1] == store.search_companies("HDFCBANK")[0].verified_ir_domains
+    assert any("2024 2025" in query for query, _ in annual_queries)
     assert any(artifact["payload"]["accepted"] for artifact in store.artifacts(run_id, "fact_extraction"))
     assert calls["model"] > 0
 
