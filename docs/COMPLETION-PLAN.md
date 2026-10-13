@@ -40,3 +40,10 @@ Results and remaining issues are added here as each stage completes.
   supported synthesis; differing headline wording no longer implies novelty.
   Refuted/withheld candidates and their reasons remain in saved reports.
   All 65 focused history, report-verification, live-pipeline and generality checks passed.
+- Stage 5: verified issuer portals now expose PDF leads stored in JSON, data
+  attributes and literal script links. Scripts are not executed; every download
+  still passes public-URL, issuer-identity and source-date checks. HTML tables
+  retain their own preceding accounting scope and complete comparative headers.
+  Large-PDF glyph recovery now recognizes financial rows across business types.
+  All 90 focused portal, parsing, date and live-pipeline tests passed.
+  Portals requiring arbitrary JavaScript execution remain a retrieval limitation.

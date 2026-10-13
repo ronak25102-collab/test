@@ -1,6 +1,7 @@
 """Bounded financial-document leads from verified issuer index pages."""
 from __future__ import annotations
 
+import json
 import re
 from urllib.parse import unquote, urldefrag, urljoin, urlparse
 
@@ -109,3 +110,70 @@ def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int
         leads.append((year, financial, SearchHit(url, label or filename, "Linked issuer document; publication date requires source verification", len(leads) + 1, "issuer_link")))
     leads.sort(key=lambda item: item[:2], reverse=True)
     return [hit for _, _, hit in leads[:limit]]
+
+
+def embedded_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int = 4) -> list[SearchHit]:
+    """Read literal public document links from portal data without executing scripts.
+
+    Same-issuer URLs, JSON metadata and onclick literals are retrieval leads only.
+    They never establish document identity, dates or claim support.
+    """
+    if not any(domain_matches(urlparse(page_url).hostname or '', domain) for domain in domains):
+        return []
+    soup = BeautifulSoup(raw, 'html.parser')
+    candidates = []
+    financial = re.compile(r'annual|integrated|financial|quarterly|results|investor|presentation|earnings', re.I)
+    literal = re.compile(r'''["']([^"'\n]{1,2048}\.pdf(?:\?[^"'\n]{0,512})?)["']''', re.I)
+    for anchor in soup.find_all(['a', 'button']):
+        label = anchor.get_text(' ', strip=True) or anchor.get('aria-label', '')
+        if not financial.search(label):
+            continue
+        for attribute in ('onclick', 'data-url', 'data-href', 'data-download'):
+            value = anchor.get(attribute, '')
+            if attribute == 'onclick':
+                candidates.extend((match[1], label) for match in literal.finditer(value))
+            elif '.pdf' in value.lower():
+                candidates.append((value, label))
+    def walk(value, depth=0):
+        if depth > 8 or len(candidates) >= 100:
+            return
+        if isinstance(value, dict):
+            label = ' '.join(str(v) for k, v in value.items()
+                             if k.lower() in {'title', 'name', 'description', 'label', 'category', 'documenttype'} and isinstance(v, str))[:500]
+            for child in value.values():
+                if isinstance(child, str) and '.pdf' in child.lower():
+                    candidates.append((child, label))
+                elif isinstance(child, (dict, list)):
+                    walk(child, depth + 1)
+        elif isinstance(value, list):
+            for child in value[:100]:
+                walk(child, depth + 1)
+    for script in soup.find_all('script'):
+        data = script.string or script.get_text()
+        if not data or len(data) > 512000:
+            continue
+        try:
+            walk(json.loads(data))
+        except (ValueError, TypeError):
+            pass
+        candidates.extend((match[1], '') for match in literal.finditer(data))
+    hits, seen = [], set()
+    for value, label in candidates:
+        value = value.replace('\\/', '/')
+        try:
+            url = urldefrag(urljoin(page_url, value))[0]
+            validate_public_url(url, resolve_dns=False)
+            path = unquote(urlparse(url).path)
+            if not path.lower().endswith('.pdf') or not any(domain_matches(urlparse(url).hostname or '', domain) for domain in domains):
+                continue
+        except ValueError:
+            continue
+        description = label + ' ' + re.sub(r'[-_/]', ' ', path)
+        if url in seen or not financial.search(description):
+            continue
+        seen.add(url)
+        hits.append(SearchHit(url, label or path.rsplit('/', 1)[-1],
+                              'Literal issuer-portal document lead; verify the original document', len(hits) + 1, 'issuer_embedded_link'))
+        if len(hits) == limit:
+            break
+    return hits

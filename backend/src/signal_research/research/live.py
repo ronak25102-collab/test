@@ -59,6 +59,7 @@ from signal_research.research.peer_selector import select_peers
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
 from signal_research.retrieval.disclosures import (
+    embedded_disclosures,
     issuer_navigation,
     linked_disclosures,
     verified_disclosure_indexes,
@@ -285,6 +286,7 @@ class LiveResearch:
             raw = Path(fetched.local_path).read_bytes()
             if depth < 3 and fetched.content_type == "text/html":
                 leads = linked_disclosures(raw, fetched.final_url or hit.url, self.company.verified_ir_domains, issuer_name=self.company.legal_name)
+                leads += embedded_disclosures(raw, fetched.final_url or hit.url, self.company.verified_ir_domains)
                 leads += issuer_navigation(raw, fetched.final_url or hit.url, self.company.verified_ir_domains) if depth < 2 else []
                 queue[:0] = [(lead, depth + 1) for lead in leads if lead.url not in self.seen_urls]
             try:

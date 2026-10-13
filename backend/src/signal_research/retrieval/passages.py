@@ -43,13 +43,32 @@ def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
     for table_index, table in enumerate(soup.find_all("table")):
         rows = table.find_all("tr")
         headers = " | ".join(c.get_text(" ", strip=True) for c in rows[0].find_all(["th", "td"])) if rows else ""
-        context = "\n".join(blocks[-6:])[:2000]
+        # Bind the nearby preceding heading, never later footer text or the
+        # accounting scope of a different table elsewhere on the page.
+        preceding = []
+        for element in table.find_all_previous(['h1', 'h2', 'h3', 'p']):
+            if element.find_parent('table'):
+                continue
+            value = element.get_text(' ', strip=True)
+            if value:
+                preceding.append(value)
+            if re.search(r'\bstandalone|consolidated\b', value, re.I) or len(preceding) == 6:
+                break
+        context = '\n'.join(reversed(preceding))[:2000]
         for row_index, row in enumerate(rows[1:]):
             cells = [c.get_text(" ", strip=True) for c in row.find_all(["th", "td"])]
             if not cells:
                 continue
             text = f"{context}\n{headers}\n{' | '.join(cells)}"
             result.passages.append(Passage(id=uuid5(document_id, f"table:{table_index}:{row_index}:{text}"), document_id=document_id, section=title, table_id=str(table_index), row_label=cells[0], column_label=headers, text=text, extraction_method="html_table"))
+        # Keep complete comparative headers together with their financial rows.
+        # Per-row passages above retain exact row and column locators as well.
+        table_rows = [' | '.join(cell.get_text(' ', strip=True) for cell in row.find_all(['th', 'td'])) for row in rows]
+        whole = '\n'.join([context, *table_rows])
+        if len(whole) <= 12000:
+            result.passages.append(Passage(id=uuid5(document_id, f'whole-table:{table_index}:{whole}'),
+                document_id=document_id, section=title, table_id=str(table_index), column_label=headers,
+                text=whole, extraction_method='html_table'))
     return result
 
 
@@ -135,7 +154,10 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
 
 def _balance_page(text):
     rows = re.findall(r"(?im)^\s*(?:total\s+|gross\s+)?(?:advances|deposits|borrowings)\b[^\n]*\d", text)
-    return len(rows) >= 2 and bool(re.search(r"\b(?:standalone|consolidated)\b", text, re.I))
+    from signal_research.finance.registry import METRICS
+    financial_rows = sum(bool(re.search(r'(?im)^\s*' + re.escape(alias) + r'\b[^\n]*\d', text))
+                         for metric in METRICS.values() for alias in metric.aliases)
+    return (len(rows) >= 2 or financial_rows >= 2) and bool(re.search(r"\b(?:standalone|consolidated)\b", text, re.I))
 
 
 def recover_rupee_glyphs(chars):

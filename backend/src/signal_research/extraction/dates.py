@@ -44,7 +44,7 @@ def declared_duration_periods(text):
         matches = list(COMPLETE_DATE.finditer(line.replace(',', ' ')))
         if len(matches) >= 2 and len({label.lower() for label in labels}) == 1:
             remainder = COMPLETE_DATE.sub('', line.replace(',', ' '))
-            remainder = re.sub(r"\b(?:" + re.escape(labels[0]) + r")\s+ended|audited|unaudited", '', remainder, flags=re.I)
+            remainder = re.sub(r"\b(?:" + re.escape(labels[0]) + r")\s+ended|audited|unaudited|particulars|metric|period", '', remainder, flags=re.I)
             if not remainder.strip(' |:()\t'):
                 normalized += ' ' + '; '.join(f'{labels[0]} ended {match[0]}' for match in matches)
     # 'Quarter and nine months ended <complete date>' explicitly supplies both
