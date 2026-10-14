@@ -20,6 +20,11 @@ class NvidiaTimeout(NvidiaRequestError):
     code = "NVIDIA_RESPONSE_TIMEOUT"
 
 
+class NvidiaStructuredOutputError(NvidiaRequestError):
+    """A received response cannot establish source evidence; never retry it."""
+    code = "NVIDIA_INVALID_STRUCTURED_OUTPUT"
+
+
 def check_status(status: int):
     if status == 200:
         return
@@ -52,7 +57,7 @@ async def stream_payload(response: httpx.Response, max_output_tokens: int) -> di
             data.clear()
             if event == "[DONE]":
                 if finish == "length":
-                    raise NvidiaRequestError("NVIDIA reached its output token limit before completing structured output")
+                    raise NvidiaStructuredOutputError("NVIDIA reached its output token limit before completing structured output")
                 if finish != "stop":
                     raise NvidiaRequestError("NVIDIA returned incomplete or refused structured output")
                 return {"id": request_id, "usage": usage, "choices": [{
@@ -156,11 +161,14 @@ class NvidiaProvider(LLMProvider):
             payload = asyncio.run(self._request(body, deadline, max_output_tokens))
             choice = payload["choices"][0]
             if choice.get("finish_reason") != "stop" or choice["message"].get("refusal"):
-                raise NvidiaRequestError("NVIDIA returned incomplete or refused structured output")
+                raise NvidiaStructuredOutputError("NVIDIA returned incomplete or refused structured output")
             content = choice["message"]["content"]
             if not isinstance(content, str):
                 raise NvidiaRequestError("NVIDIA returned no structured output")
-            parsed = schema.model_validate_json(content)
+            try:
+                parsed = schema.model_validate_json(content)
+            except ValidationError:
+                raise NvidiaStructuredOutputError("NVIDIA returned invalid structured output") from None
             usage = payload.get("usage") or {}
             inputs, outputs = usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0)
             if any(type(value) is not int or value < 0 for value in (inputs, outputs)):

@@ -26,5 +26,7 @@ def extraction_instruction(profile):
         "A rupee symbol means INR; in '000 means thousand rupees; in Crores means INR crore. "
         "Retain the complete source passage with evidence_quote=null. Reject ambiguous "
         "row/column, entity, scope, currency, scale, definitions or dates. Do not infer dates "
-        "from FY or quarter labels alone. Omit incomplete facts rather than inventing values."
+        "from FY or quarter labels alone. Omit incomplete facts rather than inventing values. "
+        "Return facts=[] when none are complete. missing_metrics may contain only supplied "
+        "registered keys, each at most once; give at most one brief note explaining the gap."
     )

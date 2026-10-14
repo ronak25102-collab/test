@@ -10,6 +10,16 @@ from signal_research.research.live import (
 )
 
 
+def test_source_extraction_missing_metrics_are_registered_and_bounded():
+    from signal_research.extraction.models import source_fact_batch_schema
+
+    schema = source_fact_batch_schema(['deposits', 'borrowings'], uuid4())
+    assert schema(facts=[], missing_metrics=['deposits']).missing_metrics == ['deposits']
+    for missing in (['not_a_metric'], ['deposits'] * 3, ['x' * 81]):
+        with pytest.raises(ValidationError):
+            schema(facts=[], missing_metrics=missing)
+
+
 def test_challenger_cannot_generate_an_unbounded_repeated_citation_array():
     payload = dict(refuted=False, unresolved=True, strongest_alternative='Seasonality', reason='Compare periods',
                    relevant_passage_ids=[uuid4()] * 9)

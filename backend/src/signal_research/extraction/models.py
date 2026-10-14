@@ -28,7 +28,7 @@ class ExtractedFactCandidate(StrictModel):
 
 class ExtractedFactBatch(StrictModel):
     facts: list[ExtractedFactCandidate] = Field(default_factory=list, max_length=20)
-    missing_metrics: list[str] = Field(default_factory=list, max_length=30)
+    missing_metrics: list[Annotated[str, Field(max_length=80)]] = Field(default_factory=list, max_length=30)
     notes: list[Annotated[str, Field(max_length=200)]] = Field(default_factory=list, max_length=3)
 
 
@@ -58,4 +58,5 @@ def source_fact_batch_schema(metric_keys: list[str], passage_id: UUID, period_da
             period_type=(Literal[PeriodType.DURATION], PeriodType.DURATION), period_start=(date, ...)))
     fact_type = variants[0] if len(variants) == 1 else variants[0] | variants[1]
     return create_model("ExtractedFactBatch", __base__=ExtractedFactBatch,
-        facts=(list[fact_type], Field(default_factory=list, max_length=6)))
+        facts=(list[fact_type], Field(default_factory=list, max_length=6)),
+        missing_metrics=(list[Literal[tuple(metric_keys)]], Field(default_factory=list, max_length=len(metric_keys))))

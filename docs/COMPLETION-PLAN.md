@@ -110,3 +110,17 @@ The complete suite passed 408 tests with retained-reference revalidation include
 38 focused ownership/registry/generality checks passed after enforcing atomic
 company/run/source binding. The retained-document audit reviewed 21 legacy
 references and restored four records for the legitimate ICICI Lombard domain.
+
+The subsequent five-company run on revision `5f80f8d` established no discovery.
+HDFC Bank retained 12 facts and 10 calculations, while unsupported candidate
+numbers were withheld. HDFC Life and ICICI Lombard stopped on incomplete model
+output. Received invalid extraction responses now withhold that whole PDF page
+and allow another source to be checked; authentication, quota and uncertain
+transport failures still stop provider work. Reservations remain charged and the
+failed request is never retried. Missing-metric generation is restricted to the
+registered keys. All 94 focused extraction, provider and live-pipeline tests passed.
+
+The same live run exposed a separate BSE attribution problem: incidental phrases
+such as "two days for BSE" could satisfy an optional-suffix signing expression.
+Its retained engineering-company revenue is invalid as BSE evidence. This run
+is diagnostic only; exchange authorship needs a further correction before retesting.

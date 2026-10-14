@@ -12,6 +12,7 @@ from signal_research.providers.llm.factory import get_llm_provider
 from signal_research.providers.llm.nvidia_provider import (
     NvidiaProvider,
     NvidiaRequestError,
+    NvidiaStructuredOutputError,
     NvidiaTimeout,
     nvidia_schema,
 )
@@ -170,6 +171,25 @@ def test_nvidia_pipeline_caches_or_blocks_repeat_and_records_provider(store, tmp
     assert len(sent) == 1 and budget.model_calls == 1
     record = store.provider_calls(run_id)[0]
     assert record["provider"] == "nvidia" and record["model"] == "test-extract"
+
+
+def test_invalid_source_response_retains_reservation_and_cannot_be_retried(store, tmp_path, monkeypatch):
+    settings = configured(data_dir=tmp_path, model_rate_card_path=tmp_path / 'no-rates.json')
+    run_id = store.create_run(store.search_companies('HDFCBANK')[0], date(2026, 10, 8), RunMode.LIVE)
+    store.lease_next('invalid-response')
+    sent = []
+    def send(*args, **kwargs):
+        sent.append(1)
+        return response('{"value":"unsupported"}')
+    mock_request(monkeypatch, send)
+    budget = Budget(1, 1, 3, 1)
+    calls = DurableCalls(store, settings, run_id, budget)
+    with pytest.raises(NvidiaStructuredOutputError):
+        calls.model(Extracted, {'source': 'original'}, 'extract')
+    with pytest.raises(UncertainCall):
+        calls.model(Extracted, {'source': 'original'}, 'extract')
+    assert sent == [1] and budget.output_tokens > 0 and budget.model_calls == 1
+    assert store.provider_calls(run_id)[0]['status'] == 'failed_or_uncertain'
 
 
 def sse_response(events):

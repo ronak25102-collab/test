@@ -42,7 +42,7 @@ from signal_research.extraction.bank_tables import (
 )
 from signal_research.extraction.dates import declared_duration_periods, source_dates
 from signal_research.extraction.financial_tables import financial_table_batch
-from signal_research.extraction.models import source_fact_batch_schema
+from signal_research.extraction.models import ExtractedFactBatch, source_fact_batch_schema
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
@@ -400,6 +400,23 @@ class LiveResearch:
         eligible = {d.id for d in self.documents if d.cutoff_eligibility == 'eligible' and d.document_type.startswith('issuer')}
         return any(p.document_id in eligible and self.financial_passage(p) for p in self.passages)
 
+    def extraction_model(self, passage, schema, payload, *args):
+        from signal_research.providers.llm.nvidia_provider import NvidiaStructuredOutputError
+
+        try:
+            return self.calls.model(schema, payload, *args)
+        except NvidiaStructuredOutputError as exc:
+            # Another source may be usable. No result from this response can be
+            # approved, and duplicate PDF views must not repeat the failed page.
+            if passage.page_index is not None:
+                self.extracted.update(p.id for p in self.passages
+                    if (p.document_id, p.page_index) == (passage.document_id, passage.page_index))
+            self.store.artifact(self.run_id, 'extraction_failure', {
+                'passage_id': passage.id, 'schema': schema.__name__, 'error_code': exc.code,
+                'reason': str(exc), 'action': 'source withheld; request not retried'})
+            self.limitations.append(f"Extraction response withheld: {exc}; this source request was not retried.")
+            return None
+
     def extract(self, limit=4):
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
@@ -445,7 +462,7 @@ class LiveResearch:
             extraction_method = "explicit_comparative_columns" if batch else "model"
             if batch is None:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})
-                batch = self.calls.model(source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
+                batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "source_period_columns": [{"label": label, "period_end": str(period)} for label, period in month_end_columns(passage.text)],
                                       "source_declared_durations": declared_duration_periods(passage.text),
                                       "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages if issuer_named(p.text, self.company)],
@@ -453,6 +470,8 @@ class LiveResearch:
                                       "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in metrics],
                                       "passage_text": passage.text}, "extract", "extracting",
                                       extraction_instruction(profile) + " Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
+                if batch is None:
+                    batch = ExtractedFactBatch(notes=['Incomplete extraction response; no candidates accepted.'])
             accepted, candidates, rejected = [], [], []
             for candidate in batch.facts:
                 validation = validate_candidate(candidate, passage, self.company.id, profile)
@@ -462,11 +481,11 @@ class LiveResearch:
                 else:
                     rejected.append({"metric": candidate.metric_key, "reason": validation.reason or "period exceeds cutoff"})
             if accepted:
-                review = self.calls.model(fact_review_schema(len(candidates)), {"entity": self.company.legal_name, "source_text": passage.text,
+                review = self.extraction_model(passage, fact_review_schema(len(candidates)), {"entity": self.company.legal_name, "source_text": passage.text,
                                            "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages],
                                            "candidates": [c.model_dump(mode="json") | {"index": i} for i, c in enumerate(candidates)]}, "extract", "normalizing",
                                            f"Independently check every indexed candidate. A value appearing somewhere in a passage is insufficient. source_text is the complete evidence passage; evidence_quote=null means review source_text, not missing evidence. document_identity_passages establish issuer identity only, never a financial date or value. Verify exact metric/value/date/column binding, issuer identity (reject peer/subsidiary values), scope, unit, currency, period type, segment and definition. Comparative balance-sheet headers Jun 25 and Dec 25 mean the last calendar day of June and December 2025, respectively. Target-issuer SOLO columns denote standalone scope and GROUP columns consolidated scope; keep the two column groups separate and never treat net advances as gross advances. supported=false for ambiguity. Return exactly {len(candidates)} verdicts, one per explicit candidate index from 0 to {len(candidates) - 1}. Preserve those indices. Compare against each candidate's own current or prior period_end column. Each reason must be one brief sentence of at most 300 characters. Do not repeat candidates or add verdicts.")
-                verdicts = {v.index: v for v in review.verdicts}
+                verdicts = {v.index: v for v in review.verdicts} if review else {}
                 if len(verdicts) != len(candidates) or set(verdicts) != set(range(len(candidates))):
                     accepted = []
                     rejected.append({"reason": "Independent review returned duplicate or missing candidate indices"})
