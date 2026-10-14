@@ -136,3 +136,10 @@ The old reports are preserved as diagnostics and are not retroactively certified
 All 108 focused attribution, bank retrieval and live-pipeline checks passed;
 six extraction-failure/foreign-cover checks also passed. No provider calls were
 needed for the retained-document reinspection.
+
+Issuer navigation no longer treats a business name containing "Financial" as a
+report link. Stock-price/quote pages are excluded from navigation, and financial
+results, annual reports and presentations precede shareholder services within
+the existing three-link cap. This prevents peer quote links from consuming the
+document allowance on shared financial-services portals. All 98 focused
+navigation, disclosure, bank retrieval and live-pipeline checks passed.

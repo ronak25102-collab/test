@@ -38,7 +38,11 @@ def issuer_navigation(raw: bytes, page_url: str, domains: list[str], limit: int 
             validate_public_url(url, resolve_dns=False)
         except ValueError:
             continue
-        if not re.search(r"investor\s*relations|financials?|financial\s*results|annual\s*reports?|shareholders", label, re.I):
+        # A business name containing 'Financial' is not a report-navigation
+        # label. Quote pages and peer stock links otherwise consume this cap.
+        if not re.search(r"\binvestor\s*relations\b|\bfinancial\s+(?:results?|statements?|reports?|performance)\b|\bannual\s*reports?\b|\binvestor\s*presentations?\b|\bshareholders?\b|^financials?$", label, re.I):
+            continue
+        if re.search(r'(?:share|stock)[-/]?(?:price|quote)|(?:price|quote)[-/]?(?:share|stock)', urlparse(url).path, re.I):
             continue
         if url == page_url or url in seen or ".pdf" in urlparse(url).path.lower():
             continue
@@ -49,10 +53,13 @@ def issuer_navigation(raw: bytes, page_url: str, domains: list[str], limit: int 
         except UnsafeURL:
             continue
         seen.add(url)
-        hits.append(SearchHit(url, label, "Issuer navigation lead", len(hits) + 1, "issuer_navigation"))
-        if len(hits) == limit:
-            break
-    return hits
+        priority = (0 if re.search(r'financial\s+(?:results?|statements?)', label, re.I) else
+                    1 if re.search(r'annual\s*reports?', label, re.I) else
+                    2 if re.search(r'investor\s*presentations?', label, re.I) else
+                    3 if re.search(r'investor\s*relations', label, re.I) else 4)
+        hits.append((priority, SearchHit(url, label, "Issuer navigation lead", len(hits) + 1, "issuer_navigation")))
+    hits.sort(key=lambda item: item[0])
+    return [hit for _, hit in hits[:limit]]
 
 
 def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int = 4, *, issuer_name: str | None = None) -> list[SearchHit]:

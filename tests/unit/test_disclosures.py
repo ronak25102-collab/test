@@ -13,6 +13,30 @@ def test_malformed_links_do_not_abort_official_navigation_or_discovery():
     assert [hit.url for hit in linked_disclosures(raw, page, ['issuer.example'])] == ['https://issuer.example/financial-results.pdf']
 
 
+def test_report_navigation_prioritizes_financial_documents_over_peer_quotes_and_shareholder_services():
+    from signal_research.retrieval.disclosures import issuer_navigation
+
+    raw = b'''<a href="/investments/peer-share-price">Peer Financial Services Limited</a>
+    <a href="/investments/fake-stock-quote">Financial Results</a>
+    <a href="/shareholders">Shareholders</a>
+    <a href="/investors">Investor Relations</a>
+    <a href="/annual">Annual Reports</a>
+    <a href="/presentation">Investor Presentation</a>
+    <a href="/results">Financial Results</a>'''
+    hits = issuer_navigation(raw, 'https://issuer.example/', ['issuer.example'])
+    assert [hit.url for hit in hits] == ['https://issuer.example/results',
+        'https://issuer.example/annual', 'https://issuer.example/presentation']
+
+
+@pytest.mark.parametrize('label', ['Financial Services', 'Financial Products', 'Financial Planning',
+                                  'Quartz Financial Limited', 'Jio Financial Services Limited'])
+def test_financial_word_alone_does_not_make_a_report_navigation_lead(label):
+    from signal_research.retrieval.disclosures import issuer_navigation
+
+    raw = f'<a href="/services">{label}</a>'.encode()
+    assert not issuer_navigation(raw, 'https://issuer.example/', ['issuer.example'])
+
+
 def test_disclosure_links_exclude_navigation_foreign_hosts_and_unrelated_pdfs():
     raw = b'''<html><nav><a href="/nav.pdf">Annual Report FY29</a></nav>
     <a href="/forms.pdf">Account application form</a>
