@@ -65,6 +65,24 @@ def test_named_parent_cover_defeats_a_subsidiary_mention():
     assert foreign_cover_identity(foreign, company)
     assert not foreign_cover_identity(own, company)
     assert not foreign_cover_identity('BSE Limited\nNational Stock Exchange of India Limited\nFor Quartz Finance Limited', company)
+    assert not foreign_cover_identity('National Stock Exchange of India Limited BSE Limited\nFor Quartz Finance Limited', company)
+    assert foreign_cover_identity('National Stock Exchange of India Limited BSE Limited\nQuartz Holdings Limited', company)
+
+
+@pytest.mark.parametrize('text,expected', [
+    ('NSE Symbol: QUARTZLIFE BSE Code: 500123', True),
+    ('NSE Code: QUARTZLIFE', True),
+    ('NSE Security Symbol: QUARTZLIFE', True),
+    ('Holdings include QUARTZLIFE', False),
+    ('NSE Symbol: QUARTZLIFEOTHER', False),
+    ('NSE Symbol: QUARTZLIFE-OTHER', False),
+    ('NSE Symbol: OTHERLIFE', False),
+])
+def test_registered_filing_symbol_requires_an_explicit_complete_cover_binding(text, expected):
+    from signal_research.research.identity import issuer_symbol_reference
+
+    company = SimpleNamespace(symbols=['QUARTZLIFE'])
+    assert issuer_symbol_reference(text, company) == expected
 
 
 def test_insurance_persistency_cohorts_cannot_be_collapsed_into_one_metric():

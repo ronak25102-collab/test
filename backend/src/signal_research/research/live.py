@@ -58,6 +58,7 @@ from signal_research.research.identity import (
     identity_aliases,
     issuer_cover_identity,
     issuer_named,
+    issuer_symbol_reference,
 )
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -361,7 +362,8 @@ class LiveResearch:
                     self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
                     queue.extend((lead, 0) for lead in verified_disclosure_indexes(self.company) if lead.url not in self.seen_urls)
             publisher, origin, kind = source_origin(fetched.final_url or hit.url, self.company, hit.title, text)
-            identified = issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
+            identified = (issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
+                          or issuer_symbol_reference(text, self.company))
             if raw.startswith(b"%PDF") and foreign_cover_identity(text, self.company):
                 identified = False
             portal_host = urlparse(fetched.final_url or hit.url).hostname or ''
@@ -471,7 +473,8 @@ class LiveResearch:
         for passage in passages:
             self.extracted.add(passage.id)
             identity_passages = [p for p in self.passages if p.document_id == passage.document_id and p.page_index in {None, 0, 1}][:4]
-            identity_passages = [p for p in identity_passages if issuer_cover_identity(p.text, self.company)]
+            identity_passages = [p for p in identity_passages if issuer_cover_identity(p.text, self.company)
+                                 or issuer_symbol_reference(p.text, self.company)]
             issuer_bound = bool(identity_passages)
             batch = comparative_bank_batch(passage, self.company, document_issuer_verified=issuer_bound) if profile.value == "bank" else None
             if batch is None:

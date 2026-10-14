@@ -159,3 +159,11 @@ again after source reconciliation and before later candidate work; a candidate
 cannot reuse removed facts or calculations. Historical reconciliation that
 removes all arithmetic stops before hypothesis generation. All 36 focused
 reconciliation, historical coverage and live-pipeline checks passed.
+
+Insurer filing inspection exposed merged exchange-addressee lines that the new
+foreign-cover rejection interpreted as a company heading. Exact NSE/BSE recipient
+names can now coexist on one line without becoming a foreign owner. A complete
+registered NSE Symbol/Code on the filing cover can establish identity on an
+already trusted issuer document; bare ticker mentions and prefix matches cannot.
+Foreign company covers still defeat this positive identity. All 86 focused
+identity, extraction-failure, generality and live-pipeline checks passed.

@@ -42,6 +42,13 @@ def issuer_cover_identity(text: str, company) -> bool:
     return False
 
 
+def issuer_symbol_reference(text: str, company) -> bool:
+    """Explicit own NSE symbol on a filing cover, never a bare ticker mention."""
+    return any(re.search(r'\bNSE\s+(?:(?:Scrip|Security)\s+)?(?:Symbol|Code)\s*[:\-]?\s*' +
+        re.escape(symbol) + r'(?![A-Za-z0-9_-])', text[:3000], re.I)
+        for symbol in getattr(company, 'symbols', []))
+
+
 def foreign_cover_identity(text: str, company) -> bool:
     """An explicitly named different issuer on a cover defeats passing mentions.
 
@@ -51,6 +58,12 @@ def foreign_cover_identity(text: str, company) -> bool:
     target = normalize_name(company.legal_name)
     addressees = {'bse', 'national stock exchange', 'national stock exchange of india'}
     for line in text[:1500].splitlines():
+        # PDF extraction can place both listing recipients on the same line.
+        # Removing only these exact exchange names must leave no other owner.
+        recipients = re.sub(r'\b(?:National\s+Stock\s+Exchange(?:\s+of\s+India)?|BSE)\s+(?:Limited|Ltd\.?)\b',
+                            '', line, flags=re.I)
+        if recipients != line and not recipients.strip(' ,;|\t'):
+            continue
         match = re.fullmatch(r'\s*(?:For\s+)?([A-Za-z0-9&.,() /-]{2,120}\b(?:Limited|Ltd\.?))\s*', line, re.I)
         if not match:
             continue
