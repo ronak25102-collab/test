@@ -52,7 +52,12 @@ from signal_research.research.history import (
     has_relationship_evidence,
     needs_history,
 )
-from signal_research.research.identity import identity_aliases, issuer_cover_identity, issuer_named
+from signal_research.research.identity import (
+    foreign_cover_identity,
+    identity_aliases,
+    issuer_cover_identity,
+    issuer_named,
+)
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
 from signal_research.research.numeric_claims import (
@@ -347,12 +352,14 @@ class LiveResearch:
                     queue.extend((lead, 0) for lead in verified_disclosure_indexes(self.company) if lead.url not in self.seen_urls)
             publisher, origin, kind = source_origin(fetched.final_url or hit.url, self.company, hit.title, text)
             identified = issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
+            if raw.startswith(b"%PDF") and foreign_cover_identity(text, self.company):
+                identified = False
             portal_host = urlparse(fetched.final_url or hit.url).hostname or ''
             shared_portal = any(other.id != self.company.id and
                                any(domain_matches(portal_host, domain) for domain in other.verified_ir_domains)
                                for other in self.store.search_companies(''))
             if shared_portal:
-                identified = issuer_cover_identity(text[:3000], self.company)
+                identified = issuer_cover_identity(text[:3000], self.company) and not foreign_cover_identity(text, self.company)
             if not identified and self.company.business_profiles[0].value == 'bank':
                 # A branded bank presentation can use an acronym cover, while
                 # its comparative SOLO/GROUP table explicitly binds the issuer.

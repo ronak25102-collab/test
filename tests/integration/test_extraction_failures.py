@@ -78,3 +78,40 @@ def test_access_and_uncertain_transport_errors_stop_provider_work(store, setting
     with pytest.raises(type(error)):
         research.extract()
     assert not research.facts and not store.artifacts(research.run_id, 'extraction_failure')
+
+
+def test_parent_report_on_verified_portal_cannot_supply_target_financial_facts(store, settings, tmp_path, monkeypatch):
+    import hashlib
+    import io
+
+    from reportlab.pdfgen import canvas
+    from signal_research.providers.search.base import SearchHit
+    from signal_research.retrieval.fetch import FetchResult, PublicFetcher
+
+    research, _ = research_fixture(store, settings)
+    research.documents = []
+    research.machine._cancelled = lambda _: False
+    output = io.BytesIO()
+    pdf = canvas.Canvas(output)
+    text = pdf.beginText(40, 780)
+    for line in ['Annual Report', 'Quartz Holdings Limited',
+                 'Our subsidiary is ' + research.company.legal_name,
+                 'Standalone INR crore at 31 March 2026 and 31 March 2025',
+                 'Deposits 1000 900', 'Borrowings 200 220']:
+        text.textLine(line)
+    pdf.drawText(text)
+    pdf.save()
+    raw = output.getvalue()
+    path = tmp_path / 'parent.pdf'
+    path.write_bytes(raw)
+    url = 'https://hdfc.bank.in/parent-annual-report.pdf'
+    monkeypatch.setattr(PublicFetcher, 'fetch', lambda *args: FetchResult(url, url, 200,
+        'application/pdf', hashlib.sha256(raw).hexdigest(), str(path)))
+    def unexpected(*args):
+        pytest.fail('Foreign report must not be submitted for target extraction')
+    monkeypatch.setattr(research.calls, 'model', unexpected)
+    research.ingest([SearchHit(url, 'Annual Report', '', 1, 'test')])
+    assert research.documents[0].document_type == 'related_issuer_context'
+    assert research.documents[0].origin_family_id == f'issuer:{research.company.id}'
+    research.extract()
+    assert not research.facts and not research.calculations

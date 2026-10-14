@@ -124,3 +124,15 @@ The same live run exposed a separate BSE attribution problem: incidental phrases
 such as "two days for BSE" could satisfy an optional-suffix signing expression.
 Its retained engineering-company revenue is invalid as BSE evidence. This run
 is diagnostic only; exchange authorship needs a further correction before retesting.
+
+Exchange authorship now requires a complete signing name or explicit audited
+subject; an exchange addressee, incidental "for BSE" phrase or bare acronym is
+insufficient. Exchange copies of other issuers also need authorship evidence.
+An explicitly different company heading on a PDF cover defeats a passing target
+mention on a shared issuer portal. Offline reinspection of the retained documents
+rejects the engineering report as BSE evidence and the Bajaj Finserv parent report
+as Bajaj Finance evidence, while retaining the genuine Bajaj Finance presentation.
+The old reports are preserved as diagnostics and are not retroactively certified.
+All 108 focused attribution, bank retrieval and live-pipeline checks passed;
+six extraction-failure/foreign-cover checks also passed. No provider calls were
+needed for the retained-document reinspection.

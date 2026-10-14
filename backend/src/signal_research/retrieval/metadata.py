@@ -117,22 +117,22 @@ def source_origin(url, company, title, text):
     host = (urlparse(url).hostname or "").lower()
     issuer = any(domain_matches(host, d) for d in company.verified_ir_domains)
     exchange = any(domain_matches(host, d) for d in ("nseindia.com", "bseindia.com"))
-    if issuer and exchange:
+    if exchange:
         # Exchange sites host thousands of OTHER issuers' announcements. An
         # exchange's own domain cannot alone bind a document to that exchange.
         name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name, flags=re.I).strip()
         pattern = r"\s+".join(re.escape(word) for word in name.split())
-        authored = bool(re.search(r"\bFor\s+" + pattern + r"(?:\s+(?:Limited|Ltd\.?))?\b", text, re.I))
+        # Keep a legal suffix mandatory for a one-word issuer such as BSE.
+        # 'two days for BSE' is a reference to an exchange, not authorship.
+        suffix = r"\s+(?:Limited|Ltd\.?)" if len(name.split()) == 1 else r"(?:\s+(?:Limited|Ltd\.?))?"
+        pattern += suffix
+        authored = bool(re.search(r"(?:^|[\n.!?])\s*For\s+" + pattern + r"(?=\s*(?:[\n.,:;]|$))", text, re.I))
         # Audited reports can establish their subject without a signing letter
         # addressed 'For <issuer>'. An exchange mention/address is insufficient.
-        audited_subject = bool(re.search(r'\b(?:standalone|consolidated)\s+financial\s+statements?\s+of\s+(?:the\s+)?' + pattern + r'(?:\s+(?:Limited|Ltd\.?))?\b', text, re.I))
+        audited_subject = bool(re.search(r'\b(?:standalone|consolidated)\s+financial\s+statements?\s+of\s+(?:the\s+)?' + pattern + r'\b', text, re.I))
         issuer = authored or audited_subject
     # Exchange copies of issuer announcements share the issuer origin.
-    name = re.sub(r"\b(limited|ltd)\b\.?", "", company.legal_name.lower()).strip()
-    identity = name in text.lower() or (company.isin and company.isin in text)
-    issuer_copy = exchange and identity and any(word in title.lower() for word in ("results", "annual report", "presentation", "disclosure"))
-    if exchange and any(domain_matches(host, d) for d in company.verified_ir_domains):
-        issuer_copy = issuer
+    issuer_copy = exchange and issuer
     if issuer or issuer_copy:
         return company.legal_name, f"issuer:{company.id}", "issuer_disclosure"
     wire = re.search(r"(?:source|by|copyright|©)\s*[:\-]?\s*(Reuters|PTI|Bloomberg|Associated Press)\b", text[:3000], flags=re.I)

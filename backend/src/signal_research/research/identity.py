@@ -40,3 +40,24 @@ def issuer_cover_identity(text: str, company) -> bool:
         if compact == compact_target:
             return True
     return False
+
+
+def foreign_cover_identity(text: str, company) -> bool:
+    """An explicitly named different issuer on a cover defeats passing mentions.
+
+    Exchange addressees and generic signature headings are not company subjects.
+    This is a rejection rule; absence of a foreign heading proves nothing.
+    """
+    target = normalize_name(company.legal_name)
+    addressees = {'bse', 'national stock exchange', 'national stock exchange of india'}
+    for line in text[:1500].splitlines():
+        match = re.fullmatch(r'\s*(?:For\s+)?([A-Za-z0-9&.,() /-]{2,120}\b(?:Limited|Ltd\.?))\s*', line, re.I)
+        if not match:
+            continue
+        name = normalize_name(match[1])
+        if name == target:
+            return False
+        if name in addressees or len(name.split()) < 2:
+            continue
+        return True
+    return False
