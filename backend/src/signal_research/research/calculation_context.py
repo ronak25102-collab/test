@@ -1,0 +1,32 @@
+"""Readable references to existing arithmetic, preserving ordered input lineage."""
+
+
+def calculation_context(calculation, facts):
+    by_id = {fact.id: fact for fact in facts}
+    inputs = [by_id[identifier] for identifier in calculation.input_fact_ids]
+    formula = calculation.formula_id
+    roles = (['first_current', 'first_prior', 'second_current', 'second_prior']
+             if formula in {'growth_gap', 'ldr_change'} else
+             ['start', 'end'] if formula == 'cagr' else
+             ['current', 'prior'] if formula in {'yoy_growth', 'change_pp', 'change_bps'} else
+             ['numerator', 'denominator'])
+    result = calculation.model_dump(mode='json')
+    result['input_bindings'] = [
+        {'id': fact.id, 'role': roles[index], 'metric': fact.metric_key,
+         'value': fact.value_decimal, 'period_start': fact.period_start,
+         'period_end': fact.period_end, 'scope': fact.scope, 'segment': fact.segment,
+         'definition_id': fact.definition_id}
+        for index, fact in enumerate(inputs)]
+    # Decimal formatting provides a copyable value without changing the saved
+    # exact result or the independent reproduction used by publication checks.
+    result['output_display'] = (f'{calculation.output_value:.{calculation.precision}f}'
+                                if calculation.output_value is not None else None)
+    if formula == 'growth_gap':
+        result['reading'] = (f'YoY growth in {inputs[0].metric_key} minus YoY growth in '
+            f'{inputs[2].metric_key}; a negative value means the first metric grew more slowly. '
+            'This is one comparable growth interval, not a change in the gap between intervals.')
+    elif formula == 'yoy_growth':
+        result['reading'] = f'YoY percentage change in {inputs[0].metric_key}; negative means decline.'
+    elif formula in {'change_pp', 'change_bps'}:
+        result['reading'] = f'Current minus prior {inputs[0].metric_key}; negative means decline.'
+    return result

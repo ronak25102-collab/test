@@ -143,3 +143,12 @@ results, annual reports and presentations precede shareholder services within
 the existing three-link cap. This prevents peer quote links from consuming the
 document allowance on shared financial-services portals. All 98 focused
 navigation, disclosure, bank retrieval and live-pipeline checks passed.
+
+Analytical payloads now retain formula input order instead of source-document
+order. Growth gaps explicitly identify the first/current/prior and second/current/
+prior inputs, their sign and the single comparable interval. Copyable rounded
+Decimal outputs accompany the unchanged exact results. Hypothesis generation is
+constrained to existing evidence identifiers and bounded missing-evidence text.
+This addresses the HDFC candidate's confusion between a signed growth difference
+and a change in that difference over time; it does not weaken numerical or novelty
+verification. All 44 focused arithmetic-context, hypothesis and live-profile checks passed.

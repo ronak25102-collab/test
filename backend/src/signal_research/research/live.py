@@ -4,7 +4,7 @@ import re
 from dataclasses import asdict
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import unquote, urlparse
 from uuid import UUID, uuid4, uuid5
 
@@ -46,6 +46,7 @@ from signal_research.extraction.models import ExtractedFactBatch, source_fact_ba
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
+from signal_research.research.calculation_context import calculation_context
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
 from signal_research.research.history import (
     comparable_series,
@@ -123,7 +124,16 @@ class Hypothesis(StrictModel):
 
 class HypothesisBatch(StrictModel):
     candidates: list[Hypothesis] = Field(max_length=3)
-    missing_evidence: list[str] = Field(max_length=6)
+    missing_evidence: list[Annotated[str, Field(max_length=200)]] = Field(max_length=6)
+
+
+def cited_hypothesis_schema(payload):
+    fields = {name: (list[UUID], Field(min_length=1, max_length=limit, json_schema_extra={'items': {
+        'type': 'string', 'enum': [str(item['id']) for item in payload[source]]}}))
+        for name, source, limit in (('fact_ids', 'facts', 12), ('calculation_ids', 'calculations', 8))}
+    hypothesis = create_model('CitedHypothesis', __base__=Hypothesis, **fields)
+    return create_model('HypothesisBatch', __base__=HypothesisBatch,
+        candidates=(list[hypothesis], Field(max_length=3)))
 
 
 class Challenge(StrictModel):
@@ -574,10 +584,7 @@ class LiveResearch:
                 "facts": [{key: value for key, value in f.model_dump(mode="json").items() if key in {
                     "id", "entity_id", "metric_key", "value_raw", "value_decimal", "unit_normalized", "currency",
                     "period_start", "period_end", "period_type", "scope", "segment", "definition_id", "passage_id"}} for f in self.facts],
-                "calculations": [c.model_dump(mode="json") | {"input_bindings": [
-                    {"id": f.id, "metric": f.metric_key, "value": f.value_decimal,
-                     "period_end": f.period_end, "scope": f.scope, "segment": f.segment}
-                    for f in self.facts if f.id in c.input_fact_ids]} for c in self.calculations],
+                "calculations": [calculation_context(c, self.facts) for c in self.calculations],
                 "documents": [{"id": d.id, "title": d.title, "publisher": d.publisher,
                                "published_at": d.published_at, "origin_family_id": d.origin_family_id,
                                "document_type": d.document_type} for d in documents.values() if d.id in selected_documents],
@@ -753,7 +760,8 @@ class LiveResearch:
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
         self.collect_history()
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms with explicit tests")
-        batch = self.calls.model(HypothesisBatch, self.payload(), instruction="Propose up to three non-obvious relationships grounded in the calculations. Separate observation from mechanism. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_value with ordinary rounding; do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
+        payload = self.payload()
+        batch = self.calls.model(cited_hypothesis_schema(payload), payload, instruction="Propose up to three non-obvious relationships grounded in the calculations. Separate observation from mechanism. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_display; retain their signs and ordered input roles. Read growth_gap as first metric YoY growth minus second metric YoY growth, not the change in that gap over time. Do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
         self.store.artifact(self.run_id, "hypotheses", batch.model_dump(mode="json"))
         facts = {f.id for f in self.facts}
         calculations = {c.id for c in self.calculations}
