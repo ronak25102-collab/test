@@ -92,3 +92,8 @@ verified and legacy issuer websites have bounded entrypoints. When existing
 domains yield no verified facts, the pipeline can seek a dated exchange reference
 to a changed website rather than guessing a new domain. All 86 focused pipeline
 checks and 38 additional coverage/disclosure/date checks passed.
+
+HTML table geometry now binds mixed quarter/year columns using actual rowspan
+and colspan declarations. Extraction keeps the newest comparable window rather
+than mixing quarterly and annual values with the same end date. Invalid spans
+remain unbound. All 62 focused table/parsing/live checks passed.

@@ -42,6 +42,14 @@ def financial_table_batch(passage, company, profile, *, document_issuer_verified
     if len(scopes) != 1:
         return None  # Mixed scope columns require explicit geometry, never a guess.
     headers = []
+    explicit_columns = []
+    if passage.extraction_method == 'html_table' and (passage.column_label or '').startswith('Period columns: '):
+        for label in passage.column_label.removeprefix('Period columns: ').split(' | '):
+            dates_in_column = source_dates(label)
+            durations = declared_duration_periods(label)
+            if len(dates_in_column) != 1 or len(durations) > 1:
+                return None
+            explicit_columns.append((dates_in_column[0], durations[0]['period_start'] if durations else None))
     for index, line in enumerate(prefix.splitlines()):
         normalized = line.replace(',', ' ')
         labels = [match[0] for match in COMPLETE_DATE.finditer(normalized)]
@@ -53,9 +61,13 @@ def financial_table_batch(passage, company, profile, *, document_issuer_verified
             durations = list(DURATION.finditer(heading))
             duration_labels = {match[1].lower() for match in durations}
             headers.append((dates, next(iter(duration_labels)) if len(duration_labels) == 1 else None))
-    if len(headers) != 1:
+    if explicit_columns:
+        dates = [period for period, _ in explicit_columns]
+        duration = None
+    elif len(headers) != 1:
         return None
-    dates, duration = headers[0]
+    else:
+        dates, duration = headers[0]
     unit = re.search(r"(?:\u20b9|INR|Rs\.?|rupees)\s*(?:in\s+)?(crores?|cr|lakhs?|millions?|billions?|thousands?|['\u2018\u2019]?000)\b", prefix, re.I)
     facts = []
     # Resolve overlapping aliases conservatively. One labelled row per metric.
@@ -75,16 +87,29 @@ def financial_table_batch(passage, company, profile, *, document_issuer_verified
             unit_raw, currency = 'INR ' + scale, 'INR'
         else:
             continue
-        if metric.kind != 'stock' and duration is None:
+        if metric.kind != 'stock' and duration is None and not explicit_columns:
             continue
-        for period in sorted(dates, reverse=True):
+        indices = sorted(range(len(dates)), key=lambda index: dates[index], reverse=True)
+        if explicit_columns:
+            newest = indices[0]
+            end, start = explicit_columns[newest]
+            indices = [index for index in indices
+                       if (dates[index].month, dates[index].day) == (end.month, end.day)
+                       and ((explicit_columns[index][1].month, explicit_columns[index][1].day)
+                            if explicit_columns[index][1] else None) ==
+                       ((start.month, start.day) if start else None)][:3]
+        for index in indices:
+            period = dates[index]
             periods = declared_duration_periods(f'{duration} ended {period.isoformat()}') if duration else []
-            if metric.kind != 'stock' and len(periods) != 1:
+            start = explicit_columns[index][1] if explicit_columns else periods[0]['period_start'] if periods else None
+            if metric.kind != 'stock' and start is None:
                 continue
+            if metric.kind == 'stock' and explicit_columns and start is not None:
+                continue  # A duration table does not establish an instant stock.
             facts.append(ExtractedFactCandidate(
-                metric_key=metric.key, value_raw=cells[dates.index(period)], unit_raw=unit_raw,
+                metric_key=metric.key, value_raw=cells[index], unit_raw=unit_raw,
                 currency=currency, period_end=period,
-                period_start=periods[0]['period_start'] if metric.kind != 'stock' else None,
+                period_start=start if metric.kind != 'stock' else None,
                 period_type='instant' if metric.kind == 'stock' else 'duration',
                 scope=scopes[0], passage_id=passage.id, extraction_confidence=Decimal('.99')))
             if len(facts) == 6:

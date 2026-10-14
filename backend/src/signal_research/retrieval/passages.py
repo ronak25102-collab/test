@@ -43,6 +43,9 @@ def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
     for table_index, table in enumerate(soup.find_all("table")):
         rows = table.find_all("tr")
         headers = " | ".join(c.get_text(" ", strip=True) for c in rows[0].find_all(["th", "td"])) if rows else ""
+        period_header = explicit_html_period_header(rows)
+        if period_header:
+            headers = period_header
         # Bind the nearby preceding heading, never later footer text or the
         # accounting scope of a different table elsewhere on the page.
         preceding = []
@@ -64,12 +67,67 @@ def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
         # Keep complete comparative headers together with their financial rows.
         # Per-row passages above retain exact row and column locators as well.
         table_rows = [' | '.join(cell.get_text(' ', strip=True) for cell in row.find_all(['th', 'td'])) for row in rows]
-        whole = '\n'.join([context, *table_rows])
+        whole = '\n'.join([context, *([period_header] if period_header else []), *table_rows])
         if len(whole) <= 12000:
             result.passages.append(Passage(id=uuid5(document_id, f'whole-table:{table_index}:{whole}'),
                 document_id=document_id, section=title, table_id=str(table_index), column_label=headers,
                 text=whole, extraction_method='html_table'))
     return result
+
+
+def explicit_html_period_header(rows):
+    """Use actual rowspan/colspan geometry to bind mixed quarter/year headers."""
+    from signal_research.extraction.dates import (
+        COMPLETE_DATE,
+        declared_duration_periods,
+        source_dates,
+    )
+    from signal_research.finance.registry import METRICS
+
+    aliases = [alias for metric in METRICS.values() for alias in (*metric.aliases, metric.key.replace('_', ' '))]
+    matrix, occupied = [], {}
+    for row_index, row in enumerate(rows[:8]):
+        cells = row.find_all(['th', 'td'])
+        if cells and any(re.fullmatch(re.escape(alias), cells[0].get_text(' ', strip=True), re.I) for alias in aliases):
+            break
+        line, column = {}, 0
+        for cell in cells:
+            while (row_index, column) in occupied:
+                line[column] = occupied[row_index, column]
+                column += 1
+            try:
+                colspan, rowspan = int(cell.get('colspan', 1)), int(cell.get('rowspan', 1))
+            except (TypeError, ValueError):
+                return None
+            if not (1 <= colspan <= 16 and 1 <= rowspan <= 8):
+                return None
+            label = cell.get_text(' ', strip=True)
+            for offset in range(colspan):
+                line[column + offset] = label
+                for below in range(1, rowspan):
+                    occupied[row_index + below, column + offset] = label
+            column += colspan
+        for (index, col), value in occupied.items():
+            if index == row_index:
+                line[col] = value
+        matrix.append(line)
+    if not matrix:
+        return None
+    columns = []
+    for index in range(1, max(max(line, default=0) for line in matrix) + 1):
+        labels = list(dict.fromkeys(line.get(index, '') for line in matrix if line.get(index)))
+        label = ' '.join(labels)
+        dates = list(COMPLETE_DATE.finditer(label.replace(',', ' ')))
+        if len(dates) != 1 or len(source_dates(dates[0][0])) != 1:
+            return None
+        durations = declared_duration_periods(label)
+        if len(durations) == 1:
+            columns.append(durations[0]['source_label'])
+        elif re.search(r'\bas\s+(?:at|on)\b', label, re.I):
+            columns.append('As at ' + dates[0][0])
+        else:
+            return None
+    return 'Period columns: ' + ' | '.join(columns) if len(columns) >= 2 else None
 
 
 def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
