@@ -69,7 +69,10 @@ from signal_research.retrieval.disclosures import (
     verified_disclosure_indexes,
 )
 from signal_research.retrieval.fetch import FetchResult, PublicFetcher
-from signal_research.retrieval.issuer_identity import exchange_issuer_domains
+from signal_research.retrieval.issuer_identity import (
+    ISSUER_REFERENCE_POLICY,
+    exchange_issuer_domains,
+)
 from signal_research.retrieval.metadata import (
     domain_matches,
     source_availability,
@@ -333,12 +336,14 @@ class LiveResearch:
             if eligibility == 'eligible':
                 domains = exchange_issuer_domains(raw, text, fetched.final_url or hit.url, self.company)
                 if domains:
-                    self.store.add_verified_issuer_domains(self.company.id, domains, document_id)
-                    self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
-                    self.store.artifact(self.run_id, "issuer_domain_verification", {
+                    proof = {
+                        'reference_policy': ISSUER_REFERENCE_POLICY, 'company_id': str(self.company.id),
                         "source_url": fetched.final_url or hit.url, "document_id": str(document_id), "domains": domains,
                         "availability_basis": eligibility_basis, "published_at": published, "retrieved_at": receipt,
-                        "content_hash": fetched.body_hash})
+                        "content_hash": fetched.body_hash}
+                    self.store.add_verified_issuer_domains(self.company.id, domains, document_id,
+                                                         run_id=self.run_id, proof=proof)
+                    self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
                     queue.extend((lead, 0) for lead in verified_disclosure_indexes(self.company) if lead.url not in self.seen_urls)
             publisher, origin, kind = source_origin(fetched.final_url or hit.url, self.company, hit.title, text)
             identified = issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)

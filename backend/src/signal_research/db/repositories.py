@@ -77,6 +77,42 @@ class Store:
                     verified_ir_domains=IR_DOMAINS.get(symbol, []), business_profiles=[profile], identity_source_ids=[],
                 ))
             session.commit()
+        self.quarantine_legacy_issuer_domains()
+
+    def quarantine_legacy_issuer_domains(self):
+        """Quarantine domains without current issuer-bound proof; retain a backup."""
+        from signal_research.retrieval.issuer_identity import ISSUER_REFERENCE_POLICY
+        from signal_research.retrieval.metadata import domain_matches
+
+        from .models import ArtifactModel
+
+        with self.session_factory() as session:
+            approved = {}
+            for proof in session.scalars(select(ArtifactModel).where(ArtifactModel.kind == 'issuer_domain_verification')):
+                if proof.payload.get('reference_policy') != ISSUER_REFERENCE_POLICY:
+                    continue
+                run = session.get(ResearchRunModel, proof.run_id)
+                if not run or proof.payload.get('company_id') != run.company_id:
+                    continue
+                approved.setdefault(run.company_id, set()).update(proof.payload.get('domains', []))
+            changes = []
+            for company in session.scalars(select(CompanyModel)):
+                base = [domain for symbol in company.symbols or [] for domain in IR_DOMAINS.get(symbol, [])]
+                existing = company.verified_ir_domains or []
+                allowed = [domain for domain in existing if domain in approved.get(company.id, set())
+                           or any(domain_matches(domain, seed) for seed in base)]
+                if allowed != existing:
+                    changes.append({'company_id': company.id, 'legal_name': company.legal_name,
+                                    'before': existing, 'after': allowed,
+                                    'identity_source_ids': company.identity_source_ids or []})
+                    company.verified_ir_domains = allowed
+            if changes:
+                folder = self.data_dir / 'exports' / 'domain-audits'
+                folder.mkdir(parents=True, exist_ok=True)
+                backup = folder / f'registry-before-{uuid4().hex}.json'
+                backup.write_text(json.dumps({'policy': ISSUER_REFERENCE_POLICY,
+                    'audited_at': datetime.now(UTC).isoformat(), 'changes': changes}, indent=2), encoding='utf-8')
+                session.commit()
 
     def search_companies(self, query: str) -> list[Company]:
         lowered = query.strip().lower()
@@ -125,7 +161,7 @@ class Store:
             session.commit()
             return added
 
-    def add_verified_issuer_domains(self, company_id, domains, source_id):
+    def add_verified_issuer_domains(self, company_id, domains, source_id, *, run_id=None, proof=None):
         """Persist exchange-disclosure provenance together with its website references."""
         with self.session_factory() as session:
             row = session.get(CompanyModel, str(company_id))
@@ -133,6 +169,23 @@ class Store:
                 raise KeyError("company not found")
             row.verified_ir_domains = list(dict.fromkeys([*(row.verified_ir_domains or []), *domains]))
             row.identity_source_ids = list(dict.fromkeys([*(row.identity_source_ids or []), str(source_id)]))
+            if proof is not None:
+                from signal_research.retrieval.issuer_identity import ISSUER_REFERENCE_POLICY
+
+                from .models import ArtifactModel
+
+                if run_id is None:
+                    raise ValueError('A domain verification proof requires its research run')
+                owner = session.get(ResearchRunModel, str(run_id))
+                if (not owner or owner.company_id != str(company_id)
+                        or proof.get('company_id') != str(company_id)
+                        or proof.get('reference_policy') != ISSUER_REFERENCE_POLICY
+                        or set(proof.get('domains', [])) != set(domains)
+                        or proof.get('document_id') != str(source_id)):
+                    raise ValueError('Domain proof does not bind the company, run, source and domain set')
+                self._check_fence(session, str(run_id))
+                session.add(ArtifactModel(id=str(uuid4()), run_id=str(run_id), kind='issuer_domain_verification',
+                    payload=json.loads(json.dumps(proof, default=str))))
             session.commit()
 
     def get_company(self, company_id: UUID | str) -> Company | None:

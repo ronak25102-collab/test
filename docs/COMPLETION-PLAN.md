@@ -97,3 +97,16 @@ HTML table geometry now binds mixed quarter/year columns using actual rowspan
 and colspan declarations. Extraction keeps the newest comparable window rather
 than mixing quarterly and annual values with the same end date. Invalid spans
 remain unbound. All 62 focused table/parsing/live checks passed.
+
+Live follow-up exposed unrelated third-party website references entering the
+issuer trust registry. Validation was stopped. Current-policy issuer-bound
+references, atomic proof persistence and startup quarantine now prevent reuse of
+unproven legacy entries. Private backups preserve the old registry and saved
+reports remain unchanged. Offline retained-hash revalidation can restore legitimate
+references without repeating provider requests. See DOMAIN-REFERENCE-AUDIT.md.
+The full backend suite passed 407 tests before the retained-reference audit was
+added; its nine focused ownership/registry/revalidation checks then passed.
+The complete suite passed 408 tests with retained-reference revalidation included;
+38 focused ownership/registry/generality checks passed after enforcing atomic
+company/run/source binding. The retained-document audit reviewed 21 legacy
+references and restored four records for the legitimate ICICI Lombard domain.

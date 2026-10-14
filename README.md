@@ -135,6 +135,10 @@ Live runs now perform a secret-free configuration check before entering the queu
 The dashboard shows missing account configuration; the API returns HTTP 503 with
 `LIVE_CONFIGURATION_INCOMPLETE`, and the CLI exits with an actionable message.
 Inspect `http://127.0.0.1:8000/api/v1/health/configuration` for the same preflight.
+Issuer website references are checked against their own company context. Startup
+quarantines legacy domains without current ownership proof and retains a private
+backup. See [issuer website audit](docs/DOMAIN-REFERENCE-AUDIT.md) for local,
+hash-verified reference recovery.
 Create the rate card with verified prices for your account; do not assume that
 the NVIDIA free-rate example applies. Replay does not require provider credentials.
 
