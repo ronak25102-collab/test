@@ -193,6 +193,50 @@ def test_withheld_candidate_preserves_verified_numbers(store, tmp_path, monkeypa
     assert store.get_summary(run_id).progress["calculations_completed"] == len(report.calculations)
 
 
+def test_reconciled_candidate_cannot_be_challenged_with_withdrawn_arithmetic(store, tmp_path, monkeypatch):
+    from signal_research.research.live import LiveResearch, derive_calculations
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    extract, generated = LiveResearch.extract, OpenAIProvider.generate
+    extraction_count = 0
+    def reconcile(self, *args, **kwargs):
+        nonlocal extraction_count
+        extract(self, *args, **kwargs)
+        extraction_count += 1
+        if extraction_count == 3:  # Initial, history, then targeted follow-up.
+            self.facts = self.facts[1:]
+            self.calculations = derive_calculations(self.facts)
+    def no_stale_review(self, schema, *args, **kwargs):
+        assert schema.__name__ not in {'Challenge', 'DiscoveryDraft', 'SemanticReview'}
+        return generated(self, schema, *args, **kwargs)
+    monkeypatch.setattr(LiveResearch, 'extract', reconcile)
+    monkeypatch.setattr(OpenAIProvider, 'generate', no_stale_review)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert report.facts and not report.discoveries
+    decisions = report.generation_metadata['research_decisions']
+    assert decisions[0]['disposition'] == 'withheld'
+    assert 'withdrawn during source reconciliation' in decisions[0]['reason']
+
+
+def test_history_withdrawing_all_arithmetic_stops_before_hypothesis_generation(store, tmp_path, monkeypatch):
+    from signal_research.research.live import LiveResearch
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    def invalidate(self):
+        self.facts, self.calculations = [], []
+    monkeypatch.setattr(LiveResearch, 'collect_history', invalidate)
+    generated = OpenAIProvider.generate
+    def no_hypotheses(self, schema, *args, **kwargs):
+        assert schema.__name__ != 'HypothesisBatch'
+        return generated(self, schema, *args, **kwargs)
+    monkeypatch.setattr(OpenAIProvider, 'generate', no_hypotheses)
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report.outcome.value == 'insufficient_evidence' and not report.calculations
+    assert 'historical-source reconciliation' in report.abstention.missing_requirements[0]
+
+
 def test_live_follows_issuer_index_to_dated_pdf_before_extracting(store, tmp_path, monkeypatch):
     settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch, linked=True)
     ResearchMachine(store, settings).process(run_id)

@@ -152,3 +152,10 @@ constrained to existing evidence identifiers and bounded missing-evidence text.
 This addresses the HDFC candidate's confusion between a signed growth difference
 and a change in that difference over time; it does not weaken numerical or novelty
 verification. All 44 focused arithmetic-context, hypothesis and live-profile checks passed.
+
+The `5b47410` HDFC retest reached challenge, but targeted follow-up introduced
+conflicts that withdrew two supporting figures. Candidate lineage is now checked
+again after source reconciliation and before later candidate work; a candidate
+cannot reuse removed facts or calculations. Historical reconciliation that
+removes all arithmetic stops before hypothesis generation. All 36 focused
+reconciliation, historical coverage and live-pipeline checks passed.

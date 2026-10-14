@@ -618,6 +618,18 @@ class LiveResearch:
         self.decisions.append(decision)
         self.store.artifact(self.run_id, 'research_decision', decision)
 
+    def current_candidate(self, hypothesis):
+        facts = {fact.id for fact in self.facts}
+        calculations = {calculation.id: calculation for calculation in self.calculations}
+        if (set(hypothesis.fact_ids) <= facts and set(hypothesis.calculation_ids) <= calculations.keys()
+                and all(set(calculations[identifier].input_fact_ids) <= facts
+                        for identifier in hypothesis.calculation_ids)):
+            return True
+        reason = 'Supporting facts or calculations were withdrawn during source reconciliation; the candidate no longer has current evidence.'
+        self.record_decision(hypothesis, 'withheld', reason)
+        self.limitations.append(reason)
+        return False
+
     def collect_history(self):
         if not self.calculations or not needs_history(self.facts):
             return
@@ -759,6 +771,8 @@ class LiveResearch:
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
         self.collect_history()
+        if not self.calculations:
+            return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms with explicit tests")
         payload = self.payload()
         batch = self.calls.model(cited_hypothesis_schema(payload), payload, instruction="Propose up to three non-obvious relationships grounded in the calculations. Separate observation from mechanism. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_display; retain their signs and ordered input roles. Read growth_gap as first metric YoY growth minus second metric YoY growth, not the change in that gap over time. Do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
@@ -768,6 +782,8 @@ class LiveResearch:
         candidates = sorted([h for h in batch.candidates if set(h.fact_ids) <= facts and set(h.calculation_ids) <= calculations], key=lambda h: h.significance + h.novelty, reverse=True)
         candidate_cap = 3 if self.store.get_summary(self.run_id).mode.value == "deep" else 2
         for iteration, hypothesis in enumerate(candidates[:candidate_cap]):
+            if not self.current_candidate(hypothesis):
+                continue
             hypothesis = hypothesis.model_copy(update={"calculation_ids": complete_calculation_lineage(
                 hypothesis.statement + ' ' + hypothesis.mechanism, hypothesis.fact_ids,
                 hypothesis.calculation_ids, self.calculations)})
@@ -787,6 +803,8 @@ class LiveResearch:
             self.stage("fetching", "Retrieving targeted supporting and opposing sources")
             self.ingest([*opposing[:3], *followup[:3]], time_reserve=self.time_reserve(120), parse_limit=25)
             self.extract(limit=2)
+            if not self.current_candidate(hypothesis):
+                continue
             self.recover_context(hypothesis)
             self.stage("challenging", "Testing the strongest alternative and revising or rejecting the mechanism")
             challenge = self.challenge(hypothesis)
