@@ -4,6 +4,14 @@ $projectRoot = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $runtimeDir = Join-Path $projectRoot 'data\exports\local-runtime'
 $manifestPath = Join-Path $runtimeDir 'services.json'
 
+function Test-OwnedService($record) {
+    if ($null -eq $record) { return $false }
+    $processInfo = Get-Process -Id $record.pid -ErrorAction SilentlyContinue
+    if ($null -eq $processInfo) { return $false }
+    $expectedTicks = if ($null -ne $record.started_ticks) { [long]$record.started_ticks } else { ([DateTimeOffset]$record.started_at).UtcTicks }
+    return $processInfo.StartTime.ToUniversalTime().Ticks -eq $expectedTicks
+}
+
 function Stop-OwnedService($record) {
     if ($null -eq $record) { return }
     $processInfo = Get-Process -Id $record.pid -ErrorAction SilentlyContinue
@@ -36,16 +44,28 @@ if ($Action -eq 'stop') { Write-Output 'Beyond services stopped.'; exit 0 }
 if ($Action -eq 'status') {
     if (-not (Test-Path -LiteralPath $manifestPath)) { Write-Output 'Beyond has no managed local services.'; exit 1 }
     $services = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($services.project_root -ne $projectRoot) { throw 'Service manifest belongs to another checkout.' }
+    $allRunning = $true
     foreach ($serviceName in @('api', 'worker', 'frontend')) {
-        $processInfo = Get-Process -Id $services.$serviceName.pid -ErrorAction SilentlyContinue
-        $record = $services.$serviceName
-        $expectedTicks = if ($null -ne $record.started_ticks) { [long]$record.started_ticks } else { ([DateTimeOffset]$record.started_at).UtcTicks }
-        $running = $null -ne $processInfo -and $processInfo.StartTime.ToUniversalTime().Ticks -eq $expectedTicks
+        $running = Test-OwnedService $services.$serviceName
+        if (-not $running) { $allRunning = $false }
         Write-Output "$serviceName running: $running"
     }
-    exit 0
+    if ($allRunning) { exit 0 } else { exit 1 }
 }
-if (Test-Path -LiteralPath $manifestPath) { throw 'Managed services already exist. Use restart or status.' }
+if (Test-Path -LiteralPath $manifestPath) {
+    $services = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($services.project_root -ne $projectRoot) { throw 'Service manifest belongs to another checkout.' }
+    foreach ($serviceName in @('api', 'worker', 'frontend')) {
+        if (Test-OwnedService $services.$serviceName) {
+            throw 'Managed services are still running. Use restart or status.'
+        }
+    }
+    # All recorded services have exited. Clearing only this stale manifest does
+    # not stop a process, including any unrelated process that reused an ID.
+    Remove-Item -LiteralPath $manifestPath
+    Write-Output 'Recovered stale local service records.'
+}
 foreach ($servicePort in @(8000, 5173)) {
     if (Get-NetTCPConnection -State Listen -LocalPort $servicePort -ErrorAction SilentlyContinue) {
         throw "Port $servicePort is already in use. Stop its existing service before starting Beyond."

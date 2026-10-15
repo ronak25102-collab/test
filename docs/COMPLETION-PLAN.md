@@ -183,3 +183,10 @@ distinct issuer headings now withhold an unisolated passage before extraction,
 and the numeric validator also rejects such ambiguous source spans. Original
 reports remain diagnostic; retained counts alone cannot certify financial accuracy.
 All 91 focused source-identity, extraction, table and live-pipeline checks passed.
+
+The complete backend suite now passes 447 tests; all 15 Edge browser scenarios
+and the production frontend build also pass. On Windows, `local.ps1 start` can
+clear a stale manifest only after every recorded service has exited. It preserves
+live managed services and never stops a process that merely reused a PID. Status
+now returns failure when any service is down. PowerShell parsing, isolated stale
+manifest recovery and the live duplicate-start guard were checked successfully.
