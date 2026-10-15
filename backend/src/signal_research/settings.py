@@ -15,7 +15,12 @@ class Settings(BaseSettings):
     display_timezone: str = "Asia/Kolkata"
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
-    llm_provider: Literal["openai", "gemini", "nvidia"] = "openai"
+    llm_provider: Literal["openai", "gemini", "nvidia", "codecraft"] = "openai"
+    codecraft_api_key: str = Field(default="", repr=False)
+    codecraft_secondary_api_keys: list[str] = Field(default_factory=list, repr=False, exclude=True, max_length=5)
+    codecraft_nvidia_fallback: bool = False
+    codecraft_model_research: str = ""
+    codecraft_model_extract: str = ""
     openai_api_key: str = Field(default="", repr=False)
     openai_model_research: str = ""
     openai_model_extract: str = ""
@@ -41,13 +46,13 @@ class Settings(BaseSettings):
     max_active_runs: int = 1
     max_input_tokens: int = 150000
     max_output_tokens: int = 20000
-    max_model_output_tokens_per_call: int = Field(default=8192, ge=256, le=65536)
+    max_model_output_tokens_per_call: int = Field(default=16384, ge=256, le=65536)
     max_run_cost_usd: float = 5.0
     search_usd_per_credit: float | None = None
     model_rate_card_path: Path = Path("./config/model-rates.json")
     source_request_timeout_seconds: int = 25
     pdf_parse_timeout_seconds: float = Field(default=90, gt=0, le=300)
-    model_request_timeout_seconds: float = Field(default=90, gt=0, le=300)
+    model_request_timeout_seconds: float = Field(default=90, gt=0, le=900)
     max_source_bytes: int = 25_000_000
     allow_fixture_provider: bool = False
     allow_unknown_cost: bool = False
@@ -59,6 +64,18 @@ class Settings(BaseSettings):
         if role not in {"extract", "research"}:
             raise ValueError(f"unknown model role: {role}")
         return getattr(self, f"{self.llm_provider}_model_{role}")
+
+    def model_routes(self):
+        """Ordered, deduplicated credentials; public route names never contain keys."""
+        if self.llm_provider != "codecraft":
+            return [("primary", self)]
+        keys = list(dict.fromkeys(key.strip() for key in
+                    [self.codecraft_api_key, *self.codecraft_secondary_api_keys] if key.strip()))
+        routes = [(f"codecraft:{index}", self.model_copy(update={"codecraft_api_key": key}))
+                  for index, key in enumerate(keys)]
+        if self.codecraft_nvidia_fallback:
+            routes.append(("nvidia", self.model_copy(update={"llm_provider": "nvidia"})))
+        return routes
 
     @property
     def llm_configured(self) -> bool:

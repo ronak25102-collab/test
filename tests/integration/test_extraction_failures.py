@@ -5,6 +5,10 @@ from uuid import uuid4
 import pytest
 from signal_research.domain.enums import RunMode
 from signal_research.domain.schemas import Passage, SourceDocument
+from signal_research.providers.llm.codecraft_provider import (
+    CodeCraftError,
+    CodeCraftStructuredOutputError,
+)
 from signal_research.providers.llm.nvidia_provider import (
     NvidiaRequestError,
     NvidiaStructuredOutputError,
@@ -30,7 +34,8 @@ def research_fixture(store, settings):
 
 
 @pytest.mark.parametrize('phase', ['extraction', 'review'])
-def test_incomplete_response_withholds_entire_page_then_checks_another_source(store, settings, monkeypatch, phase):
+@pytest.mark.parametrize('error_type', [NvidiaStructuredOutputError, CodeCraftStructuredOutputError])
+def test_incomplete_response_withholds_entire_page_then_checks_another_source(store, settings, monkeypatch, phase, error_type):
     research, document = research_fixture(store, settings)
     table = (research.company.legal_name + '\nStandalone INR crore\n'
              'As at 31 March 2026 | 31 March 2025\nDeposits 1000 900\nBorrowings 200 220')
@@ -42,7 +47,7 @@ def test_incomplete_response_withholds_entire_page_then_checks_another_source(st
     calls = []
     def fail(schema, *args):
         calls.append(schema.__name__)
-        raise NvidiaStructuredOutputError('Output limit reached')
+        raise error_type('Output limit reached')
     monkeypatch.setattr(research.calls, 'model', fail)
     research.extract(limit=1)
     assert len(calls) == 1 and not research.facts and not research.calculations
@@ -67,7 +72,9 @@ def test_incomplete_response_withholds_entire_page_then_checks_another_source(st
 
 @pytest.mark.parametrize('error', [NvidiaRequestError('NVIDIA authentication failed'),
                                   NvidiaRequestError('NVIDIA quota exceeded'),
-                                  NvidiaTimeout('Uncertain response timeout')])
+                                  NvidiaTimeout('Uncertain response timeout'),
+                                  CodeCraftError('CodeCraft authentication failed'),
+                                  CodeCraftError('Uncertain response timeout')])
 def test_access_and_uncertain_transport_errors_stop_provider_work(store, settings, monkeypatch, error):
     research, document = research_fixture(store, settings)
     research.passages = [Passage(id=uuid4(), document_id=document.id,

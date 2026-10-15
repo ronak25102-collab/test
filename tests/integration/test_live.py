@@ -109,6 +109,36 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert summary.budget["model_calls"] == calls["model"]
 
 
+def test_live_credit_failover_uses_nvidia_and_reports_actual_models(store, tmp_path, monkeypatch):
+    import httpx
+    from signal_research.providers.llm.nvidia_provider import NvidiaProvider
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    settings.llm_provider = 'codecraft'
+    settings.codecraft_api_key = 'primary-test'
+    settings.codecraft_secondary_api_keys = ['backup-one-test', 'backup-two-test']
+    settings.codecraft_model_extract = 'cc-extract'
+    settings.codecraft_model_research = 'cc-research'
+    settings.codecraft_nvidia_fallback = True
+    settings.nvidia_api_key = 'nvidia-test'
+    settings.nvidia_model_extract = 'nv-extract'
+    settings.nvidia_model_research = 'nv-research'
+    rejected = []
+    async def reject(self, url, **kwargs):
+        rejected.append(kwargs['headers']['Authorization'])
+        return httpx.Response(402)
+    monkeypatch.setattr(httpx.AsyncClient, 'post', reject)
+    monkeypatch.setattr(NvidiaProvider, 'generate', OpenAIProvider.generate)
+    ResearchMachine(store, settings).process(run_id)
+    report = store.get_report(run_id)
+    assert report and report.outcome.value == 'discovery'
+    assert len(rejected) == 3
+    assert report.generation_metadata['configured_provider'] == 'codecraft'
+    assert report.generation_metadata['provider'] == 'nvidia'
+    assert {m['model_id'] for m in report.generation_metadata['models_used']} == {'nv-extract', 'nv-research'}
+    assert report.generation_metadata['model_id'] is None
+
+
 def test_duplicate_semantic_verdicts_cannot_publish(store, tmp_path, monkeypatch):
     settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
     original = OpenAIProvider.generate

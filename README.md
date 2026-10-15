@@ -52,6 +52,65 @@ The API does not start an extra worker by default.
 
 ## Live configuration
 
+CodeCraft is supported with `LLM_PROVIDER=codecraft`, `CODECRAFT_API_KEY`,
+`CODECRAFT_MODEL_RESEARCH`, and `CODECRAFT_MODEL_EXTRACT`. Use exact IDs returned
+by your authenticated catalog, such as `claude-opus-5.5`. The adapter uses the
+fixed `https://www.codecraftapi.com/v1/chat/completions` endpoint and documented
+JSON mode; the original Pydantic schema and evidence gates validate the result
+locally. It does not follow redirects or retry uncertain requests. Input and
+completion token usage is recorded, including
+completed responses rejected by schema validation. Reported completion tokens
+already include reasoning tokens. CodeCraft raises output limits below 2048,
+so Beyond stops before requesting a response when its remaining output budget
+cannot cover that minimum. Configure the rate card from your catalog prices;
+these are conservative balance estimates while your free allowance remains.
+
+`MAX_MODEL_OUTPUT_TOKENS_PER_CALL` controls every model response, including
+extraction and independent review (default: 16384). `MAX_OUTPUT_TOKENS` is the
+separate total run allowance. Requests still preserve
+the final verification reserve and respect cost, time and provider limits.
+Increasing a maximum does not force the model to use all those tokens, but
+longer responses can consume more credits. Truncated or invalid CodeCraft
+extraction responses are withheld and recorded as evidence gaps; the pipeline
+can check other sources without resubmitting the failed request. No finite cap
+guarantees completion. Restart the API and worker after changing `.env`; new
+runs use the new allowance, while existing durable request plans stay unchanged.
+
+The extended `.env.example` profile allows 65536 tokens per response, 5000000
+input and 5000000 output tokens per run, 200 model calls, 100 searches, 100
+document downloads and 50 OCR pages. It allows 900 seconds per model request
+within a 7200-second run. The template retains `FREE_SERVICES_ONLY=true` and
+`MAX_RUN_COST_USD=0`; for CodeCraft, set `FREE_SERVICES_ONLY=false` and
+`MAX_RUN_COST_USD=100` in your private `.env`. These are maximum allowances,
+not promised usage or provider entitlements. CodeCraft's
+catalog does not currently report an output cap for the configured model;
+on 15 October 2026, a live JSON check accepted `max_tokens=65536` and reported
+424 input plus 331 output tokens. This checks acceptance of the parameter,
+not completion of a full 65536-token response or an upstream maximum.
+Your provider may reject or clamp large requests, and account credits, rate
+limits, context windows and access errors still apply. Increasing local
+allowances cannot bypass those restrictions and may consume more credits.
+
+For credit-exhaustion failover, set `CODECRAFT_SECONDARY_API_KEYS` to a JSON
+array of backup keys in your private `.env`, ordered by preference. Set
+`CODECRAFT_NVIDIA_FALLBACK=true` to use the existing `NVIDIA_API_KEY` and both
+`NVIDIA_MODEL_*` settings after all CodeCraft keys explicitly reject work with
+HTTP 402. The rate card must cover the NVIDIA models too. Keys from one account
+may share its allowance; adding keys does not guarantee additional credits.
+Backups retain the configured CodeCraft model. NVIDIA uses its own configured
+models. Switching is visible in run events and successful providers/models are
+recorded in the report metadata and call ledger.
+
+HTTP 429 throttling, authentication errors, timeouts and invalid model output
+do not trigger key rotation. An HTTP 402 rejection releases the rejected
+request's token/cost reservation but retains its call count. All routes share
+the original run budget and deadline. Exhausted keys are remembered within a
+run, while each pending request stays pinned to its original route so restart
+cannot duplicate uncertain work. New runs recheck the primary key; start a new
+run after changing the configured credential order. If every provider fails,
+the application stops and preserves verified evidence when available. Tavily
+search quota is separate and is not increased by LLM fallback credentials.
+
 NVIDIA, Gemini and OpenAI are supported. For NVIDIA configure `LLM_PROVIDER=nvidia`,
 `NVIDIA_API_KEY`, `NVIDIA_MODEL_RESEARCH`, and `NVIDIA_MODEL_EXTRACT`. Both roles
 are selected through those settings. The example defaults to

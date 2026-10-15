@@ -137,6 +137,7 @@ class ResearchMachine:
     def _process_live(self, run_id, as_of, company, plan, budget) -> ResearchReport:
         import httpx
 
+        from signal_research.providers.llm.codecraft_provider import CodeCraftError
         from signal_research.providers.llm.nvidia_provider import NvidiaRequestError
         from signal_research.providers.search.account import FreeQuotaUnavailable
         from signal_research.research.live import LiveResearch
@@ -152,7 +153,7 @@ class ResearchMachine:
             report.limitations.append(f"Research stopped at its configured limit: {exc}. Verified evidence was preserved.")
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
-        except (NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
+        except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
             if not research.facts:
                 raise
             report = research.abstain(["Provider access recovery and additional independently verified evidence"])

@@ -427,11 +427,12 @@ class LiveResearch:
         return any(p.document_id in eligible and self.financial_passage(p) for p in self.passages)
 
     def extraction_model(self, passage, schema, payload, *args):
+        from signal_research.providers.llm.codecraft_provider import CodeCraftStructuredOutputError
         from signal_research.providers.llm.nvidia_provider import NvidiaStructuredOutputError
 
         try:
             return self.calls.model(schema, payload, *args)
-        except NvidiaStructuredOutputError as exc:
+        except (NvidiaStructuredOutputError, CodeCraftStructuredOutputError) as exc:
             # Another source may be usable. No result from this response can be
             # approved, and duplicate PDF views must not repeat the failed page.
             if passage.page_index is not None:
@@ -612,11 +613,23 @@ class LiveResearch:
                 "historical_series": comparable_series(self.facts),
                 "coverage_note": "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
+    def model_metadata(self):
+        # Include actual routing before attestation; changing a sealed report
+        # afterwards would invalidate the semantic-review integrity checksum.
+        used = list({(call["provider"], call["model"]): None for call in self.store.provider_calls(self.run_id)
+                     if call["model"] and call["status"] == "ok"})
+        return {"configured_provider": self.settings.llm_provider,
+                "configured_model_id": self.settings.model_for_role("research"),
+                "models_used": [{"provider": provider, "model_id": model} for provider, model in used],
+                "provider": (used[0][0] if len({p for p, _ in used}) == 1 else "mixed") if used else self.settings.llm_provider,
+                "model_id": used[0][1] if len(used) == 1 else None}
+
     def abstain(self, reasons):
         report = build_abstention(self.run_id, self.company, self.cutoff, self.documents, self.passages, self.facts, reasons, mode="live")
         report.limitations += self.limitations
         report.generation_metadata["search_queries"] = self.queries
         report.generation_metadata["research_decisions"] = self.decisions
+        report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         # A withheld hypothesis must not discard independently verified arithmetic.
         report.calculations = self.calculations
@@ -925,5 +938,5 @@ class LiveResearch:
                             historical_coverage=" / ".join(sorted({str(f.period_end) for f in self.facts if f.id in used_facts})),
                             source_coverage={"mode": "live", "synthetic": False, "documents_found": len(self.documents), "documents_used": len(documents), "eligible_origin_families": len(origins), "primary_source": True},
                             outcome=ResearchOutcome.DISCOVERY, publication_status=PublicationStatus.PUBLISHED, discoveries=[discovery], limitations=self.limitations,
-                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review-v2", "provider": self.settings.llm_provider, "model_id": self.settings.model_for_role("research"), "search_queries": self.queries, "research_decisions": self.decisions, "novelty_status": challenge.novelty_status, "novelty_rationale": challenge.novelty_rationale, "published_explanation": challenge.published_explanation, "non_obvious_synthesis_reviewed": review.non_obvious_synthesis_supported},
+                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review-v2", **self.model_metadata(), "search_queries": self.queries, "research_decisions": self.decisions, "novelty_status": challenge.novelty_status, "novelty_rationale": challenge.novelty_rationale, "published_explanation": challenge.published_explanation, "non_obvious_synthesis_reviewed": review.non_obvious_synthesis_supported},
                             claims=claims, timeline_events=timeline, calculations=[c for c in self.calculations if c.id in used_calcs], facts=[f for f in self.facts if f.id in used_facts], passages=[p for p in self.passages if p.id in used_passages], documents=documents))

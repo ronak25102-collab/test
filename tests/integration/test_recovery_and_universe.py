@@ -7,6 +7,7 @@ from signal_research.db.models import CompanyModel, ResearchRunModel
 from signal_research.domain.enums import RunMode, RunStatus
 from signal_research.providers.llm.base import ProviderUsage
 from signal_research.research.report_builder import build_synthetic_report
+from signal_research.settings import Settings
 from signal_research.worker.budgets import Budget
 from signal_research.worker.calls import DurableCalls, UncertainCall
 
@@ -90,7 +91,8 @@ def test_uncertain_provider_call_is_never_repeated(store, settings):
     assert count == [1] and calls.budget.search_calls == 1
 
 
-def test_model_timeout_is_separate_from_download_timeout_and_bounded_by_run(store, settings, monkeypatch):
+@pytest.mark.parametrize('timeout', [90, 900])
+def test_model_timeout_is_separate_from_download_timeout_and_bounded_by_run(store, settings, monkeypatch, timeout):
     class Probe(BaseModel):
         status: str
 
@@ -103,7 +105,7 @@ def test_model_timeout_is_separate_from_download_timeout_and_bounded_by_run(stor
 
     monkeypatch.setattr("signal_research.worker.calls.get_llm_provider", lambda s: Adapter())
     settings.source_request_timeout_seconds = 1
-    settings.model_request_timeout_seconds = 90
+    settings.model_request_timeout_seconds = Settings(model_request_timeout_seconds=timeout).model_request_timeout_seconds
     budget = Budget(2, 2, 2, 1, deadline=datetime.now(UTC) + timedelta(seconds=60))
     run_id = store.create_run(store.search_companies("SYNTHBANK")[0], date(2026, 10, 8), RunMode.REPLAY)
     result = DurableCalls(store, settings, run_id, budget).model(Probe, {"test": "timeout"})

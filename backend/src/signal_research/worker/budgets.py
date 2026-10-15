@@ -64,6 +64,17 @@ class Budget:
         self.reserved_cost_usd += cost
         self._persist()
 
+    def release_rejected_model(self, reserved_input, reserved_output, reserved_cost):
+        """Release tokens/cost only for an explicit pre-inference credit rejection.
+
+        Keep the attempted model call counted, so failover remains bounded.
+        Timeouts, malformed results and rate limits never receive this refund.
+        """
+        self.input_tokens -= reserved_input
+        self.output_tokens -= reserved_output
+        self.reserved_cost_usd -= reserved_cost
+        self._persist()
+
     def settle_model(self, reserved_input, reserved_output, actual_input, actual_output, reserved_cost, actual_cost):
         if actual_input > 0 and actual_output > 0:
             self.input_tokens += actual_input - reserved_input
