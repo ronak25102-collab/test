@@ -467,10 +467,14 @@ class LiveResearch:
             unit_header = bool(re.search(r"(?:₹|INR|Rs\.?)\s*(?:in\s+)?(?:crores?|cr|lakhs?|thousands?|[‘’']?000|millions?|billions?)\b", p.text[:1200], re.I))
             financial_rows = sum(bool(re.search(r"(?im)^\s*(?:\d+[.)]?\s+)?" + re.escape(alias) + r"\b[^\n]*\d", p.text))
                                  for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
+            numeric_measures = sum(bool(re.search(r'\b' + re.escape(alias) +
+                r'\b(?:\s*\([^()\d]{1,24}\))?\s*(?:(?:was|were|of|is|stood at|[|:=])\s*)?'
+                r'(?:(?:INR|Rs\.?|\u20b9)\s*)?\(?-?\d[\d,]*(?:\.\d+)?', p.text, re.I))
+                for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
             periods = [period for period in source_dates(p.text) if period <= self.cutoff]
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
-            return (bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
+            return (numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
         ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
                          not subsidiary_only(p.text) and self.financial_passage(p)], key=score, reverse=True)
         passages, pages = [], set()

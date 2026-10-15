@@ -190,3 +190,9 @@ clear a stale manifest only after every recorded service has exited. It preserve
 live managed services and never stops a process that merely reused a PID. Status
 now returns failure when any service is down. PowerShell parsing, isolated stale
 manifest recovery and the live duplicate-start guard were checked successfully.
+
+Extraction ranking now puts a metric with an adjacent financial value ahead of
+audit commentary that merely mentions the same metric alongside a date, scope
+and currency. This shared rule applies across profiles and does not supply any
+missing scope, scale or reporting period. All 57 focused ranking, live-pipeline
+and financial-table checks passed, including insurer/NBFC commentary regressions.

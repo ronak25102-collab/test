@@ -82,6 +82,35 @@ def test_independent_review_cannot_grow_beyond_its_candidate_count_or_reason_lim
             schema(verdicts=items)
 
 
+@pytest.mark.parametrize('symbol,metric,alias', [('HDFCLIFE', 'vnb', 'Value of new business'),
+                                              ('BAJFINANCE', 'aum', 'Assets under management')])
+def test_actual_financial_values_precede_auditor_commentary_with_more_complete_metadata(store, settings, monkeypatch, symbol, metric, alias):
+    company = store.search_companies(symbol)[0]
+    run_id = store.create_run(company, date(2026, 10, 15), RunMode.LIVE)
+    store.lease_next('numeric-priority')
+    research = LiveResearch(SimpleNamespace(store=store, settings=settings), run_id, company,
+                            date(2026, 10, 15), Budget(10, 10, 10, 1))
+    document = SourceDocument(id=uuid4(), canonical_url='https://issuer.example/results.pdf',
+        final_url='https://issuer.example/results.pdf', publisher=company.legal_name,
+        origin_family_id=f'issuer:{company.id}', title='Results', document_type='issuer_disclosure',
+        published_at='2026-05-15T00:00:00Z', retrieved_at='2026-10-15T00:00:00Z',
+        content_hash='results', mime_type='application/pdf')
+    audit = Passage(id=uuid4(), document_id=document.id, page_index=2, text=(
+        'We reviewed the standalone INR crore financial statements for the year ended 31 March 2026. '
+        f'The audit considered {alias.lower()} measurement policies and their consistency.'))
+    table = Passage(id=uuid4(), document_id=document.id, page_index=3, text=(
+        'Year ended 31 March 2026 | 31 March 2025\n' + alias + ' | 120 | 100'))
+    research.documents, research.passages = [document], [audit, table]
+    selected = []
+    def extract(schema, payload, *args):
+        selected.append(payload['passage_id'])
+        return schema(facts=[], missing_metrics=[metric], notes=['Scope and scale still require source verification.'])
+    monkeypatch.setattr(research.calls, 'model', extract)
+    research.extract(limit=1)
+    assert selected == [table.id]
+    assert not research.facts  # Ranking cannot supply the missing accounting scope.
+
+
 def test_comparative_balance_pages_precede_audit_mentions_and_duplicate_rows(store, tmp_path, monkeypatch):
     company = store.search_companies("HDFCBANK")[0]
     run_id = store.create_run(company, date(2026, 10, 10), RunMode.LIVE)
