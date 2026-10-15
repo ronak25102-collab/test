@@ -25,6 +25,30 @@ def test_duration_requires_its_own_exact_header():
     assert not validate_candidate(candidate, passage, uuid4(), Profile.NBFC).fact
 
 
+def test_a_comparative_end_date_cannot_be_reused_as_a_duration_start():
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=(
+        'Consolidated Q1 FY27 cost of funds was 7.40%. '
+        'Customer franchise as of 30 June 2026; AUM as of 30 June 2025.'))
+    candidate = ExtractedFactCandidate(metric_key='funding_cost', value_raw='7.40%', unit_raw='percent',
+        period_type='duration', period_start=date(2025, 6, 30), period_end=date(2026, 6, 30),
+        scope='consolidated', passage_id=passage.id, extraction_confidence='0.99')
+    validation = validate_candidate(candidate, passage, uuid4(), Profile.NBFC)
+    assert not validation.fact and 'one explicit reporting interval' in validation.reason
+
+
+def test_explicit_reporting_ranges_bind_dates_as_a_pair():
+    from signal_research.extraction.dates import explicit_duration_ranges
+
+    for text in ['from 1 April 2025 to 31 March 2026',
+                 'between 1 April 2025 and 31 March 2026',
+                 '1 April 2025 through 31 March 2026']:
+        periods = explicit_duration_ranges(text)
+        assert periods[0]['period_start'] == date(2025, 4, 1)
+        assert periods[0]['period_end'] == date(2026, 3, 31)
+    assert not explicit_duration_ranges('As at 31 March 2025 and 31 March 2026')
+    assert not explicit_duration_ranges('31 March 2026 to 1 April 2025')
+
+
 def test_release_dateline_dates_source_but_snapshot_date_does_not():
     from signal_research.retrieval.metadata import source_publication
     assert source_publication(b'%PDF', 'NEWS RELEASE\nMumbai, April 18, 2026\nStandalone results').date() == date(2026, 4, 18)

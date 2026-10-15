@@ -12,7 +12,7 @@ from signal_research.finance.units import parse_numeric, to_inr_crore
 from signal_research.research.identity import normalize_name
 
 from .bank_tables import month_end_columns, scope_in_text, subsidiary_only
-from .dates import declared_duration_periods, source_dates
+from .dates import declared_duration_periods, explicit_duration_ranges, source_dates
 from .models import ExtractedFactCandidate
 
 
@@ -86,9 +86,9 @@ def validate_candidate(
         return FactValidation(None, "period end is absent from the cited span")
     if candidate.period_type.value == "duration":
         declared = any(p['period_start'] == candidate.period_start and p['period_end'] == candidate.period_end
-                       for p in declared_duration_periods(text))
-        if not date_in_text(candidate.period_start, text) and not declared:
-            return FactValidation(None, "duration start is absent or not bound to an explicit duration and end date")
+                       for p in [*declared_duration_periods(text), *explicit_duration_ranges(text)])
+        if not declared:
+            return FactValidation(None, "duration start/end are not bound to one explicit reporting interval")
     if not scope_in_text(candidate.scope, text):
         return FactValidation(None, "scope is absent from the cited span")
     if candidate.segment != "all" and candidate.segment.lower() not in lowered:

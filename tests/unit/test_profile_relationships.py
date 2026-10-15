@@ -46,3 +46,19 @@ def test_a_funding_component_cannot_exceed_total_borrowings():
                     'bank_borrowings', '2026-03-31', entity)
     b = replace(a, id=uuid4(), value=Decimal('100'), metric_key='borrowings', definition_id='borrowings')
     assert not calculate('funding_share', [a, b]).available
+
+
+def test_ratio_changes_have_reproducible_percentage_point_and_basis_point_outputs():
+    from signal_research.research.numeric_claims import supported_percentages
+
+    entity, passage = uuid4(), uuid4()
+    facts = [Fact(id=uuid4(), entity_id=entity, metric_key='gnpa', value_decimal=value,
+        period_end=f'{year}-06-30', period_type='instant', scope='consolidated',
+        definition_id='gnpa_v1', unit_normalized='percent', status='verified', passage_id=passage)
+        for value, year in [('0.96', 2026), ('1.03', 2025)]]
+    calculations = derive_calculations(facts)
+    assert {c.formula_id: c.output_value for c in calculations} == {
+        'change_pp': Decimal('-0.07'), 'change_bps': Decimal('-7.00')}
+    assert supported_percentages('GNPA declined 7 basis points', facts, calculations)
+    assert not supported_percentages('GNPA declined 11 basis points', facts, calculations)
+    assert all(len(c.input_fact_ids) == 2 for c in calculations)

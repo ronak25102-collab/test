@@ -167,3 +167,11 @@ registered NSE Symbol/Code on the filing cover can establish identity on an
 already trusted issuer document; bare ticker mentions and prefix matches cannot.
 Foreign company covers still defeat this positive identity. All 86 focused
 identity, extraction-failure, generality and live-pipeline checks passed.
+
+Manual inspection found a cost-of-funds duration using the previous year's
+comparison date as its start. Duration validation now requires the start/end to
+form one explicitly declared reporting interval or a stated full-date range;
+two dates appearing elsewhere in a passage are insufficient. Percentage measures
+also produce the registered basis-point change alongside the percentage-point
+change, retaining identical inputs and reproducible arithmetic. All 81 focused
+period, extraction, ratio and live-pipeline checks passed.

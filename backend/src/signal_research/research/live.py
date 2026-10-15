@@ -40,7 +40,11 @@ from signal_research.extraction.bank_tables import (
     scope_in_text,
     subsidiary_only,
 )
-from signal_research.extraction.dates import declared_duration_periods, source_dates
+from signal_research.extraction.dates import (
+    declared_duration_periods,
+    explicit_duration_ranges,
+    source_dates,
+)
 from signal_research.extraction.financial_tables import financial_table_batch
 from signal_research.extraction.models import ExtractedFactBatch, source_fact_batch_schema
 from signal_research.extraction.validate import validate_candidate
@@ -217,6 +221,8 @@ def derive_calculations(facts):
             prior = next((f for f in values if f.period_end and current.period_end and (current.period_end.year - f.period_end.year, current.period_end.month, current.period_end.day) == (1, f.period_end.month, f.period_end.day)), None)
             if prior:
                 add("change_pp" if current.unit_normalized == "percent" else "yoy_growth", [current, prior])
+                if current.unit_normalized == 'percent':
+                    add('change_bps', [current, prior])
                 pairs.append((current, prior))
     growth_relationships = {
         ('gross_advances', 'deposits'), ('advances_as_reported', 'deposits'),
@@ -484,7 +490,7 @@ class LiveResearch:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})
                 batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "source_period_columns": [{"label": label, "period_end": str(period)} for label, period in month_end_columns(passage.text)],
-                                      "source_declared_durations": declared_duration_periods(passage.text),
+                                      "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text)],
                                       "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages if issuer_named(p.text, self.company)],
                                       "allowed_metric_keys": [m.key for m in metrics],
                                       "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in metrics],

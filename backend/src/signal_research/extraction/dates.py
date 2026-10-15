@@ -28,6 +28,23 @@ def source_dates(text):
     return sorted(result)
 
 
+def explicit_duration_ranges(text):
+    """Both full dates must form one stated interval, not separate columns."""
+    normalized = re.sub(r'(?<=\d)(?:st|nd|rd|th)\b', '', text, flags=re.I)
+    normalized = re.sub(r'\s+', ' ', normalized.replace(',', ' '))
+    date_pattern = COMPLETE_DATE.pattern
+    result = []
+    for match in re.finditer('(' + date_pattern + r')\s+(?:to|through|until|and)\s+(' + date_pattern + ')', normalized, re.I):
+        # 'and' dates require an explicit 'between' interval, so a comparative
+        # 'as at <date> and <date>' header cannot supply a duration start.
+        if re.search(r'\s+and\s+', match[0], re.I) and not re.search(r'\bbetween\s*$', normalized[max(0, match.start() - 16):match.start()], re.I):
+            continue
+        starts, ends = source_dates(match[1]), source_dates(match[2])
+        if len(starts) == len(ends) == 1 and starts[0] < ends[0]:
+            result.append({'period_start': starts[0], 'period_end': ends[0], 'source_label': match[0]})
+    return result
+
+
 def declared_duration_periods(text):
     """Normalize an explicit duration plus full end date, never a bare FY label.
 
