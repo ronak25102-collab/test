@@ -74,3 +74,20 @@ def foreign_cover_identity(text: str, company) -> bool:
             continue
         return True
     return False
+
+
+def multiple_issuer_headings(text: str, company_name: str = '') -> bool:
+    """Interleaved company disclosures need isolated source regions first."""
+    target = normalize_name(company_name)
+    names = set()
+    addressees = {'bse', 'national stock exchange', 'national stock exchange of india'}
+    for line in text.splitlines():
+        match = re.fullmatch(r'\s*(?:For\s+)?([A-Za-z0-9&.,() /-]{2,100}\b(?:Limited|Ltd\.?))\s*', line, re.I)
+        if not match:
+            continue
+        name = normalize_name(match[1])
+        if name in addressees and name != target:
+            continue
+        if len(name.split()) >= 2 or name == target:
+            names.add(name)
+    return len(names) > 1

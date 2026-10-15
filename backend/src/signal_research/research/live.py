@@ -63,6 +63,7 @@ from signal_research.research.identity import (
     issuer_cover_identity,
     issuer_named,
     issuer_symbol_reference,
+    multiple_issuer_headings,
 )
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -446,6 +447,12 @@ class LiveResearch:
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
         eligible = {d.id for d in self.documents if d.cutoff_eligibility == "eligible" and d.document_type.startswith("issuer")}
+        ambiguous = {p.id for p in self.passages if p.document_id in eligible and
+                     multiple_issuer_headings(p.text, self.company.legal_name)}
+        if ambiguous:
+            note = 'Extraction gap: multiple issuer headings require isolated disclosure spans; interleaved page figures were withheld.'
+            if note not in self.limitations:
+                self.limitations.append(note)
         published = {d.id: d.published_at.timestamp() if d.published_at else 0 for d in self.documents}
         def score(p):
             text = p.text.lower()
@@ -464,7 +471,7 @@ class LiveResearch:
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
             return (bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
-        ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.document_id in eligible and
+        ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
                          not subsidiary_only(p.text) and self.financial_passage(p)], key=score, reverse=True)
         passages, pages = [], set()
         for passage in ranked:

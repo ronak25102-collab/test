@@ -85,6 +85,16 @@ def test_registered_filing_symbol_requires_an_explicit_complete_cover_binding(te
     assert issuer_symbol_reference(text, company) == expected
 
 
+def test_interleaved_newspaper_companies_require_separate_source_regions():
+    from signal_research.research.identity import multiple_issuer_headings
+
+    text = ('Prince Pipes and Fittings Limited\nStandalone results\nNet profit 337.49\n'
+            'BSE Limited\nConsolidated results\nNet profit 80115\nFor Milestone Global Limited')
+    assert multiple_issuer_headings(text, 'BSE Limited')
+    assert not multiple_issuer_headings('BSE Limited\nStandalone results\nBSE Limited', 'BSE Limited')
+    assert not multiple_issuer_headings('BSE Limited\nNational Stock Exchange of India Limited\nQuartz Bank Limited', 'Quartz Bank Limited')
+
+
 def test_insurance_persistency_cohorts_cannot_be_collapsed_into_one_metric():
     company = SimpleNamespace(id=uuid4(), legal_name='Quartz Life Limited')
     passage = Passage(id=uuid4(), document_id=uuid4(), text=(

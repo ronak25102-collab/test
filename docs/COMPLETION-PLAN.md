@@ -175,3 +175,11 @@ two dates appearing elsewhere in a passage are insufficient. Percentage measures
 also produce the registered basis-point change alongside the percentage-point
 change, retaining identical inputs and reproducible arithmetic. All 81 focused
 period, extraction, ratio and live-pipeline checks passed.
+
+15 October source review found that one newspaper PDF page interleaved BSE and
+other companies' financial advertisements. Currency normalization was correct,
+but two retained profit figures belonged to another advertisement. Multiple
+distinct issuer headings now withhold an unisolated passage before extraction,
+and the numeric validator also rejects such ambiguous source spans. Original
+reports remain diagnostic; retained counts alone cannot certify financial accuracy.
+All 91 focused source-identity, extraction, table and live-pipeline checks passed.

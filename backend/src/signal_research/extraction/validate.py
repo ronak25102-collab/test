@@ -9,7 +9,7 @@ from signal_research.domain.enums import FactStatus, Profile
 from signal_research.domain.schemas import Fact, Passage
 from signal_research.finance.registry import METRICS
 from signal_research.finance.units import parse_numeric, to_inr_crore
-from signal_research.research.identity import normalize_name
+from signal_research.research.identity import multiple_issuer_headings, normalize_name
 
 from .bank_tables import month_end_columns, scope_in_text, subsidiary_only
 from .dates import declared_duration_periods, explicit_duration_ranges, source_dates
@@ -65,6 +65,8 @@ def validate_candidate(
         return FactValidation(None, "an instant balance cannot have a duration start")
     if candidate.passage_id != passage.id:
         return FactValidation(None, "candidate points to a different passage")
+    if multiple_issuer_headings(passage.text, entity_name or ''):
+        return FactValidation(None, 'multiple issuer headings require an isolated financial disclosure span')
     text = passage.text
     if candidate.evidence_quote:
         if candidate.evidence_quote not in passage.text:

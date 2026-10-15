@@ -115,3 +115,16 @@ def test_parent_report_on_verified_portal_cannot_supply_target_financial_facts(s
     assert research.documents[0].origin_family_id == f'issuer:{research.company.id}'
     research.extract()
     assert not research.facts and not research.calculations
+
+
+def test_whole_page_with_interleaved_issuers_is_withheld_before_any_model_call(store, settings, monkeypatch):
+    research, document = research_fixture(store, settings)
+    research.passages = [Passage(id=uuid4(), document_id=document.id, text=(
+        'Quartz Finance Limited\nStandalone INR crore\nYear ended 31 March 2026 | 31 March 2025\n'
+        'Net profit 100 90\nOther Finance Limited\nNet profit 200 190'))]
+    def unexpected(*args):
+        pytest.fail('Interleaved issuer data must not enter extraction or independent fact review')
+    monkeypatch.setattr(research.calls, 'model', unexpected)
+    research.extract()
+    assert not research.facts
+    assert any('interleaved page figures' in note for note in research.limitations)
