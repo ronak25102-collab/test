@@ -1,102 +1,83 @@
-# Track A readiness — 12 October 2026
+# Track A readiness - 15 October 2026
 
-**13 October update:** shared selection/parser corrections improved actual HDFC
-from zero facts to twelve facts/ten calculations, and Axis to six/five. Both
-retained partial evidence; neither published a discovery. The latest full backend
-suite passed 343 tests. See EXTRACTION-FIX-2026-10-13.md; the historical full roster
-matrix below is not a new final-revision success matrix. The verdict remains NOT READY.
+**NOT READY for a judge-selected live discovery.** The application runs and the
+shared research workflow is implemented, but a real discovery that satisfies the
+problem statement has not been demonstrated. Honest abstention and passing
+software tests do not establish that outcome.
 
-**NOT READY for a judge-selected live discovery.** The Windows application starts,
-installation is reproducible, and evidence checks reject unsupported outputs.
-The final 12-company live matrix, two unseen issuers, two repeated runs and a
-sparse-data bank produced no successful discovery. ICICI and SBI retained verified
-facts and calculations; the other ten roster companies retained no verified facts.
-It is not legitimate to infer readiness from automated tests or honest abstentions.
+The latest implementation stages are committed and pushed to `main`. A fresh
+clone includes the changes. Credentials, local databases, raw documents and
+validation exports remain private.
 
-## Architecture (12 lines)
+## Implemented and checked
 
-1. FastAPI `main.py` serves company resolution, run lifecycle, evidence and exports.
-2. React/Vite restores saved runs and renders facts, calculations, claims and print view.
-3. SQLite persists runs, leases, checkpoints, provider usage and source lineage.
-4. A separate durable worker executes the same state machine for every real issuer.
-5. Official NIFTY CSV plus exchange identities provide names, tickers, aliases and ISINs.
-6. Seven business profiles route questions and registered metrics; no per-company analysis.
-7. Tavily search, verified issuer navigation and exchange leads find documents dynamically.
-8. Public-only HTTP transport validates redirects, TLS and destination IPs.
-9. PDF/HTML/XBRL parsing and confidence-gated local OCR retain source passages and hashes.
-10. Extraction binds entity, date, period, unit, segment and scope before independent review.
-11. Registered arithmetic feeds hypotheses, opposing searches and semantic claim review.
-12. Publication requires independent relevant origins and all eight elements; otherwise abstain.
+- Seven shared business profiles route questions, metrics and calculations.
+- Public issuer navigation prioritizes results, annual reports and presentations;
+  embedded PDF links can be retrieved without executing portal scripts.
+- Website references require issuer ownership; legacy unproven domains are
+  quarantined with private backups. Exchange filings require issuer authorship,
+  and a foreign PDF cover defeats an incidental target-company mention.
+- Exact metric, value, date, period, unit, scope, segment and definition checks
+  precede independent source review. Conflicting figures are withheld.
+- Registered Decimal arithmetic preserves ordered inputs and exact outputs.
+  Comparable histories separate scopes, definitions and duration windows.
+- Targeted supporting/opposing research, contradiction checks, reviewed novelty,
+  semantic claim verification and observable falsification gate publication.
+- Incomplete extraction responses cannot approve figures and are not retried.
+  Alternate source passages remain eligible; authentication, quota and uncertain
+  transport failures stop provider work. Durable reservations survive failure.
+- The dashboard exposes source links, arithmetic inputs, history charts and
+  unpublished candidate decisions. Reports and partial evidence persist across
+  restarts and are available through printable and structured exports.
+- Full backend/security checks passed 449 tests on revision `b56f45a`; the frontend
+  production build and all 15 Edge browser scenarios passed. CI checks
+  engineering behavior; mocked responses and SYNTHBANK remain explicitly synthetic.
 
-## Verified engineering work
+## Actual live evidence
 
-- Official roster refreshed locally on 12 October IST: all 12 expected companies,
-  including BSE, appear in the current Financial Services industry classification.
-- NVIDIA Nemotron Super hosted free prototype access verified for both model roles.
-  Tavily Researcher allowance checked without enabling paid overage; advanced search
-  consumes two included credits. Remaining NVIDIA quota is NOT VERIFIED.
-- Protected final-review budgets; durable uncertain-call reservations and no blind
-  retries. Current caps: 480 seconds, 100,000 input reservation tokens, 12,000 output
-  tokens, 16 model calls, 14 searches and 16 fetches. Input estimates are conservative
-  byte-based reservations, not precise tokenization.
-- Comparative bank rows preserve standalone/group scope and column order. Plain or
-  net advances cannot establish gross advances. INR scales and duration starts are
-  validated. Explicit short-year day/month dates do not imply fiscal-quarter dates.
-- Publication dates remain unknown when undisclosed. Successful dated retrieval and
-  a real content hash can prove current availability, never an earlier historical
-  cutoff. Unknown publication cannot receive Strong evidence.
-- NVIDIA/Tavily failures remain explicit; retained facts survive interruptions when
-  possible. Unsupported or contradictory findings are withheld, never dummy output.
-- 320 backend tests passed; one existing Starlette deprecation warning. Production
-  frontend build and 14 Edge tests passed. Mocked responses/replay are labelled and
-  do not validate live financial quality. Ruff and whitespace checks passed.
-- Fresh locked dependency install/build/migrations passed on an isolated source copy;
-  actual fresh API/worker health passed, missing credentials returned 503, and an
-  existing synthetic report remained readable after migration 0003.
-- Human PDF checks reproduced source arithmetic for HDFC, Axis, SBI and ICICI. Merger
-  and gross/net definition caveats are explicit. See SOURCE-CHECKS.md.
+See [14 October results](LIVE-RESULTS-2026-10-14.md) for the measured company rows,
+run identifiers, revisions and remaining gaps. Earlier full-roster results remain
+in [the historical matrix](LIVE-RESULTS.md). These are separate validation batches.
+No partial batch is described as a completed final-revision roster matrix.
 
-## Evidence and unresolved limits
+A five-company batch on `5f80f8d` produced zero discoveries. HDFC Bank retained
+12 facts and 10 calculations. HDFC Life and ICICI Lombard stopped on incomplete
+model output. Bajaj Finance retained no facts. BSE retained one incorrectly
+attributed engineering-company figure; that report is diagnostic evidence of a
+bug, and the current attribution checks reject its source. Historical reports
+are preserved rather than rewritten into apparent successes.
 
-The complete first matrix is preserved under `data/exports/finals-validation/final`.
-Partial later roots retain their own source fingerprints and configurations; they
-must never be described as completed latest-version matrices. The new stable
-Super/Super matrix is under `final-validation`. See LIVE-RESULTS.md for measured
-runtime, usage, retained facts and missing requirements. Later clean retries used
-shared identity/recovery changes; this is not a uniform-final-revision success test.
+The retest on `5b47410` preserves the user's Lightning model for both roles and
+uses temporary free-only overrides: zero-dollar cap, 480 seconds, 90 seconds per
+model request, 14 searches, 18 fetches, 50 model calls, 150,000 input reservation
+tokens and 20,000 output tokens. `.env` is unchanged. Included search allowance is
+checked before each bounded run; remaining NVIDIA quota is unknown.
 
-The twelve clean runs took 70.4–291.4 seconds each, below eight minutes, but all
-abstained. Fast abstentions do not validate an eight-minute successful discovery.
-The conservative Tavily allowance was 312 credits at the final account check.
-NVIDIA remaining quota is unknown. Actual in-flight cancellation completed in
-4.138 seconds; a controlled expired-deadline recovery retained six reviewed ICICI
-facts with zero additional provider calls and zero discoveries.
+Further numerical source review of the `5b47410` batch rejected a cost-of-funds
+duration and two BSE profit figures taken from a neighboring newspaper ad. The
+current source checks reject unbound duration endpoints and interleaved issuer
+passages. These retained counts are automated outputs, not manually certified
+correct facts. The 15 October runs and a temporary model comparison are recorded
+separately in the latest results; they do not overwrite earlier diagnostics.
 
-The most consequential remaining risk is financial evidence quality, not startup:
-source discovery can return parent/subsidiary documents, unclear scope, old periods,
-large or inaccessible PDFs; model extraction/review is fallible. Independent
-corroboration must support the actual relationship, not merely mention the issuer.
-Two snapshots alone do not prove historical development or causality. Novelty is
-not established by a headline similarity filter. No success rate, stability or
-successful eight-minute discovery target has yet been established.
+## Work required before a READY claim
 
-Manual checking of five cited documents and three reported calculations for each
-company remains NOT VERIFIED when no discovery/calculations were produced. We do
-not fabricate examples to satisfy those counts. Account exhaustion/rate-limit
-faults are controlled tests unless a real rejection is explicitly recorded.
+1. Establish a real non-obvious discovery with relevant independently originated
+   support, reproducible arithmetic, historical development, counterargument and
+   observable falsification. Inspect the original source bindings manually.
+2. Repeat the same pipeline across banking, NBFC and insurance/exchange businesses,
+   including a judge-selected or unseen issuer. Measure actual successful runtime.
+3. Resolve missing source coverage, ambiguous periods/scopes, fallible model review
+   and contradictory disclosures without lowering evidence thresholds.
+4. Complete the finals rehearsal and verify available included provider quota.
 
-## Account and submission actions
+The eight-minute run cap is a provisional engineering target. Fast abstention
+proves neither a successful eight-minute discovery nor a ten-minute finals demo.
 
-No billing, purchase, upgrade, push, publication, deployment or submission occurred.
-Keep credentials private. NVIDIA dashboard quota is not exposed by a documented
-API; check it before the finals if available. Tavily's durable local ledger stays
-conservative even after a provider refresh; it will not automatically refund
-uncertain reservations or adopt replenished credits. A new-PC copy requires secure
-keys and a freshly verified private rate card, not a copied invented price.
+## Round 1 artifact
 
-See FAILURE-LOG.md for per-company symptoms and code locations, and FINAL-AUDIT.md
-for the ten remaining score-critical improvements and estimated effort. Full
-five-citation semantic checks are NOT VERIFIED: no discovery was published.
-
-The Round 1 PDF is a local draft. The final team name is needed for the required
-TeamName_TrackA_Round1.pdf filename. Submission requires separate authorization.
+The refreshed local proposal is a visually checked one-page draft at
+`output/pdf/Beyond_TrackA_Round1_DRAFT.pdf`; its generator is committed with the
+source. The final team name and organizer submission remain outstanding. No
+competition submission or hosted deployment has occurred. See
+[submission notes](SUBMISSION-DRAFT.md) and [Windows setup](DEMO.md).

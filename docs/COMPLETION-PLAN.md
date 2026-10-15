@@ -196,3 +196,7 @@ audit commentary that merely mentions the same metric alongside a date, scope
 and currency. This shared rule applies across profiles and does not supply any
 missing scope, scale or reporting period. All 57 focused ranking, live-pipeline
 and financial-table checks passed, including insurer/NBFC commentary regressions.
+The full backend suite passed 449 tests after this change. Readiness, transfer
+instructions and the one-page Round 1 draft were refreshed for 15 October and
+the actual staged GitHub pushes. The proposal was regenerated, rendered with
+PDFium and visually checked. It still states the unresolved discovery requirement.

@@ -1,14 +1,14 @@
 # Windows setup, transfer and ten-minute demo
 
-Current target: this Windows PC. Locked installation is tested with Python 3.13.7
-and Node 24.11; Python >=3.12 is supported. Install Python, uv and Node using their
+Current target: this Windows PC. Python >=3.12 and Node >=22 are supported;
+the current backend checks use Python 3.12. Install Python, uv and Node using their
 official installers. No billing or paid services are required.
 
 ## Install on another PC
 
-1. Copy repository source, including uncommitted changes and lockfiles. Exclude
-   `.venv`, `node_modules`, caches and runtime process manifests. A plain clone of
-   the remote will not contain the unpushed workspace fixes.
+1. Clone the repository's `main` branch or copy the current source and lockfiles.
+   Tested implementation stages are pushed after each change. Exclude `.venv`,
+   `node_modules`, caches and runtime process manifests from a source transfer.
 2. From the repository root in PowerShell:
 
    ```powershell
@@ -77,11 +77,13 @@ offline architecture tour, never evidence of real-company readiness.
 
 ## Current free configuration
 
-Both roles use `nvidia/nemotron-3-super-120b-a12b`, selected after actual access and
-binding probes. Advanced search reserves two included credits per request. This
-is global configuration, not issuer-specific tuning. Limits are 480 seconds,
-100,000 conservative input reservation tokens, 12,000 output tokens, 16 model
-calls, 14 searches and 16 fetches. Never describe these as account quota limits.
+The example configuration uses `nvidia/nemotron-3-super-120b-a12b`. Actual
+14 October validation retains the user's `nvidia/nemotron-3.5-lightning-30b-a3b`
+for both roles. Model choices come from configuration and are not silently changed.
+Basic search reserves one included credit; advanced search reserves two. Temporary
+free-only validation overrides use 480 seconds, 150,000 conservative input
+reservation tokens, 20,000 output tokens, 50 model calls, 14 searches and 18 fetches.
+These are application caps, not account quotas, and do not rewrite the private `.env`.
 
 The official CSV snapshot is dated; refresh it before presenting. Source availability
 receipts cannot backdate an undated document for historical runs. Unknown publication

@@ -9,9 +9,10 @@ It abstains when the evidence is inadequate.
 ## Current Windows demo setup
 
 Start with [Windows transfer and demo instructions](docs/DEMO.md),
-[measured live results](docs/LIVE-RESULTS.md), and [readiness](docs/READINESS.md).
-The current source has unpushed fixes; transfer the local source archive rather
-than assuming a remote clone contains them. No billing or paid services are enabled.
+[latest measured live results](docs/LIVE-RESULTS-2026-10-14.md), and [readiness](docs/READINESS.md).
+Implementation stages are committed and pushed to `main`; a fresh clone includes
+them. Credentials and local research artifacts stay private. No billing or paid
+services were enabled during validation.
 
 ```powershell
 .\scripts\setup.ps1 -InstallOCR
@@ -52,8 +53,10 @@ The API does not start an extra worker by default.
 ## Live configuration
 
 NVIDIA, Gemini and OpenAI are supported. For NVIDIA configure `LLM_PROVIDER=nvidia`,
-`NVIDIA_API_KEY`, `NVIDIA_MODEL_RESEARCH`, and `NVIDIA_MODEL_EXTRACT`. Both current roles
-use `nvidia/nemotron-3-super-120b-a12b` on NVIDIA's hosted free prototype API. The adapter
+`NVIDIA_API_KEY`, `NVIDIA_MODEL_RESEARCH`, and `NVIDIA_MODEL_EXTRACT`. Both roles
+are selected through those settings. The example defaults to
+`nvidia/nemotron-3-super-120b-a12b`; 14 October local validation preserves the user's
+`nvidia/nemotron-3.5-lightning-30b-a3b` for both roles. The adapter
 requests JSON with a schema derived from Pydantic, generates Decimal values as
 numbers to avoid unsupported regex syntax, and validates returned values against
 the original model locally. Reasoning is disabled for structured extraction. Requests use the fixed
