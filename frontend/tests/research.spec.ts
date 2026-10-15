@@ -6,6 +6,7 @@ test('retrieved context is not displayed as verified issuer evidence', async ({ 
     facts: [], calculations: [], documents: report.documents.map(d => ({ ...d, document_type: 'public_context' })) }
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/report')) return route.fulfill({ json: empty })
@@ -25,6 +26,7 @@ test('comparable charts retain source links and withheld candidates stay labelle
       reason: 'Independent corroboration was insufficient.', published: false }] } }
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/report')) return route.fulfill({ json: partial })
@@ -46,6 +48,7 @@ test('missing account configuration blocks live research while preserving replay
   let created = false
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/health/configuration')) return route.fulfill({ json: {
       ready: false, issues: ['Create config/model-rates.json with your verified account prices.'], demo_time_warning: true,
     } })
@@ -67,6 +70,7 @@ test('saved bank run restores its own company, cutoff and mode without defaultin
   let polls = 0
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [company] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     polls++
@@ -106,6 +110,7 @@ test(`${outcome} still exposes verified facts, inputs and original sources`, asy
     limitations: ['Source unavailable: blocked publisher returned 403'] }
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/report')) return route.fulfill({ json: partial })
@@ -131,6 +136,7 @@ test(`${outcome} still exposes verified facts, inputs and original sources`, asy
 test('complete report exposes sources, calculation inputs and printable timeline', async ({ page }) => {
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
     if (path.endsWith('/runs') && route.request().method() === 'POST') return route.fulfill({ status: 202, json: { run_id: report.run_id } })
     if (path.endsWith('/report')) return route.fulfill({ json: report })
@@ -149,6 +155,7 @@ test('complete report exposes sources, calculation inputs and printable timeline
   await expect(drawer.getByText('Output: 20.00 percent')).toBeVisible()
   await page.screenshot({ path: 'test-results/evidence-drawer.png', fullPage: true })
   await page.getByRole('button', { name: 'Close evidence' }).click()
+  await page.locator('.report-export > summary').click()
   await page.getByRole('link', { name: 'Print view' }).click()
   await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
   await expect(page.getByRole('link', { name: report.documents[0].title })).toHaveAttribute('href', report.documents[0].canonical_url)
@@ -159,6 +166,7 @@ test('failed run shows its reason and can resume', async ({ page }) => {
   let status = 'failed'
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [], next_cursor: 0 } })
     if (path.endsWith('/report')) return route.fulfill({ json: report })
@@ -177,6 +185,7 @@ test('expired run starts a fresh investigation with the original company and cut
   let created: unknown
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/report')) return route.fulfill({ json: report })
@@ -211,6 +220,7 @@ test('long source passage opens without widening the dashboard', async ({ page }
     abstention: { missing_requirements: ['Independent corroboration'], next_evidence_needed: [], attempted_angles: [] } }
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/report')) return route.fulfill({ json: partial })
     return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: 'completed', stage: 'completed', progress: {}, limitations: [] } })
@@ -227,6 +237,7 @@ test('queued research cannot be duplicated by repeated start clicks', async ({ p
   let starts = 0
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
@@ -251,6 +262,7 @@ test('lost creation response reuses the same idempotency key on retry', async ({
   const keys: (string | undefined)[] = []
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
     if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
@@ -278,6 +290,7 @@ test('saved run polling reconnects after a temporary local API failure', async (
   let polls = 0
   await page.route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
     polls++

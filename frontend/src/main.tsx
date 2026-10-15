@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { App } from './pages/App'
 import { removeLegacyLocalWorker } from './localServiceWorker'
 import './styles.css'
+import './experience.css'
+import './research-progress.css'
+import './research-results.css'
 
 async function start() {
   let reload = false

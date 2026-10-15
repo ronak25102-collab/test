@@ -24,5 +24,7 @@ export const api = {
   events: (id: string, after = 0) => request<{ items: { sequence: number; stage: string; public_summary: string }[]; next_cursor: number }>(`/runs/${id}/events?after=${after}`),
   report: (id: string) => request<Report>(`/runs/${id}/report`),
   cancel: (id: string) => request(`/runs/${id}/cancel`, { method: 'POST' }),
+  queue: () => request<{ queued_count: number }>('/runs/queue'),
+  clearQueue: () => request<{ cancelled_count: number; run_ids: string[] }>('/runs/queue/clear', { method: 'POST' }),
   resume: (id: string) => request(`/runs/${id}/resume`, { method: 'POST' }),
 }

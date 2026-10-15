@@ -238,6 +238,15 @@ Live runs now perform a secret-free configuration check before entering the queu
 The dashboard shows missing account configuration; the API returns HTTP 503 with
 `LIVE_CONFIGURATION_INCOMPLETE`, and the CLI exits with an actionable message.
 Inspect `http://127.0.0.1:8000/api/v1/health/configuration` for the same preflight.
+
+The workspace shows the number of waiting runs and a **Clear queue** button.
+Clearing cancels all runs still waiting when the request is applied, leaves active
+investigations and completed reports untouched, and retains saved work for resume.
+The count refreshes every five seconds. The local API exposes
+`GET /api/v1/runs/queue` and `POST /api/v1/runs/queue/clear`; the latter returns
+`cancelled_count` and the affected `run_ids` and records a cancellation event for
+each run. Repeating it against an empty queue has no effect.
+
 Issuer website references are checked against their own company context. Startup
 quarantines legacy domains without current ownership proof and retains a private
 backup. See [issuer website audit](docs/DOMAIN-REFERENCE-AUDIT.md) for local,

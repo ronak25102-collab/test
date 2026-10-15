@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, or_, select, update
 
 from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.schemas import Company, ResearchReport, RunEvent, RunSummary
@@ -272,6 +272,31 @@ class Store:
                     self.append_event(run_id, RunStatus.CANCELLED.value, "run_cancelled", "Queued run was cancelled before leasing")
             return row.status
 
+    def queued_run_count(self) -> int:
+        with self.session_factory() as session:
+            return session.scalar(select(func.count()).select_from(ResearchRunModel).where(
+                ResearchRunModel.status == RunStatus.QUEUED.value,
+            ))
+
+    def clear_queue(self) -> list[str]:
+        """Cancel waiting work atomically; preserve active runs and durable artifacts."""
+        with self.session_factory() as session:
+            # A conditional write is the first statement, including on SQLite.
+            # PostgreSQL rechecks queued status if a worker held the row lock.
+            run_ids = list(session.scalars(update(ResearchRunModel).where(
+                ResearchRunModel.status == RunStatus.QUEUED.value,
+            ).values(
+                status=RunStatus.CANCELLED.value, stage=RunStatus.CANCELLED.value,
+                cancel_requested=True, ended_at=datetime.now(UTC),
+                lease_owner=None, lease_expires_at=None,
+                fencing_token=ResearchRunModel.fencing_token + 1,
+            ).returning(ResearchRunModel.id)))
+            for run_id in run_ids:
+                self._add_event(session, run_id, RunStatus.CANCELLED.value, "run_cancelled",
+                                "Queued run was cancelled by clearing the queue")
+            session.commit()
+            return run_ids
+
     def has_report(self, run_id: UUID | str) -> bool:
         with self.session_factory() as session:
             return bool(session.scalar(select(ResearchRunModel.id).where(ResearchRunModel.id == str(run_id), ResearchRunModel.report_json.is_not(None))))
@@ -403,15 +428,23 @@ class Store:
             if not row:
                 session.commit()
                 return None
-            row.lease_owner = owner
-            row.lease_expires_at = datetime.now(UTC) + timedelta(seconds=60)
-            row.fencing_token += 1
-            row.status = RunStatus.RESOLVING.value
-            row.stage = RunStatus.RESOLVING.value
+            run_id, token = row.id, row.fencing_token + 1
+            # SQLite ignores FOR UPDATE. Compare-and-set prevents a clear-queue
+            # write between selection and leasing from resurrecting cancelled work.
+            claimed = session.scalar(update(ResearchRunModel).where(
+                ResearchRunModel.id == run_id, ResearchRunModel.status == row.status,
+                ResearchRunModel.fencing_token == row.fencing_token,
+            ).values(
+                lease_owner=owner, lease_expires_at=datetime.now(UTC) + timedelta(seconds=60),
+                fencing_token=token, status=RunStatus.RESOLVING.value,
+                stage=RunStatus.RESOLVING.value,
+            ).returning(ResearchRunModel.id).execution_options(synchronize_session=False))
             session.commit()
-            self.lease_tokens[row.id] = (owner, row.fencing_token)
-            self.append_event(row.id, RunStatus.RESOLVING.value, "stage_started", "Worker leased the run")
-            return UUID(row.id)
+            if not claimed:
+                return None
+            self.lease_tokens[run_id] = (owner, token)
+            self.append_event(run_id, RunStatus.RESOLVING.value, "stage_started", "Worker leased the run")
+            return UUID(run_id)
 
     def _check_fence(self, session, run_id: str):
         if run_id not in self.lease_tokens:

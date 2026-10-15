@@ -1,0 +1,102 @@
+/* Original SVG financial journey, driven by reported workflow stages. */
+#investigation-progress { scroll-margin-top: 110px; }
+.money-journey { margin-top: 28px; border: 1px solid #dce4d1; border-radius: 14px; padding: 30px 34px 0; background: radial-gradient(ellipse at 80% 10%, #e4ebd8a0, transparent 65%), #f4f5eb; overflow: hidden; }
+.journey-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.journey-kicker { display: block; color: #7a8c66; font-size: 8px; letter-spacing: .16em; }
+.progress-card .journey-heading h3 { font-size: clamp(24px, 2.7vw, 36px); font-weight: 400; letter-spacing: -1.4px; line-height: 1.12; margin: 15px 0 0; color: #254a35; }
+.journey-heading h3 span { color: #8d9c7e; }
+.journey-live { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d6dfc8; border-radius: 30px; color: #597348; font-size: 9px; padding: 9px 12px; white-space: nowrap; }
+.journey-live i { display: inline-block; height: 5px; width: 5px; background: #759754; border-radius: 50%; }
+.journey-moving .journey-live i { animation: journey-pulse 2.6s ease-in-out infinite; }
+.journey-caption { margin-top: 19px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
+.journey-caption strong { font-size: 11px; font-weight: 400; color: #526747; }
+.journey-caption > span { color: #88917b; font-size: 9px; }
+.finance-scene { max-width: 900px; margin: 5px auto -4px; }
+.finance-scene > svg { display: block; width: 100%; height: auto; overflow: visible; }
+.finance-ribbon-shadow { stroke: #38502b0b; stroke-width: 34px; stroke-linejoin: round; }
+.finance-ribbon, .finance-ribbon-fill { stroke-width: 24px; stroke-linejoin: round; }
+.finance-ribbon { stroke: #dfe5d2; }
+.finance-flow-dots { stroke: #e7efd3; stroke-width: 1.4px; stroke-dasharray: 3 14; animation: money-flow 2.4s linear infinite; }
+.finance-pillar-fill { transform: scaleY(var(--pillar-scale)); transform-origin: 0 226px; transition: transform 1.05s cubic-bezier(.22, 1.18, .32, 1); }
+.pillar-left { fill: #6e9258; }
+.pillar-right { fill: #345c40; }
+.pillar-top { fill: #a9c391; }
+.pillar-pending .pillar-left { fill: #c7d2b5; }
+.pillar-pending .pillar-right { fill: #acbc99; }
+.pillar-pending .pillar-top { fill: #dce5cc; }
+.pillar-wire { stroke: #90a57e; stroke-width: 1.2px; stroke-linecap: round; stroke-linejoin: round; opacity: .4; }
+.pillar-shadow { fill: #294e2410; transition: fill .5s; }
+.pillar-inspected .pillar-shadow { fill: #6f95542b; }
+.pillar-symbol { stroke: #365b40; fill: #f4f5eb; transition: opacity .4s; }
+.pillar-pending .pillar-symbol { opacity: .4; }
+.pillar-active .pillar-symbol { animation: filing-float 4s ease-in-out infinite; }
+.finance-coin { animation: coin-bob 2.6s ease-in-out infinite; }
+.finance-coin ellipse:first-child { fill: #9a854f; stroke: #9a854f; stroke-width: 1; }
+.finance-coin ellipse:nth-child(2) { fill: #e6d4a1; stroke: #b99d5c; stroke-width: 1.5; }
+.finance-coin text { fill: #806a35; font-size: 15px; font-weight: 500; font-family: 'Segoe UI', sans-serif; }
+.pillar-check circle { fill: #dce9cc; stroke: #91ae72; stroke-width: 1; }
+.pillar-check path { stroke: #436937; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.journey-phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 900px; margin: 0 auto 24px; }
+.journey-phases button { display: grid; justify-items: center; gap: 6px; position: relative; min-width: 0; border: 1px solid transparent; border-radius: 9px; padding: 12px 8px; color: #87947b; background: transparent; }
+.journey-phases button > span { font-size: 8px; letter-spacing: .12em; }
+.journey-phases button > strong { font-size: 13px; font-weight: 400; letter-spacing: -.2px; }
+.journey-phases button > small { font-size: 8px; color: #99a18d; }
+.journey-phases .phase-current, .journey-phases .phase-done { color: #345b3b; }
+.journey-phases .phase-current > small { color: #66894a; }
+.journey-phases button[aria-pressed='true'] { background: #fffffa9c; border-color: #cfdcbe; box-shadow: 0 5px 15px #45633505; }
+.journey-phases button:hover { border-color: #b7c8a2; background: #fbfcf4; transform: translateY(-2px); }
+.journey-stage-track { height: 4px; border-radius: 5px; background: #dce3cf; overflow: hidden; }
+.journey-stage-track > span { display: block; height: 100%; background: linear-gradient(90deg, #91ab71, #315a3c); border-radius: inherit; transition: width 1s var(--ease-out); }
+.journey-stage-legend { display: flex; justify-content: space-between; gap: 15px; color: #87927c; font-size: 8px; margin-top: 9px; }
+.journey-stage-legend > span:first-child { color: #617950; text-transform: capitalize; }
+.journey-detail { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; border-top: 1px solid #dce4cf; padding: 22px 0; margin-top: 21px; min-height: 156px; }
+.journey-detail > div { max-width: 620px; animation: panel-arrive .4s var(--ease-out) both; }
+.progress-card .journey-detail h4 { margin: 9px 0; font-size: 18px; font-weight: 400; letter-spacing: -.5px; color: #35563b; }
+.journey-detail p { font-size: 11px; line-height: 1.75; color: #7c8a70; margin-bottom: 9px; }
+.journey-detail small { font-size: 8px; color: #8c997c; }
+.journey-follow { background: transparent; border: 0; color: #557442; font-size: 9px; padding: 2px 0 7px; border-bottom: 1px solid #b2c39b; white-space: nowrap; }
+.journey-follow span { display: inline-block; margin-left: 9px; transition: transform .3s; }
+.journey-follow:hover span { transform: translate(2px, -2px); }
+.journey-counters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #dce4cf; margin-inline: -34px; background: #e8eeda80; }
+.journey-counters > div { padding: 19px 12px; text-align: center; border-right: 1px solid #dce4cf; }
+.journey-counters > div:last-child { border: 0; }
+.journey-counters strong { display: block; color: #3b5e3d; font-size: 24px; font-weight: 400; line-height: 1; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.journey-counters span { display: block; color: #7f8c70; font-size: 9px; margin-top: 7px; }
+.journey-stopped .journey-live { color: #896c41; border-color: #d8cdb3; }
+.journey-stopped .journey-live i { background: #af9564; }
+.journey-still .finance-scene *, .finance-scene:not(.scene-awake) * { animation-play-state: paused !important; }
+.money-journey:has(.finance-scene:not(.scene-awake)) .journey-live i { animation-play-state: paused; }
+.progress-card:has(.journey-still) .event .dot { animation: none; }
+.run-activity { border-top: 1px solid var(--line); margin-top: 20px; }
+.run-activity > summary { cursor: pointer; padding: 16px 0; color: #657958; font-size: 11px; }
+.run-activity > summary > span { float: right; color: #97a18b; font-size: 9px; }
+@keyframes money-flow { to { stroke-dashoffset: -68; } }
+@keyframes coin-bob { 0%, 100% { transform: translateY(0) rotate(-7deg); } 50% { transform: translateY(-8px) rotate(6deg); } }
+@keyframes filing-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
+@keyframes journey-pulse { 50% { box-shadow: 0 0 0 5px #71914e18; } }
+@media (max-width: 760px) {
+ #investigation-progress { scroll-margin-top: 90px; }
+ .money-journey { padding: 22px 16px 0; margin-top: 22px; }
+ .journey-heading { flex-direction: column; gap: 15px; }
+ .progress-card .journey-heading h3 { font-size: 29px; }
+ .journey-live { padding: 7px 10px; font-size: 8px; }
+ .journey-caption { gap: 8px; }
+ .journey-caption strong { font-size: 10px; }
+ .journey-caption > span { font-size: 8px; }
+ .finance-scene { margin: 20px -8px 0; }
+ .journey-phases { gap: 3px; margin-bottom: 19px; }
+ .journey-phases button { padding: 10px 2px; gap: 5px; border-radius: 5px; }
+ .journey-phases button > strong { font-size: 10px; }
+ .journey-phases button > small { font-size: 6px; }
+ .journey-phases button > span { font-size: 7px; }
+ .journey-stage-legend { font-size: 7px; gap: 7px; }
+ .journey-detail { flex-direction: column; gap: 16px; padding-block: 20px; min-height: 188px; }
+ .journey-detail p { font-size: 10px; }
+ .journey-detail small { font-size: 7px; }
+ .journey-counters { margin-inline: -16px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+ .journey-counters > div { padding: 16px 9px; border-bottom: 1px solid #dce4cf; }
+ .journey-counters > div:nth-child(2n) { border-right: 0; }
+ .journey-counters > div:nth-child(n+3) { border-bottom: 0; }
+ .journey-counters strong { font-size: 22px; }
+ .journey-counters span { font-size: 8px; }
+}

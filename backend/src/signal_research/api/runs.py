@@ -50,6 +50,17 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
     return {"run_id": str(run_id), "status_url": f"/api/v1/runs/{run_id}", "status": "queued"}
 
 
+@router.get("/queue")
+def queue_status(store: Store = Depends(get_store)):
+    return {"queued_count": store.queued_run_count()}
+
+
+@router.post("/queue/clear")
+def clear_queue(store: Store = Depends(get_store)):
+    run_ids = store.clear_queue()
+    return {"cancelled_count": len(run_ids), "run_ids": run_ids}
+
+
 @router.get("/{run_id}")
 def get_run(run_id: UUID, store: Store = Depends(get_store)):
     return require_summary(run_id, store).model_dump(mode="json")
