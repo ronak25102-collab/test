@@ -200,3 +200,14 @@ The full backend suite passed 449 tests after this change. Readiness, transfer
 instructions and the one-page Round 1 draft were refreshed for 15 October and
 the actual staged GitHub pushes. The proposal was regenerated, rendered with
 PDFium and visually checked. It still states the unresolved discovery requirement.
+
+The 15 October strict-source Lightning batch completed: HDFC Life retained no
+facts, Bajaj Finance retained seven facts/five calculations as partial evidence,
+and BSE retained no facts after ambiguous-page rejection. No discovery qualified.
+A temporary Super comparison on the later ranking revision retained zero facts
+for HDFC Life and three facts/no arithmetic for Bajaj Finance; neither published
+a discovery. This is not a controlled model ranking because code and retrieved
+evidence differ. The existing configured model and original private rate card
+were restored after comparison; API/database/worker readiness passed. Actual
+runtime and run identifiers are recorded in LIVE-RESULTS-2026-10-14.md. Missing
+linked financial-period/scope context remains a material completion gap.

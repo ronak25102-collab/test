@@ -59,6 +59,10 @@ current source checks reject unbound duration endpoints and interleaved issuer
 passages. These retained counts are automated outputs, not manually certified
 correct facts. The 15 October runs and a temporary model comparison are recorded
 separately in the latest results; they do not overwrite earlier diagnostics.
+The Super comparison also established no discovery (HDFC Life: no facts; Bajaj
+Finance: three facts, no comparable calculations). The app was restored to the
+original configured model after those runs. Startup/configuration readiness is
+healthy; the financial discovery requirement remains unresolved.
 
 ## Work required before a READY claim
 

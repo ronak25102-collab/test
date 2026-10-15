@@ -46,6 +46,17 @@ Worker revision: `07c0f64`. Private artifacts: `data/exports/completion-validati
 | BAJFINANCE | completed | 312.5 | partial | 7/5 | `58834db5-e09d-4378-9d36-37d837ee39c9` |
 | BSE | completed | 133.5 | insufficient_evidence | 0/0 | `4717bae6-92ec-4061-b21e-48c63ae74598` |
 
+## Temporary Super comparison - 15 October
+
+Backend revision: `b56f45a`. Private artifacts: `data/exports/model-comparison/super-2026-10-15`. Both model roles used `nvidia/nemotron-3-super-120b-a12b` with the same application limits and an independently probed private rate card. The software revision and retrieved evidence differ from the earlier Lightning batch, so these rows cannot establish a causal model-quality ranking.
+
+| Company | Terminal status | Runtime s | Outcome | Retained facts/calculations | Run ID |
+|---|---|---:|---|---:|---|
+| HDFCLIFE | completed | 215.3 | insufficient_evidence | 0/0 | `5f365615-8dba-413f-a805-c719956523a8` |
+| BAJFINANCE | completed | 179.0 | insufficient_evidence | 3/0 | `57f20dee-49af-4e4c-b669-2efcb8f82549` |
+
+Neither run established a discovery. Missing exact period, scale and scope bindings remained material; changing the model alone did not resolve the source-context gap. After both runs finished, managed services were restarted with the original configured model. The database was healthy, worker heartbeat fresh and live configuration ready. `.env` and the original private rate card were unchanged.
+
 ## Configuration and interpretation
 
 The Lightning batches use the configured `nvidia/nemotron-3.5-lightning-30b-a3b` for research and extraction. Temporary runtime overrides enforce verified included search allowance, a zero-dollar cap, 480 seconds, a 90-second model timeout, 14 searches and 18 fetches. The private `.env` is unchanged.
