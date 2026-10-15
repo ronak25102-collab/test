@@ -137,6 +137,10 @@ def test_live_credit_failover_uses_nvidia_and_reports_actual_models(store, tmp_p
     assert report.generation_metadata['provider'] == 'nvidia'
     assert {m['model_id'] for m in report.generation_metadata['models_used']} == {'nv-extract', 'nv-research'}
     assert report.generation_metadata['model_id'] is None
+    exhausted = [a for a in store.artifacts(run_id) if a['kind'].startswith('exhausted:')]
+    assert len(exhausted) == 3
+    assert all(len(a['kind']) > 50 for a in exhausted)
+    assert {a['payload']['slot'] for a in exhausted} == {'codecraft:0', 'codecraft:1', 'codecraft:2'}
 
 
 def test_duplicate_semantic_verdicts_cannot_publish(store, tmp_path, monkeypatch):

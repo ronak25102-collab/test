@@ -29,7 +29,7 @@ jobs:
       - run: uv run ruff check backend tests
       - run: uv run pytest -q
       - name: PostgreSQL repository and publication checks
-        run: uv run pytest tests/integration tests/unit/test_report.py -q
+        run: uv run pytest tests/integration tests/unit/test_report.py tests/unit/test_llm_failover.py -q
         env:
           TEST_DATABASE_URL: postgresql+psycopg://signal:signal@127.0.0.1:5432/signal_test
       - name: Migrate PostgreSQL schema

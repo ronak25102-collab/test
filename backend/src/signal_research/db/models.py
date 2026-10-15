@@ -208,7 +208,8 @@ class ArtifactModel(Base):
     __tablename__ = "artifacts"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     run_id: Mapped[str] = mapped_column(ForeignKey("research_runs.id"), index=True)
-    kind: Mapped[str] = mapped_column(String(50), index=True)
+    # Durable failover keys include a route signature and credential slot.
+    kind: Mapped[str] = mapped_column(String(128), index=True)
     payload: Mapped[dict[str, Any]] = mapped_column(JSON)
     schema_version: Mapped[str] = mapped_column(String(30), default="1.0")
 
