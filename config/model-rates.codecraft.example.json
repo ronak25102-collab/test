@@ -1,0 +1,20 @@
+{
+  "provider": "codecraft",
+  "account_scope": "Shared demo configuration snapshot, 2026-10-15. Confirm rates for your own account; NVIDIA zero rates apply only to included hosted prototype access.",
+  "models": [
+    {
+      "model_id": "claude-opus-5.5",
+      "input_usd_per_million_tokens": 8.303,
+      "output_usd_per_million_tokens": 8.303,
+      "currency": "USD",
+      "official_pricing_url": "https://www.codecraftapi.com/models"
+    },
+    {
+      "model_id": "nvidia/nemotron-3.5-lightning-30b-a3b",
+      "input_usd_per_million_tokens": 0,
+      "output_usd_per_million_tokens": 0,
+      "currency": "USD",
+      "official_pricing_url": "https://docs.api.nvidia.com/nim/docs/run-anywhere"
+    }
+  ]
+}

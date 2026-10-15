@@ -65,6 +65,30 @@ so Beyond stops before requesting a response when its remaining output budget
 cannot cover that minimum. Configure the rate card from your catalog prices;
 these are conservative balance estimates while your free allowance remains.
 
+When transferring this setup to another computer, `.env` alone is insufficient:
+`config/model-rates.json` is also local and ignored by Git. For the shared CodeCraft
+Opus configuration with the NVIDIA Lightning fallback, a credential-free snapshot
+is included as `config/model-rates.codecraft.example.json`. After pulling, copy it
+from the repository root (this replaces the local rate card):
+
+```powershell
+Copy-Item .\config\model-rates.codecraft.example.json .\config\model-rates.json -Force
+.\scripts\local.ps1 restart
+```
+
+In WSL, use `cp config/model-rates.codecraft.example.json config/model-rates.json`
+and restart the API and worker. The example covers `claude-opus-5.5` and
+`nvidia/nemotron-3.5-lightning-30b-a3b`; keep the model IDs consistent with `.env`.
+It records the shared demo account's pricing snapshot, not universal provider
+prices. Check rates if using another account. CodeCraft also requires
+`FREE_SERVICES_ONLY=false` and a positive `MAX_RUN_COST_USD` ceiling.
+
+If the UI says "The rate card provider does not match LLM_PROVIDER", the top-level
+`provider` in the rate card differs from the selected provider in `.env`. Copy the
+matching complete rate card rather than just renaming its provider: prices and
+primary/fallback model IDs must match too. The configuration endpoint at
+`http://127.0.0.1:8000/api/v1/health/configuration` checks this without provider calls.
+
 `MAX_MODEL_OUTPUT_TOKENS_PER_CALL` controls every model response, including
 extraction and independent review (default: 16384). `MAX_OUTPUT_TOKENS` is the
 separate total run allowance. Requests still preserve
