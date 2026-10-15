@@ -1,6 +1,24 @@
 import { test, expect } from '@playwright/test'
 import report from './fixtures/replay.json' with { type: 'json' }
 
+test('retrieved context is not displayed as verified issuer evidence', async ({ page }) => {
+  const empty = { ...report, outcome: 'insufficient_evidence', publication_status: 'abstained', discoveries: [],
+    facts: [], calculations: [], documents: report.documents.map(d => ({ ...d, document_type: 'public_context' })) }
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: empty })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff,
+      mode: 'live', status: 'completed', stage: 'completed', progress: {}, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  const audit = page.getByLabel('Research coverage and decisions')
+  await expect(audit.getByText(/0 official issuer filings/)).toBeVisible()
+  await expect(audit.getByText(/0 documents supporting verified facts/)).toBeVisible()
+  await expect(audit.getByText(/Availability alone does not establish issuer identity/)).toBeVisible()
+})
+
 test('comparable charts retain source links and withheld candidates stay labelled', async ({ page }) => {
   const partial = { ...report, outcome: 'partial', publication_status: 'abstained', discoveries: [],
     generation_metadata: { research_decisions: [{ candidate: 'Unconfirmed funding mechanism', disposition: 'withheld',

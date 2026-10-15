@@ -64,6 +64,7 @@ from signal_research.research.identity import (
     issuer_named,
     issuer_symbol_reference,
     multiple_issuer_headings,
+    structured_issuer_identity,
 )
 from signal_research.research.integrity import attest_report
 from signal_research.research.novelty import Novelty, classify_novelty
@@ -80,6 +81,7 @@ from signal_research.retrieval.disclosures import (
     linked_disclosures,
     verified_disclosure_indexes,
 )
+from signal_research.retrieval.exchange_tables import exchange_table_batch
 from signal_research.retrieval.fetch import FetchResult, PublicFetcher
 from signal_research.retrieval.issuer_identity import (
     ISSUER_REFERENCE_POLICY,
@@ -276,9 +278,10 @@ class LiveResearch:
         from signal_research.domain.enums import RunStatus
         self.machine._set_stage(self.run_id, RunStatus(status), f"live_{status}", summary)
 
-    def search(self, query, domains=None, opposing=False):
+    def search(self, query, domains=None, opposing=False, *, search_depth=None):
         self.queries.append(query)
-        hits = self.calls.search(query, domains, self.cutoff, "challenging" if opposing else "discovering")
+        options = {'search_depth': search_depth} if search_depth else {}
+        hits = self.calls.search(query, domains, self.cutoff, "challenging" if opposing else "discovering", **options)
         self.source_titles.extend(hit.title for hit in hits if hit.title)
         # Search metadata ranks retrieval leads only. It never verifies issuer
         # identity, a publication date or a financial figure.
@@ -288,6 +291,7 @@ class LiveResearch:
         # fetched releases can occupy both slots and hide a new useful document.
         fresh_hits = [hit for hit in hits if hit.url not in self.seen_urls]
         return sorted(fresh_hits, key=lambda hit: (
+            '/corporate/ixbrl/' in hit.url.lower() if financial_search or 'INTEGRATED FILING' in query else False,
             not bool(re.search(r'\bsubsidiar(?:y|ies)\b', re.sub(r'[-_/]+', ' ', unquote(hit.url)), re.I)) if financial_search else False,
             bool(re.search(r'annual[-_\s]+report|integrated[-_\s]+report|(?:^|[^a-z])iar(?:[^a-z]|$)', unquote(hit.url) + ' ' + hit.title, re.I)) if annual_search else False,
             bool(re.search(r'(?:un)?audited[-_\s]+financial[-_\s]+results|statement[-_\s]+of[-_\s]+assets|balance[-_\s]+sheet', unquote(hit.url) + ' ' + hit.title, re.I)) if financial_search else False,
@@ -296,7 +300,8 @@ class LiveResearch:
             bool(re.search(r"\.pdf(?:[/?#]|$)", hit.url, re.I)),
             bool(re.search(r"financial\s+results|investor\s+presentation", hit.title, re.I))), reverse=True)
 
-    def ingest(self, hits, *, time_reserve=0, parse_limit=None, stop_when_balance_ready=False, document_reserve=0):
+    def ingest(self, hits, *, time_reserve=0, parse_limit=None, stop_when_balance_ready=False,
+               stop_when_financial_ready=False, document_reserve=0):
         queue = [(hit, 0) for hit in hits]
         while queue:
             hit, depth = queue.pop(0)
@@ -334,7 +339,11 @@ class LiveResearch:
                     parsed = parse_xbrl(document_id, raw)
                 else:
                     parsed = parse_html(document_id, raw)
-                for page_index in prioritized_ocr_pages(parsed)[:self.settings.max_ocr_pages]:
+                native_cover = '\n'.join(p.text for p in parsed.passages if p.page_index == 0)
+                ocr_pages = prioritized_ocr_pages(parsed)
+                if foreign_cover_identity(native_cover, self.company):
+                    ocr_pages = []  # Do not OCR another issuer's annual report.
+                for page_index in ocr_pages[:self.settings.max_ocr_pages]:
                     if self.budget.ocr_pages >= self.budget.max_ocr_pages:
                         self.limitations.append("OCR page cap reached; remaining scanned pages were withheld.")
                         break
@@ -378,7 +387,7 @@ class LiveResearch:
                                any(domain_matches(portal_host, domain) for domain in other.verified_ir_domains)
                                for other in self.store.search_companies(''))
             if shared_portal:
-                identified = issuer_cover_identity(text[:3000], self.company) and not foreign_cover_identity(text, self.company)
+                identified = (issuer_cover_identity(text[:3000], self.company) or structured_issuer_identity(text, self.company)) and not foreign_cover_identity(text, self.company)
             if not identified and self.company.business_profiles[0].value == 'bank':
                 # A branded bank presentation can use an acronym cover, while
                 # its comparative SOLO/GROUP table explicitly binds the issuer.
@@ -404,6 +413,9 @@ class LiveResearch:
             self.documents.append(document)
             self.passages.extend(parsed.passages)
             self.progress()
+            if stop_when_financial_ready and kind.startswith('issuer') and eligibility == 'eligible':
+                if any(exchange_table_batch(p, self.company, self.company.business_profiles[0]) for p in parsed.passages):
+                    break  # Review this explicit filing before downloading weaker leads.
             if stop_when_balance_ready and kind.startswith("issuer") and document.cutoff_eligibility == "eligible":
                 # Enough explicit comparative balances can enter independent
                 # extraction review now; remaining annual-report leads must not
@@ -444,7 +456,7 @@ class LiveResearch:
             self.limitations.append(f"Extraction response withheld: {exc}; this source request was not retried.")
             return None
 
-    def extract(self, limit=4):
+    def extract(self, limit=4, *, preferred_document_ids=()):
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
         eligible = {d.id for d in self.documents if d.cutoff_eligibility == "eligible" and d.document_type.startswith("issuer")}
@@ -475,7 +487,7 @@ class LiveResearch:
             periods = [period for period in source_dates(p.text) if period <= self.cutoff]
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
-            return (numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
+            return (p.document_id in preferred_document_ids, numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
         ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
                          not subsidiary_only(p.text) and self.financial_passage(p)], key=score, reverse=True)
         passages, pages = [], set()
@@ -496,8 +508,10 @@ class LiveResearch:
             issuer_bound = bool(identity_passages)
             batch = comparative_bank_batch(passage, self.company, document_issuer_verified=issuer_bound) if profile.value == "bank" else None
             if batch is None:
+                batch = exchange_table_batch(passage, self.company, profile)
+            if batch is None:
                 batch = financial_table_batch(passage, self.company, profile, document_issuer_verified=issuer_bound)
-            extraction_method = "explicit_comparative_columns" if batch else "model"
+            extraction_method = passage.extraction_method if batch and passage.extraction_method == 'exchange_table' else "explicit_comparative_columns" if batch else "model"
             if batch is None:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})
                 batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
@@ -589,7 +603,7 @@ class LiveResearch:
         bounded_context = diverse_context(context, documents, identities, question)
         used_documents = {p.document_id for p in supporting}
         qualifiers = [p for p in self.passages if p.document_id in used_documents and p.id not in used and
-            re.search(r'\bmerger|amalgamation|restatement|reclassification|scope\s+of\s+consolidation|change\s+in\s+accounting', p.text, re.I)]
+            (p.extraction_method == 'exchange_notes' or re.search(r'\bmerger|amalgamation|acquisition|acquired|restatement|reclassif|regrouped|scope\s+of\s+consolidation|change\s+in\s+accounting', p.text, re.I))]
         qualifiers.sort(key=context_score, reverse=True)
         required = [p for p in self.passages if p.id in required_passage_ids and p.document_id in documents]
         selected = list({p.id: p for p in [*supporting, *qualifiers[:2], *bounded_context, *required]}.values())
@@ -631,6 +645,10 @@ class LiveResearch:
         report.generation_metadata["research_decisions"] = self.decisions
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
+        fact_passages = {f.passage_id for f in self.facts}
+        report.source_coverage['documents_used'] = len({p.document_id for p in self.passages if p.id in fact_passages})
+        report.source_coverage['eligible_issuer_documents'] = sum(d.document_type.startswith('issuer') and d.cutoff_eligibility == 'eligible' for d in self.documents)
+        report.source_coverage['blocked_sources'] = sum(note.startswith('Source unavailable:') for note in self.limitations)
         # A withheld hypothesis must not discard independently verified arithmetic.
         report.calculations = self.calculations
         return report
@@ -674,10 +692,28 @@ class LiveResearch:
             return
         oldest = min(f.period_end.year for f in self.facts if f.period_end)
         self.stage('discovering', 'Seeking earlier comparable disclosures and changes in reporting boundaries')
-        hits = self.search(f'"{self.company.legal_name}" "annual report" {oldest - 1} {oldest}',
-                           self.company.verified_ir_domains or None)
-        self.ingest(hits[:1], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
-        self.extract(limit=1)
+        structured = any(p.extraction_method == 'exchange_table' for p in self.passages)
+        if structured:
+            for year in (oldest - 1, oldest - 2):
+                if (self.budget.search_calls >= self.budget.max_search_calls - 4
+                        or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
+                        or self.budget.model_calls >= self.budget.max_model_calls - 6
+                        or self.budget.remaining_seconds() <= self.time_reserve(180)):
+                    break
+                hits = self.search(f'"{self.company.legal_name}" "INTEGRATED FILING" {year}',
+                                   ['nsearchives.nseindia.com'], search_depth='advanced')
+                before = {d.id for d in self.documents}
+                self.ingest(hits[:2], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
+                fresh = {d.id for d in self.documents} - before
+                if fresh:
+                    self.extract(limit=3, preferred_document_ids=fresh)
+                if not needs_history(self.facts):
+                    break
+        else:
+            hits = self.search(f'"{self.company.legal_name}" "annual report" {oldest - 1} {oldest}',
+                               self.company.verified_ir_domains or None)
+            self.ingest(hits[:1], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
+            self.extract(limit=1)
         self.store.artifact(self.run_id, 'historical_coverage', {'series': comparable_series(self.facts)})
         if needs_history(self.facts):
             self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
@@ -761,14 +797,20 @@ class LiveResearch:
                        for domain in self.company.verified_ir_domains) for hit in hits):
             hits = [*verified_disclosure_indexes(self.company), *hits]
         self.stage("fetching", "Retrieving original documents; search snippets remain leads")
-        self.ingest(hits, time_reserve=self.time_reserve(300), stop_when_balance_ready=profile.value == "bank",
+        self.ingest(hits[:8], time_reserve=self.time_reserve(300), stop_when_balance_ready=profile.value == "bank",
                     document_reserve=min(6, self.budget.max_fetch_documents // 3))
         if not self.issuer_financial_coverage():
             if self.budget.search_calls < self.budget.max_search_calls and self.budget.fetch_documents < self.budget.max_fetch_documents - 3:
                 self.stage("discovering", "Seeking a dated exchange copy when issuer-portal leads lack usable disclosure dates")
-                filing_hits = self.search(f'"{self.company.legal_name}" "financial results" {self.cutoff.year} filetype:pdf', ['nseindia.com', 'bseindia.com'])
+                filing_hits = self.search(f'"{self.company.legal_name}" "INTEGRATED FILING"',
+                                          ['nsearchives.nseindia.com'], search_depth='advanced')
                 self.stage("fetching", "Retrieving exchange disclosure leads; document identity and publication date still require verification")
-                self.ingest(filing_hits[:2], time_reserve=self.time_reserve(240), document_reserve=3)
+                self.ingest(filing_hits[:3], time_reserve=self.time_reserve(240), stop_when_financial_ready=True, document_reserve=3)
+        if not self.issuer_financial_coverage() and self.budget.search_calls < self.budget.max_search_calls:
+            symbol = self.company.symbols[0]
+            filing_hits = self.search(f'"{self.company.legal_name}" "{symbol}" "financial results"',
+                                      ['nsearchives.nseindia.com', 'bseindia.com'])
+            self.ingest(filing_hits[:3], time_reserve=self.time_reserve(240), document_reserve=3)
         if not self.issuer_financial_coverage():
             # Mechanism queries and combined result queries can return only undated
             # indexes. Spend the remaining bounded search allowance on a precise
@@ -800,7 +842,7 @@ class LiveResearch:
         if not self.calculations:
             if not self.facts:
                 eligible_issuer = any(d.document_type.startswith("issuer") and d.cutoff_eligibility == "eligible" for d in self.documents)
-                requirement = "verified issuer facts with complete metric, value, period, unit and scope bindings" if eligible_issuer else "dated official issuer financial disclosures"
+                requirement = "verified issuer facts with complete metric, value, period, unit and scope bindings" if eligible_issuer else "an accessible official financial disclosure with verified issuer identity and reporting periods"
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
         self.collect_history()

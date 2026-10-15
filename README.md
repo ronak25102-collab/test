@@ -161,6 +161,23 @@ per issuer; the `.bank.in` suffix alone never authorizes a source. Icon-only PDF
 links use their filenames as leads, and formal document dates accept ordinal days
 such as `18th July, 2026`. Signed financial results can also supply a city/date
 dateline within a board or issuer signature block with an executive role.
+
+When issuer pages are inaccessible, bounded, company-specific exchange searches
+seek NSE integrated filings before weaker PDF leads. These targeted searches
+use Tavily advanced search and reserve its two-credit cost. Exchange table
+parsing preserves each column's explicit interval, scope, INR scale and original
+labels, along with filing notes for counterevidence review. Exact issuer-name
+and symbol cells establish ownership on a trusted exchange host; an exact issuer
+signature also identifies an exchange PDF. Literal table candidates still pass
+source validation and independent model review. Historical collection seeks
+earlier exchange filings when those structured tables are available. The UI
+separates documents available by cutoff, official issuer filings and documents
+actually supporting verified facts. A retrieved page is not a verified finding.
+Repeated identical PDF spans are deduplicated during parsing and evidence saving;
+conflicting content with a reused passage ID rolls publication back. A completed
+verification checkpoint can be resumed after a save failure without resending
+provider requests.
+
 Filenames, quarter labels, board-meeting references and balance dates never establish
 publication timing. An undated document successfully fetched today can establish
 public availability by today's cutoff through its timestamped receipt and content

@@ -130,7 +130,8 @@ def source_origin(url, company, title, text):
         # Audited reports can establish their subject without a signing letter
         # addressed 'For <issuer>'. An exchange mention/address is insufficient.
         audited_subject = bool(re.search(r'\b(?:standalone|consolidated)\s+financial\s+statements?\s+of\s+(?:the\s+)?' + pattern + r'\b', text, re.I))
-        issuer = authored or audited_subject
+        from signal_research.research.identity import structured_issuer_identity
+        issuer = authored or audited_subject or structured_issuer_identity(text, company)
     # Exchange copies of issuer announcements share the issuer origin.
     issuer_copy = exchange and issuer
     if issuer or issuer_copy:

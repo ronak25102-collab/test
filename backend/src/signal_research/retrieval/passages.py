@@ -31,6 +31,15 @@ def prioritized_ocr_pages(parsed: ParsedDocument) -> list[int]:
 
 def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
     soup = BeautifulSoup(raw, "html.parser")
+    from .exchange_tables import exchange_table_passages
+    exchange_passages = exchange_table_passages(document_id, soup)
+    if exchange_passages:
+        # Preserve source notes as evidence for scope changes, acquisitions and
+        # alternative explanations, alongside the normalized financial columns.
+        notes = [table.get_text(' ', strip=True) for table in soup.select('table.textblocktable')]
+        exchange_passages.extend(_chunk(document_id, 'Exchange filing notes', notes, 'exchange_notes').passages)
+        return ParsedDocument(soup.title.get_text(' ', strip=True) if soup.title else 'Exchange filing',
+                              exchange_passages, 'exchange_table')
     for tag in soup(["script", "style", "nav", "footer", "noscript"]):
         tag.decompose()
     title = soup.title.get_text(" ", strip=True) if soup.title else "Untitled public document"
@@ -178,7 +187,7 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
                     passage.page_index = page_index
                     passage.printed_page_label = str(page_index + 1)
                 passages.extend(parsed.passages)
-        return ParsedDocument(path.name, passages, "pdf_pdfium", blank_pages)
+        return ParsedDocument(path.name, list({p.id: p for p in passages}.values()), "pdf_pdfium", blank_pages)
     try:
         import pdfplumber
     except ImportError as exc:
@@ -207,7 +216,7 @@ def parse_pdf(document_id: UUID, path: Path) -> ParsedDocument:
                     cells = [str(c or "") for c in row]
                     row_text = f"{text[:1600]}\n{headers}\n{' | '.join(cells)}"
                     passages.append(Passage(id=uuid5(document_id, f"page:{page_index}:table:{table_index}:row:{row_index}"), document_id=document_id, page_index=page_index, printed_page_label=str(page_index + 1), table_id=f"{page_index}:{table_index}", row_label=cells[0], column_label=headers, text=row_text, extraction_method="pdf_table"))
-    return ParsedDocument(title, passages, "pdf", blank_pages)
+    return ParsedDocument(title, list({p.id: p for p in passages}.values()), "pdf", blank_pages)
 
 
 def _balance_page(text):

@@ -530,18 +530,34 @@ class Store:
             if not existing and not session.get(SourceDocumentModel, data["id"]):
                 session.add(SourceDocumentModel(**data))
         session.flush()
+        pending_passages = {}
         for passage in report.passages:
             data = passage.model_dump(mode="python")
             data.update(id=str(passage.id), document_id=document_ids.get(str(passage.document_id), str(passage.document_id)))
+            previous = pending_passages.get(data['id'])
+            if previous is not None:
+                if previous != data:
+                    raise ValueError('Conflicting source passages share an identifier; report was not saved')
+                continue
+            # Autoflush is disabled. session.get cannot see an earlier pending
+            # INSERT with this ID until flush, so track repeated spans explicitly.
+            pending_passages[data['id']] = data
             if not session.get(PassageModel, data["id"]):
                 session.add(PassageModel(**data))
         session.flush()
+        pending_facts = {}
         for fact in report.facts:
             data = fact.model_dump(mode="python")
             data.pop("extraction_confidence", None)
             for key in ("id", "entity_id", "passage_id", "restates_fact_id"):
                 if data[key] is not None:
                     data[key] = str(data[key])
+            previous = pending_facts.get(data['id'])
+            if previous is not None:
+                if previous != data:
+                    raise ValueError('Conflicting source facts share an identifier; report was not saved')
+                continue
+            pending_facts[data['id']] = data
             if not session.get(FactModel, data["id"]):
                 session.add(FactModel(**data))
         session.flush()

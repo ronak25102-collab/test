@@ -62,8 +62,8 @@ for key, aliases, unit, kind, profiles in (
     ("loss_ratio", ("loss ratio", "claims ratio"), "percent", "duration", (Profile.GENERAL_INSURER,)),
     ("expense_ratio", ("expense ratio",), "percent", "duration", (Profile.GENERAL_INSURER,)),
     ("fee_revenue", ("fee revenue", "management fees"), "INR_crore", "duration", (Profile.ASSET_MANAGER, Profile.EXCHANGE)),
-    ("revenue", ("revenue from operations", "total revenue"), "INR_crore", "duration", COMMON),
-    ("net_profit", ("net profit", "profit after tax"), "INR_crore", "duration", COMMON),
+    ("revenue", ("revenue from operations", "total revenue", "total revenue from operations"), "INR_crore", "duration", COMMON),
+    ("net_profit", ("net profit", "profit after tax", "profit for the period", "total profit (loss) for period"), "INR_crore", "duration", COMMON),
     ("capital_adequacy", ("capital adequacy ratio", "CRAR"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
 ):
     METRICS[key] = MetricDefinition(key, aliases, unit, kind, profiles, "issuer financial disclosure")

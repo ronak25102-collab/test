@@ -63,6 +63,33 @@ def test_report_and_terminal_state_commit_together(store):
     assert evidence["evidence"][0]["passage"] and evidence["evidence"][0]["document"]
 
 
+def test_identical_repeated_passages_and_facts_do_not_break_publication(store):
+    from signal_research.research.integrity import attest_report
+
+    company = store.search_companies('SYNTHBANK')[0]
+    run_id = store.create_run(company, date(2026, 10, 8), RunMode.REPLAY)
+    store.lease_next('duplicate-span')
+    report = build_synthetic_report(run_id, company, date(2026, 10, 8))
+    report.passages.append(report.passages[0].model_copy())
+    report.facts.append(report.facts[0].model_copy())
+    store.save_report(attest_report(report))
+    assert store.get_summary(run_id).status == RunStatus.COMPLETED
+    assert store.get_report(run_id)
+    assert store.find_claim(run_id, report.claims[0].id)['evidence']
+
+
+def test_conflicting_repeated_passage_identifier_rolls_back_publication(store):
+    company = store.search_companies('SYNTHBANK')[0]
+    run_id = store.create_run(company, date(2026, 10, 8), RunMode.REPLAY)
+    store.lease_next('conflicting-span')
+    report = build_synthetic_report(run_id, company, date(2026, 10, 8))
+    report.passages.append(report.passages[0].model_copy(update={'text': 'Different source content'}))
+    with pytest.raises(ValueError, match='Conflicting source passages'):
+        store.save_report(report)
+    assert not store.has_report(run_id)
+    assert store.get_summary(run_id).status != RunStatus.COMPLETED
+
+
 def test_active_run_cap_and_stale_lease_fencing(store):
     company = store.search_companies("SYNTHBANK")[0]
     run_id = store.create_run(company, date(2026, 10, 8), RunMode.REPLAY)

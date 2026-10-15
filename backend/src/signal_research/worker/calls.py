@@ -73,15 +73,16 @@ class DurableCalls:
                 estimated_cost=0 if isinstance(exc, CodeCraftCreditsExhausted) else None)
             raise
 
-    def search(self, query, domains, cutoff, stage="discovering"):
-        credits = 2 if self.settings.tavily_search_depth == 'advanced' else 1
+    def search(self, query, domains, cutoff, stage="discovering", *, search_depth=None):
+        settings = self.settings.model_copy(update={'tavily_search_depth': search_depth}) if search_depth else self.settings
+        credits = 2 if settings.tavily_search_depth == 'advanced' else 1
         def request():
-            hits = TavilySearchProvider(self.settings).search(query, domains, cutoff, 6)
+            hits = TavilySearchProvider(settings).search(query, domains, cutoff, 6)
             return hits, {"provider": "tavily", "search_credits": credits, "estimated_cost": self.settings.search_usd_per_credit * credits if self.settings.search_usd_per_credit is not None else None, "cost_status": "estimated" if self.settings.search_usd_per_credit is not None else "unknown"}
         def decode(payload):
             from datetime import date
             return [SearchHit(**(item | {"published_at": date.fromisoformat(item["published_at"]) if item.get("published_at") else None})) for item in payload]
-        return self.invoke(["tavily", query, domains, str(cutoff), self.settings.tavily_search_depth], stage,
+        return self.invoke(["tavily", query, domains, str(cutoff), settings.tavily_search_depth], stage,
                            lambda: self.budget.reserve_search((self.settings.search_usd_per_credit or 0) * credits), request,
                            lambda hits: [asdict(hit) for hit in hits], decode)
 

@@ -6,10 +6,14 @@ export function ResearchAudit({ report }: { report: Report }) {
   const decisions = report.generation_metadata?.research_decisions || []
   const eligible = report.documents.filter(d => d.cutoff_eligibility === 'eligible')
   const origins = new Set(eligible.map(d => d.origin_family_id)).size
+  const issuer = eligible.filter(d => d.document_type.startsWith('issuer'))
+  const factPassages = new Set(report.facts.map(f => f.passage_id))
+  const supporting = new Set(report.passages.filter(p => factPassages.has(p.id)).map(p => p.document_id)).size
   return <section className="research-audit" aria-label="Research coverage and decisions">
     <h3>Research coverage</h3>
-    <p>{report.facts.length} verified facts · {report.calculations.length} reproducible calculations · {eligible.length} eligible documents · {origins} retrieved origins</p>
-    <p className="muted">Retrieved origins count source families; relevance to a conclusion requires separate claim review.</p>
+    <p>{report.facts.length} verified {report.facts.length === 1 ? 'fact' : 'facts'} · {report.calculations.length} reproducible {report.calculations.length === 1 ? 'calculation' : 'calculations'} · {issuer.length} official issuer {issuer.length === 1 ? 'filing' : 'filings'}</p>
+    <p className="muted">{eligible.length} documents available by the cutoff · {origins} retrieved source families · {supporting} documents supporting verified facts.</p>
+    {!report.facts.length && <p>Retrieved documents have not established verified financial figures. Availability alone does not establish issuer identity, relevance or support for a finding.</p>}
     <FactHistory report={report} />
     {report.generation_metadata?.novelty_rationale && <div><h3>Why this adds insight</h3><p>{report.generation_metadata.novelty_rationale}</p></div>}
     {!!decisions.length && <details><summary>Candidate decisions ({decisions.length})</summary>

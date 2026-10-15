@@ -135,3 +135,29 @@ def test_whole_page_with_interleaved_issuers_is_withheld_before_any_model_call(s
     research.extract()
     assert not research.facts
     assert any('interleaved page figures' in note for note in research.limitations)
+
+
+def test_historical_extraction_prioritizes_new_document_and_retains_source_notes(store, settings, monkeypatch):
+    from pydantic import HttpUrl
+
+    research, current_document = research_fixture(store, settings)
+    older_document = current_document.model_copy(update={'id': uuid4(), 'canonical_url': HttpUrl('https://hdfc.bank.in/older.pdf')})
+    research.documents.append(older_document)
+    def table(document, year):
+        return Passage(id=uuid4(), document_id=document.id, page_index=2,
+            text=(research.company.legal_name + '\nConsolidated INR crore\n'
+                  f'As at 31 March {year} | 31 March {year - 1}\nDeposits 1000 900\nBorrowings 200 220'))
+    current, older = table(current_document, 2026), table(older_document, 2025)
+    note = Passage(id=uuid4(), document_id=older_document.id, extraction_method='exchange_notes',
+        text='Prior periods were reclassified after an acquisition; they require a consistent reporting boundary.')
+    research.passages = [current, older, note]
+    def review(schema, payload, *args):
+        assert payload['source_text'] == older.text
+        return schema(verdicts=[{'index': c['index'], 'supported': True, 'reason': 'Older source columns match'}
+                                for c in payload['candidates']])
+    monkeypatch.setattr(research.calls, 'model', review)
+    research.extract(limit=1, preferred_document_ids={older_document.id})
+    assert len(research.facts) == 4 and all(f.passage_id == older.id for f in research.facts)
+    assert current.id not in research.extracted
+    payload = research.payload()
+    assert any(p['id'] == note.id and 'reclassified after an acquisition' in p['text'] for p in payload['passages'])

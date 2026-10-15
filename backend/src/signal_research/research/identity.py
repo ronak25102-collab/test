@@ -31,6 +31,8 @@ def issuer_cover_identity(text: str, company) -> bool:
     target = normalize_name(company.legal_name)
     compact_target = re.sub(r'[^a-z0-9]', '', target)
     for line in text.splitlines():
+        # An exact issuer signature is authorship, unlike a passing mention.
+        line = re.sub(r'^\s*For\s+', '', line, flags=re.I)
         if normalize_name(line) == target:
             return True
         # Font letter spacing and concatenated legal suffixes can affect headings.
@@ -40,6 +42,14 @@ def issuer_cover_identity(text: str, company) -> bool:
         if compact == compact_target:
             return True
     return False
+
+
+def structured_issuer_identity(text, company):
+    """Exact owner and symbol cells in an exchange financial filing."""
+    names = re.findall(r'^Name of (?:the )?company\s*\|\s*(.+)$', text, re.I | re.M)
+    symbols = re.findall(r'^NSE Symbol\s*\|\s*(\S+)\s*$', text, re.I | re.M)
+    return (bool(names) and all(normalize_name(name) == normalize_name(company.legal_name) for name in names)
+            and bool(symbols) and all(symbol.upper() in company.symbols for symbol in symbols))
 
 
 def issuer_symbol_reference(text: str, company) -> bool:
