@@ -118,6 +118,7 @@ from signal_research.retrieval.passages import (
     parse_xbrl,
     prioritized_ocr_pages,
 )
+from signal_research.retrieval.quality import format_prose, sane_publication
 from signal_research.worker.calls import DurableCalls
 
 
@@ -451,6 +452,9 @@ class LiveResearch:
                 continue
             text = "\n".join(p.text for p in parsed.passages)
             published = source_publication(raw, text)
+            published, date_warning = sane_publication(raw, text, hit.title or parsed.title, published)
+            if date_warning:
+                self.limitations.append(date_warning)
             receipt = datetime.fromisoformat(fetched.retrieved_at) if fetched.retrieved_at else None
             eligibility, eligibility_basis = source_availability(published, receipt, self.cutoff)
             if eligibility == 'eligible':
@@ -482,6 +486,11 @@ class LiveResearch:
                 # its comparative SOLO/GROUP table explicitly binds the issuer.
                 # The binder checks target aliases, scope, dates and columns.
                 identified = any(comparative_bank_batch(p, self.company) for p in parsed.passages)
+            own_host = any(domain_matches(portal_host, d) for d in self.company.verified_ir_domains)
+            exchange_host = any(domain_matches(portal_host, d) for d in ('nseindia.com', 'bseindia.com'))
+            if identified and not own_host and not exchange_host and raw.startswith(b'%PDF'):
+                publisher, origin, kind = self.company.legal_name, f'issuer:{self.company.id}', 'issuer_mirror'
+                self.limitations.append(f'Third-party mirror: {hit.url}. Original issuer origin retained; this is not independent corroboration.')
             if raw.startswith(b"%PDF") and kind.startswith("issuer") and not identified:
                 # Group portals host parent and subsidiary reports. Keep the
                 # related origin so it cannot become independent corroboration,
@@ -1326,6 +1335,12 @@ class LiveResearch:
 
     def compose(self, draft, challenge, opposing_query):
         self.draft_feedback = None
+        draft = draft.model_copy(update={
+            'headline': draft.headline.model_copy(update={'text': format_prose(draft.headline.text)}),
+            'why_it_matters': [s.model_copy(update={'text': format_prose(s.text)}) for s in draft.why_it_matters],
+            'timeline_analysis': draft.timeline_analysis.model_copy(update={'text': format_prose(draft.timeline_analysis.text)}),
+            'counterargument': draft.counterargument.model_copy(update={'text': format_prose(draft.counterargument.text)}),
+            'falsification': format_prose(draft.falsification)})
         if set(draft.headline.calculation_ids) & break_calculations(self.structural_breaks, self.calculations):
             self.limitations.append('Headline growth crosses an unresolved structural break; use a verified post-break relationship instead.')
             return None
