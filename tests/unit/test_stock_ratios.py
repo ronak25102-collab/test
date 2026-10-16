@@ -93,3 +93,14 @@ def test_registered_profile_restriction_and_spaced_aliases_preserved():
     passage = Passage(id=uuid4(), document_id=uuid4(), text=TEXT.replace('Gross NPAs to Gross Advances', 'Gross  NPAs to  Gross Advances'))
     assert stock_ratio_batch(passage, COMPANY, Profile.BANK)
     assert stock_ratio_batch(passage, COMPANY, Profile.LIFE_INSURER) is None
+
+
+def test_verbose_extraction_note_is_not_a_financial_evidence_gate():
+    import pytest
+    from pydantic import ValidationError
+    from signal_research.extraction.models import ExtractedFactBatch
+    note = 'The disclosure is missing one requested comparison. ' * 8
+    batch = ExtractedFactBatch(facts=[], notes=[note])
+    assert batch.notes == [note.strip()] and batch.facts == []
+    with pytest.raises(ValidationError):
+        ExtractedFactBatch(facts=[], notes=['x' * 1201])
