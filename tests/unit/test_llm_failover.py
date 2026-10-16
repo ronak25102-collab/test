@@ -200,8 +200,20 @@ def test_hybrid_uses_nvidia_for_extract_and_plan_but_configured_model_for_review
 
 def test_hybrid_does_not_silently_replace_exhausted_final_review_with_nvidia(pipeline, monkeypatch):
     pipeline.settings.nvidia_planning = True
+    pipeline.settings.codecraft_nvidia_fallback = False
     sent = install_http(monkeypatch, lambda _: httpx.Response(402))
     with pytest.raises(CodeCraftCreditsExhausted):
         pipeline.model(Result, {'operation': 'final'}, stage='verifying')
     assert sent == ['primary-test', 'backup-one-test', 'backup-two-test']
     assert not any(r['provider'] == 'nvidia' for r in pipeline.store.provider_calls(pipeline.run_id))
+
+
+def test_hybrid_explicit_review_fallback_preserves_evidence_checks(pipeline, monkeypatch):
+    pipeline.settings.nvidia_planning = True
+    sent = install_http(monkeypatch, lambda _: httpx.Response(402))
+    monkeypatch.setattr(NvidiaProvider, 'generate', lambda self, schema, *args:
+                        (schema(value=42), ProviderUsage(input_tokens=120, output_tokens=80)))
+    assert pipeline.model(Result, {'operation': 'final'}, stage='verifying').value == 42
+    assert len(sent) == 3
+    assert pipeline.store.provider_calls(pipeline.run_id)[-1]['provider'] == 'nvidia'
+    assert any(e.event_type == 'provider_fallback' for e in pipeline.store.get_events(pipeline.run_id))

@@ -144,7 +144,7 @@ def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_
             'As at 31 March 2026 | 31 March 2025\nDeposits 133750 125000\nBorrowings 15000 14000\n</pre></body></html>'))
     def peer_search(self, query, domains, as_of, max_results):
         for url, (company, _) in pages.items():
-            if query.startswith(f'"{company.legal_name}" financial results'):
+            if query.startswith(f'"{company.legal_name}" ') and 'financial results' in query:
                 return [SearchHit(url, company.legal_name + ' Results', '', 1, 'test', date(2026, 5, 15))]
         hits = search(self, query, domains, as_of, max_results)
         return [h for h in hits if not primary_only or 'independent.example' not in h.url]
@@ -594,19 +594,35 @@ def test_budget_stops_live_before_any_provider_request(store, tmp_path, monkeypa
 
 
 @pytest.mark.parametrize("limit", ["deadline", "model_calls"])
-def test_limit_during_challenge_saves_verified_partial_report(store, tmp_path, monkeypatch, limit):
+@pytest.mark.parametrize("parallel_budget", [False, True])
+def test_limit_during_challenge_saves_verified_partial_report(store, tmp_path, monkeypatch, limit, parallel_budget):
     from datetime import UTC, datetime, timedelta
+    from threading import Event
 
     from signal_research.research.live import LiveResearch
 
     settings, run_id, calls = live_fixture(store, tmp_path, monkeypatch)
+    if parallel_budget:
+        settings.max_output_tokens = 100000
     original = LiveResearch.challenge
+    original_reconciliation = LiveResearch.check_current_reconciliation
+    reconciliation_completed = Event()
+    stopped_at = []
+    def finish_reconciliation(self, hypothesis):
+        result = original_reconciliation(self, hypothesis)
+        reconciliation_completed.set()
+        return result
     def reach_limit(self, hypothesis):
+        # Reconciliation and challenge now run concurrently. Deliberately stop
+        # after the former completes, rather than asserting a scheduler order.
+        assert reconciliation_completed.wait(10), 'Independent reconciliation did not finish'
+        stopped_at.append(calls['model'])
         if limit == "deadline":
             self.budget.deadline = datetime.now(UTC) - timedelta(seconds=1)
         else:
             self.budget.max_model_calls = self.budget.model_calls
         return original(self, hypothesis)
+    monkeypatch.setattr(LiveResearch, "check_current_reconciliation", finish_reconciliation)
     monkeypatch.setattr(LiveResearch, "challenge", reach_limit)
     ResearchMachine(store, settings).process(run_id)
     summary = store.get_summary(run_id)
@@ -616,10 +632,40 @@ def test_limit_during_challenge_saves_verified_partial_report(store, tmp_path, m
     assert len(report.facts) == 4 and report.calculations
     assert not report.discoveries and report.publication_status.value == "abstained"
     assert report.generation_metadata["stopped_by_limit"]
-    assert calls['model'] == 4  # Extraction, fact review, hypothesis and current reconciliation review.
+    assert stopped_at == [4]  # Extraction, fact review, hypothesis and current reconciliation review.
+    assert calls['model'] == stopped_at[0]  # No provider call starts after the limit is reached.
     before = calls.copy()
     ResearchMachine(store, settings).process(run_id)
     assert calls == before
+
+
+def test_current_reconciliation_and_adversarial_review_overlap_without_skipping_publication_gates(store, tmp_path, monkeypatch):
+    from threading import Barrier, Lock
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    settings.max_output_tokens = 100000  # Both full response allowances must fit concurrently.
+    original = OpenAIProvider.generate
+    reviewers_started = Barrier(2)
+    recorded = Lock()
+    completed = []
+    def synchronized_review(self, schema, messages, model_role, deadline, max_output_tokens):
+        if schema.__name__ in {'CurrentReconciliation', 'Challenge'}:
+            # A sequential implementation cannot get both independent checks
+            # through this barrier. Provider mocks never make a paid request.
+            reviewers_started.wait(timeout=10)
+            with recorded:
+                completed.append(schema.__name__)
+        return original(self, schema, messages, model_role, deadline, max_output_tokens)
+    monkeypatch.setattr(OpenAIProvider, 'generate', synchronized_review)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert sorted(completed) == ['Challenge', 'CurrentReconciliation']
+    assert report.outcome.value == 'discovery' and report.discoveries
+    assert len(report.facts) == 4 and report.calculations
+    checks = report.generation_metadata['falsification_tests']['conditions']
+    current = next(condition for condition in checks if condition['kind'] == 'current_reconciliation')
+    assert current['checkable_now'] and current['status'] == 'not_found'
+    assert report.generation_metadata['challenge_reviews']
 
 
 def test_expired_partial_checkpoint_recovers_after_publication_crash(store, tmp_path, monkeypatch):

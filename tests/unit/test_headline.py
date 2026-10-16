@@ -3,6 +3,8 @@ from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 
+import pytest
+from signal_research.domain.enums import VerificationStatus
 from signal_research.domain.schemas import Fact
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.research.headline import validate_headline
@@ -45,3 +47,57 @@ def test_recovery_is_reproduced_from_verified_ordered_ratio_facts():
     result = calculate('recovery_ratio', [numeric_fact(f) for f in facts])
     assert result.available and result.output_value == 69
     assert not calculate('recovery_ratio', [numeric_fact(f) for f in reversed(facts)]).available
+
+
+def reviewed_headline_fixture(store):
+    from signal_research.research.live import LiveResearch
+    from signal_research.research.report_builder import build_synthetic_report
+    report = build_synthetic_report(uuid4(), store.search_companies('SYNTHBANK')[0], date(2026, 10, 15))
+    discovery = report.discoveries[0]
+    technical = next(claim for claim in report.claims if claim.text == discovery.discovery_sentence)
+    technical.text = 'SYNTHBANK recorded a 10 percentage point difference between advances and deposit growth from 2025 to 2026.'
+    discovery.discovery_sentence = technical.text
+    research = LiveResearch.__new__(LiveResearch)
+    research.run_id, research.structural_breaks = report.run_id, []
+    research.budget = SimpleNamespace(remaining_seconds=lambda: 120)
+    return research, report, technical
+
+
+def test_already_reviewed_valid_headline_preserves_exact_claim_without_provider_calls(store):
+    research, report, technical = reviewed_headline_fixture(store)
+    def no_request(*args, **kwargs):
+        raise AssertionError('An unchanged, independently reviewed valid headline needs no provider request')
+    research.calls = SimpleNamespace(model=no_request)
+    original_claims = [claim.model_dump() for claim in report.claims]
+    original_discovery = report.discoveries[0].model_dump()
+    assert technical.verification_status == VerificationStatus.SUPPORTED
+    assert not validate_headline(technical.text, report.company.legal_name, report.facts, report.calculations)
+    research.write_plain_headline(report)
+    metadata = report.generation_metadata['headline']
+    assert metadata['method'] == 'already_reviewed_headline'
+    assert metadata['claim_id'] == metadata['technical_claim_id'] == str(technical.id)
+    assert metadata['technical_detail'] == technical.text and metadata['validation_errors'] == []
+    assert [claim.model_dump() for claim in report.claims] == original_claims
+    assert report.discoveries[0].model_dump() == original_discovery
+    assert set(report.discoveries[0].evidence_claim_ids) <= {claim.id for claim in report.claims}
+
+
+@pytest.mark.parametrize('unavailable', ['unreviewed', 'structural_break'])
+def test_valid_text_does_not_skip_review_when_claim_is_unreviewed_or_break_backed(store, unavailable):
+    research, report, technical = reviewed_headline_fixture(store)
+    if unavailable == 'unreviewed':
+        technical.verification_status = VerificationStatus.PENDING
+    else:
+        research.structural_breaks = [{'fact_ids': [str(f.id) for f in report.facts if f.metric_key == 'gross_advances']}]
+    attempts = []
+    def invalid_writer(schema, payload, **kwargs):
+        attempts.append(payload)
+        return schema(sentence='Unverified Company grew 999% from 2000 to 2001.')
+    research.calls = SimpleNamespace(model=invalid_writer)
+    research.write_plain_headline(report)
+    assert len(attempts) == 3
+    assert report.generation_metadata['headline']['method'] == 'verified_arithmetic_template'
+    if unavailable == 'structural_break':
+        from signal_research.research.structural import break_calculations
+        headline = next(c for c in report.claims if str(c.id) == report.generation_metadata['headline']['claim_id'])
+        assert not set(headline.calculation_ids) & break_calculations(research.structural_breaks, report.calculations)

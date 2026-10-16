@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     nvidia_api_key: str = Field(default="", repr=False)
     nvidia_model_research: str = ""
     nvidia_model_extract: str = ""
+    nvidia_response_format: Literal['json_schema', 'json_object'] = 'json_schema'
+    nvidia_reasoning_budget: int | None = Field(default=None, ge=0, le=32768)
+    stage_output_tokens: dict[str, int] = Field(default_factory=dict)
     gemini_api_key: str = Field(default="", repr=False)
     gemini_model_research: str = ""
     gemini_model_extract: str = ""
@@ -82,13 +85,10 @@ class Settings(BaseSettings):
         return routes
 
     def routes_for_stage(self, role: str, stage: str):
-        """Hybrid routing is explicit; final review stays on the configured provider."""
+        """Hybrid routing is explicit; final review uses only authorized fallback routes."""
         if self.nvidia_planning and (role == 'extract' or stage in {'planning', 'hypothesizing'}):
             return [('nvidia-planning', self.model_copy(update={'llm_provider': 'nvidia'}))]
-        routes = self.model_routes()
-        if self.nvidia_planning and self.llm_provider != 'nvidia':
-            routes = [(slot, settings) for slot, settings in routes if settings.llm_provider != 'nvidia']
-        return routes
+        return self.model_routes()
 
     @property
     def llm_configured(self) -> bool:

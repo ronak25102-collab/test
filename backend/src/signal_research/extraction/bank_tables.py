@@ -12,7 +12,7 @@ from .models import ExtractedFactBatch, ExtractedFactCandidate
 
 MONTHS = {name.lower(): index for index in range(1, 13)
           for name in (calendar.month_abbr[index], calendar.month_name[index])}
-MONTH_COLUMN = re.compile(r"\b(" + "|".join(MONTHS) + r")\.?\s+(20\d{2}|\d{2})(?!\d)\b", re.I)
+MONTH_COLUMN = re.compile(r"\b(" + "|".join(MONTHS) + r")\.?(?:\s+|\s*['’]\s*)(20\d{2}|\d{2})(?!\d)\b", re.I)
 
 
 def subsidiary_only(text: str) -> bool:
@@ -39,7 +39,8 @@ def month_end_columns(text: str) -> list[tuple[str, date]]:
         matches = list(MONTH_COLUMN.finditer(line))
         if len(matches) < 2:
             continue
-        if any(len(match[2]) == 2 for match in matches) and not re.search(r"\bYOY\b|year[- ]on[- ]year", line, re.I):
+        explicit_years = all(len(match[2]) == 4 or re.search(r"['’]\s*\d{2}$", match[0]) for match in matches)
+        if any(len(match[2]) == 2 for match in matches) and not explicit_years and not re.search(r"\bYOY\b|year[- ]on[- ]year", line, re.I):
             continue  # Two-digit labels need an explicit year-comparison header.
         columns = []
         for match in matches:
@@ -50,7 +51,7 @@ def month_end_columns(text: str) -> list[tuple[str, date]]:
     return []
 
 
-def comparative_bank_batch(passage, company, *, document_issuer_verified=False) -> ExtractedFactBatch | None:
+def comparative_bank_batch(passage, company, *, document_issuer_verified=False, preferred_scope=None) -> ExtractedFactBatch | None:
     """Bind unambiguous comparative stock tables; all candidates still need review."""
     text = passage.text
     if subsidiary_only(text):
@@ -82,13 +83,17 @@ def comparative_bank_batch(passage, company, *, document_issuer_verified=False) 
         # as gross advances, or a percentage as an amount.
         if len(cells) != 6:
             continue
+        scope = preferred_scope or "standalone"
+        if scope not in {"standalone", "consolidated"}:
+            return None
+        offset = 3 if scope == "consolidated" else 0
         for index in sorted(range(2), key=lambda i: columns[i][1], reverse=True):
-            facts.append(ExtractedFactCandidate(metric_key=metric, value_raw=cells[index],
+            facts.append(ExtractedFactCandidate(metric_key=metric, value_raw=cells[index + offset],
                 unit_raw="INR crore", currency="INR", period_end=columns[index][1],
-                scope="standalone", passage_id=passage.id, extraction_confidence=Decimal(".99")))
+                scope=scope, passage_id=passage.id, extraction_confidence=Decimal(".99")))
         if len(facts) == 6:
             break
-    return ExtractedFactBatch(facts=facts, notes=["Values bound to explicit standalone/group comparative balance columns."]) if facts else None
+    return ExtractedFactBatch(facts=facts, notes=["Values bound to the requested explicit standalone/group comparative balance columns."]) if facts else None
 
 
 def _explicit_bank_balance(passage, company, *, document_issuer_verified=False) -> ExtractedFactBatch | None:

@@ -1,5 +1,6 @@
 """Shared issuer identity matching; never infer an identity from a fuzzy match."""
 import re
+from urllib.parse import unquote, urlparse
 
 
 def normalize_name(value: str) -> str:
@@ -50,6 +51,20 @@ def structured_issuer_identity(text, company):
     symbols = re.findall(r'^NSE Symbol\s*\|\s*(\S+)\s*$', text, re.I | re.M)
     return (bool(names) and all(normalize_name(name) == normalize_name(company.legal_name) for name in names)
             and bool(symbols) and all(symbol.upper() in company.symbols for symbol in symbols))
+
+
+def presentation_issuer_identity(text, url, company):
+    """Bind shared-portal presentations by matching frontmatter and full filename owner.
+
+    A filename alone or a subsidiary mention in a parent's annual report is insufficient.
+    """
+    cover = text[:4000]
+    filename = unquote(urlparse(str(url)).path.rsplit('/', 1)[-1]).lower()
+    compact_name = re.sub(r'[^a-z0-9]', '', normalize_name(company.legal_name))
+    compact_file = re.sub(r'[^a-z0-9]', '', filename)
+    return bool(compact_name and compact_name in compact_file
+                and re.search(r'\binvestor\s+presentation\b', cover, re.I)
+                and issuer_named(cover, company) and not foreign_cover_identity(cover, company))
 
 
 def issuer_symbol_reference(text: str, company) -> bool:

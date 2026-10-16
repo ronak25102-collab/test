@@ -138,3 +138,18 @@ def test_larger_responses_still_preserve_final_review_budget(monkeypatch, store,
     assert calls.model(Result, {}, 'extract', 'normalizing').value == 42
     assert sent[0][1]['json']['max_tokens'] == 5000
     assert budget.output_tokens == 1080
+
+
+def test_complete_json_fence_is_unwrapped_without_repair(monkeypatch):
+    mock_response(monkeypatch, envelope('```json\n{"value":42}\n```'))
+    result, _ = CodeCraftProvider(configured()).generate(Result, [], 'research', timedelta(seconds=3), 4096)
+    assert result.value == 42
+
+
+def test_invalid_json_reports_field_types_without_model_input(monkeypatch):
+    mock_response(monkeypatch, envelope('{"value":"private-response-input"}'))
+    with pytest.raises(CodeCraftStructuredOutputError) as caught:
+        CodeCraftProvider(configured()).generate(Result, [], 'research', timedelta(seconds=3), 4096)
+    assert 'value:int_parsing' in str(caught.value)
+    assert 'private-response-input' not in str(caught.value)
+    assert caught.value.provider_usage.output_tokens == 80

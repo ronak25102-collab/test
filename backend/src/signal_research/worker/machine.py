@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from signal_research.db.repositories import Store
-from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
+from signal_research.domain.enums import PublicationStatus, ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.errors import BudgetExceeded
 from signal_research.domain.schemas import ResearchReport
 from signal_research.research.planner import initial_plan
@@ -67,6 +67,7 @@ class ResearchMachine:
                         **{k: saved.get(k, 0) for k in ("search_calls", "fetch_documents", "model_calls", "ocr_pages", "input_tokens", "output_tokens", "reserved_cost_usd")},
                         persist=lambda value: self.store.update_run(run_id, budget=value))
         self.store.update_run(run_id, budget=budget.snapshot())
+        report = None
         try:
             recovered = self.store.load_checkpoint(run_id, RunStatus.VERIFYING.value)
             recovered_report = ResearchReport.model_validate(recovered) if recovered else None
@@ -120,8 +121,51 @@ class ResearchMachine:
                 return
             if self.store.has_report(run_id):
                 return  # DB publication succeeded; an optional export-file write failed.
+            if isinstance(exc, BudgetExceeded):
+                try:
+                    if self._preserve_evidence_at_limit(run_id, budget, exc, report.limitations if report else []):
+                        return
+                except Exception as recovery_error:
+                    logger.exception("research run %s evidence recovery failed", run_id)
+                    if self.lease_error or "fenced lease" in str(recovery_error):
+                        return
+                    if self._cancelled(run_id) or self.store.has_report(run_id):
+                        return
+                    exc = recovery_error
             self.store.update_run(run_id, status=RunStatus.FAILED, stage=RunStatus.FAILED.value, limitations=[str(exc)], ended=True)
             self.store.append_event(run_id, RunStatus.FAILED.value, "run_failed", "Research stopped because a stage failed", error_code=getattr(exc, "code", "STAGE_FAILED"))
+
+    def _preserve_evidence_at_limit(self, run_id, budget, error, limitations) -> bool:
+        """Publish only the latest reviewed evidence checkpoint after a limit.
+
+        This is local recovery, never a new research attempt or a late discovery.
+        An empty latest checkpoint must not resurrect older withheld figures.
+        """
+        evidence = self.store.load_checkpoint(run_id, "evidence_collected", iteration=None)
+        report = ResearchReport.model_validate(evidence) if evidence else None
+        if (not report or report.outcome != ResearchOutcome.PARTIAL or not report.facts
+                or report.discoveries or report.publication_status != PublicationStatus.ABSTAINED):
+            return False
+        current = self.store.get_summary(run_id)
+        if report.run_id != run_id or report.company.id != current.company.id or report.cutoff != current.as_of:
+            return False
+        note = f"Research stopped at its configured limit: {error}. Verified evidence was preserved."
+        report.limitations = list(dict.fromkeys([*report.limitations, *current.limitations, *limitations, note]))
+        report.generation_metadata["stopped_by_limit"] = str(error)
+        report = verify_report(report)
+        if self._cancelled(run_id):
+            return True
+        self._set_stage(run_id, RunStatus.VERIFYING, "evidence_preserved_at_limit",
+                        "Research limit reached; locally verified evidence was preserved without a discovery")
+        cache = report.generation_metadata.get("cache_usage", {})
+        self.store.update_run(run_id, progress={"sources_found": len(report.documents),
+                              "documents_parsed": len(report.documents), "facts_verified": len(report.facts),
+                              "facts_reused": cache.get("reused", 0), "facts_fresh": cache.get("fresh", len(report.facts)),
+                              "calculations_completed": len(report.calculations),
+                              "counterevidence_checks": len(report.generation_metadata.get("challenge_reviews", []))},
+                              budget=budget.snapshot())
+        self.store.save_report(report)
+        return True
 
     def _process_replay(self, run_id, as_of, company, budget) -> ResearchReport:
         self._set_stage(run_id, RunStatus.DISCOVERING, "queries_selected", "Selected profile queries and a targeted counterevidence query")
@@ -148,8 +192,6 @@ class ResearchMachine:
         from signal_research.research.live import LiveResearch
         from signal_research.worker.calls import UncertainCall
         run_settings = self.settings.model_copy(update={'cold_start': self.settings.cold_start or self.store.get_summary(run_id).cold_start})
-        if self.store.get_summary(run_id).mode == RunMode.DEEP:
-            run_settings = run_settings.model_copy(update={'stage_request_seconds': {}})
         research = LiveResearch(self, run_id, company, as_of, budget, settings=run_settings)
         try:
             return research.run(plan)

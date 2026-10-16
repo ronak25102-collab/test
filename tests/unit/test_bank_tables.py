@@ -76,6 +76,13 @@ def test_month_and_two_digits_without_year_comparison_remain_ambiguous():
     assert not month_end_columns("Standalone balance sheet\nJun 25\nDeposits INR 100 crore")
 
 
+def test_apostrophe_year_balance_headers_are_explicit_not_day_numbers():
+    text = "Standalone balance sheet\nINR crore\nMar'24 Dec’25 Jun'26\nDeposits 100 120 140"
+    assert [d for _, d in month_end_columns(text)] == [date(2024, 3, 31), date(2025, 12, 31), date(2026, 6, 30)]
+    assert not month_end_columns(text.replace('balance sheet', 'income statement'))
+    assert not month_end_columns(text.replace('Standalone', ''))
+
+
 def test_real_axis_balance_selects_year_comparison_and_correct_consolidated_columns():
     text = (Path(__file__).parents[1] / "fixtures/axis-consolidated-balance.txt").read_text(encoding="utf-8")
     passage = Passage(id=uuid4(), document_id=uuid4(), text=text)
@@ -135,3 +142,14 @@ def test_document_identity_cannot_use_a_passing_issuer_mention():
     company = SimpleNamespace(legal_name="Example Financial Bank")
     assert issuer_cover_identity("Example Financial Bank Limited\nQuarterly results", company)
     assert not issuer_cover_identity("A subsidiary of Example Financial Bank Limited", company)
+
+
+def test_comparative_dual_scope_peer_binding_uses_requested_group_cells():
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=TEXT)
+    batch = comparative_bank_batch(passage, SBI, preferred_scope='consolidated')
+    assert [(f.metric_key, f.value_raw, f.scope.value) for f in batch.facts] == [
+        ('deposits', '60,73,777', 'consolidated'), ('deposits', '55,34,314', 'consolidated'),
+        ('borrowings', '8,20,334', 'consolidated'), ('borrowings', '5,86,170', 'consolidated')]
+    for candidate in batch.facts:
+        assert validate_candidate(candidate, passage, uuid4(), Profile.BANK).fact
+    assert comparative_bank_batch(passage, SBI, preferred_scope='segment') is None

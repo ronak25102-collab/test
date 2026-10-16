@@ -94,6 +94,30 @@ def test_nvidia_decimal_translation_preserves_bounds_and_original_validation(mon
         NvidiaProvider(configured()).generate(ExtractedFactBatch, [], "extract", timedelta(seconds=1), 512)
 
 
+def test_json_object_transport_retains_original_local_schema_validation(monkeypatch):
+    captured = []
+    def post(self, url, **kwargs):
+        captured.append(kwargs['json'])
+        return response('{}')
+    mock_request(monkeypatch, post)
+    with pytest.raises(NvidiaStructuredOutputError):
+        NvidiaProvider(configured(nvidia_response_format='json_object')).generate(
+            Extracted, [], 'extract', timedelta(seconds=1), 512)
+    assert captured[0]['response_format'] == {'type': 'json_object'}
+    assert '"value"' in captured[0]['messages'][0]['content']
+
+
+def test_complete_json_fence_is_only_unwrapped_not_repaired(monkeypatch):
+    mock_request(monkeypatch, lambda *args, **kwargs: response('```json\n{"value":42}\n```'))
+    value, _ = NvidiaProvider(configured(nvidia_response_format='json_object')).generate(
+        Extracted, [], 'extract', timedelta(seconds=1), 512)
+    assert value.value == 42
+    mock_request(monkeypatch, lambda *args, **kwargs: response('```json\n{}\n```'))
+    with pytest.raises(NvidiaStructuredOutputError, match='value:missing'):
+        NvidiaProvider(configured(nvidia_response_format='json_object')).generate(
+            Extracted, [], 'extract', timedelta(seconds=1), 512)
+
+
 @pytest.mark.parametrize("status", [202, 301, 400, 401, 403, 429, 500, 503])
 def test_nvidia_errors_are_sanitized_and_never_implicitly_retried(monkeypatch, status):
     sent = []

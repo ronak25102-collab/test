@@ -141,6 +141,8 @@ class DurableCalls:
         provider = settings.llm_provider
         adapter = get_llm_provider(settings)
         request_options = {"schema": schema.model_json_schema(),
+                           "nvidia_response_format": settings.nvidia_response_format if provider == 'nvidia' else None,
+                           "nvidia_reasoning_budget": settings.nvidia_reasoning_budget if provider == 'nvidia' else None,
                            "adapter_version": getattr(adapter, "protocol_version", "1"),
                            "thinking_level": settings.gemini_thinking_level if provider == "gemini" else None}
         if credential_slot:
@@ -160,7 +162,7 @@ class DurableCalls:
         # Small hidden stage caps can truncate JSON (including reasoning tokens)
         # even when the run has ample budget remaining.
         outputs = (plans[0]["payload"]["max_output_tokens"] if plans else
-                   min(settings.max_model_output_tokens_per_call, self.budget.max_output_tokens - self.budget.output_tokens))
+                   min(settings.max_model_output_tokens_per_call, settings.stage_output_tokens.get(stage, settings.max_model_output_tokens_per_call), self.budget.max_output_tokens - self.budget.output_tokens))
         # Exploration must leave room for counterevidence review, composition and
         # independent verification. Cached results below remain reusable at the cap.
         exploration = stage not in {"hypothesizing", "challenging", "composing", "verifying"}
@@ -213,6 +215,8 @@ class DurableCalls:
                 def reserve():
                     from signal_research.domain.errors import BudgetExceeded
 
+                    if self.budget.deadline and self.budget.remaining_seconds() - self.deadline_reserve_seconds < 5:
+                        raise BudgetExceeded("less than five seconds remain for a complete structured response; no request sent")
                     if (self.budget.input_tokens + inputs > self.budget.max_input_tokens - input_reserve
                             or self.budget.output_tokens + outputs > self.budget.max_output_tokens - output_reserve
                             or self.budget.model_calls + 1 > self.budget.max_model_calls - call_reserve):

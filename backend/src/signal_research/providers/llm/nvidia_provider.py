@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from datetime import timedelta
 
 import httpx
@@ -116,7 +117,7 @@ class NvidiaProvider(LLMProvider):
     """NVIDIA hosted chat completions with native JSON schema and local validation."""
 
     endpoint = "https://integrate.api.nvidia.com/v1/chat/completions"
-    protocol_version = "nvidia-json-schema-stream-v4"
+    protocol_version = "nvidia-validated-json-stream-v5"
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -155,6 +156,13 @@ class NvidiaProvider(LLMProvider):
                 "name": schema.__name__, "schema": nvidia_schema(schema.model_json_schema()),
             }},
         }
+        if self.settings.nvidia_response_format == 'json_object':
+            # Prompt carries the entire schema; original Pydantic validation and
+            # all source/numerical/semantic gates remain identical. This avoids
+            # compiling a new provider grammar for each dynamically cited schema.
+            body['response_format'] = {'type': 'json_object'}
+        if self.settings.nvidia_reasoning_budget is not None:
+            body['reasoning_budget'] = self.settings.nvidia_reasoning_budget
         # DurableCalls reserves before transmission. Do not implicitly retry a
         # request or follow redirects carrying the authorization header.
         try:
@@ -165,10 +173,15 @@ class NvidiaProvider(LLMProvider):
             content = choice["message"]["content"]
             if not isinstance(content, str):
                 raise NvidiaRequestError("NVIDIA returned no structured output")
+            fenced = re.fullmatch(r'\s*```(?:json)?\s*\n(\{.*\})\s*\n```\s*', content, re.S | re.I)
+            if fenced:
+                content = fenced[1]
             try:
                 parsed = schema.model_validate_json(content)
-            except ValidationError:
-                raise NvidiaStructuredOutputError("NVIDIA returned invalid structured output") from None
+            except ValidationError as error:
+                fields = ', '.join('.'.join(map(str, e['loc'])) + ':' + e['type']
+                                   for e in error.errors(include_input=False, include_url=False)[:3])
+                raise NvidiaStructuredOutputError('NVIDIA returned invalid structured output (' + fields + ')') from None
             usage = payload.get("usage") or {}
             inputs, outputs = usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0)
             if any(type(value) is not int or value < 0 for value in (inputs, outputs)):

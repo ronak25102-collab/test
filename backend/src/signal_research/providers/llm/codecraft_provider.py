@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from datetime import timedelta
 
 import httpx
@@ -35,7 +36,7 @@ class CodeCraftProvider(LLMProvider):
     """Documented JSON mode with original local schema and evidence validation."""
 
     endpoint = "https://www.codecraftapi.com/v1/chat/completions"
-    protocol_version = "codecraft-json-object-v1"
+    protocol_version = "codecraft-validated-json-v2"
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -85,9 +86,16 @@ class CodeCraftProvider(LLMProvider):
             content = choice["message"]["content"]
             if not isinstance(content, str):
                 raise ValueError
+            fence = re.fullmatch(r"\s*```(?:json)?\s*(\{[\s\S]*\})\s*```\s*", content)
+            if fence:
+                content = fence[1]
             parsed = schema.model_validate_json(content)
-        except (KeyError, IndexError, AttributeError, TypeError, ValueError, ValidationError):
-            error = CodeCraftStructuredOutputError("CodeCraft returned incomplete or invalid structured output")
+        except (KeyError, IndexError, AttributeError, TypeError, ValueError, ValidationError) as cause:
+            detail = ''
+            if isinstance(cause, ValidationError):
+                detail = ' (' + ', '.join('.'.join(str(part) for part in issue['loc']) + ':' + issue['type']
+                    for issue in cause.errors(include_input=False, include_url=False)[:3]) + ')'
+            error = CodeCraftStructuredOutputError("CodeCraft returned incomplete or invalid structured output" + detail)
             # Completed but invalid responses still consume tokens. Preserve the
             # provider's usage without accepting their content as research evidence.
             error.provider_usage = usage

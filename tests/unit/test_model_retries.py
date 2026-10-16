@@ -126,13 +126,13 @@ def test_retry_cannot_exceed_budgets(pipeline, monkeypatch, limit):
     assert len(sent) == 1 and pipeline.budget.model_calls == 1
 
 
-def test_short_remaining_deadline_prevents_retry_wait(pipeline, monkeypatch):
+def test_short_remaining_deadline_prevents_request_and_retry_wait(pipeline, monkeypatch):
     sent = install_responses(monkeypatch, [httpx.Response(503)])
     pipeline.budget.deadline = datetime.now(UTC) + timedelta(seconds=1)
     monkeypatch.setattr("signal_research.worker.calls.sleep", lambda seconds: pytest.fail("deadline too short to wait"))
-    with pytest.raises(GeminiUnavailable):
+    with pytest.raises(BudgetExceeded, match="no request sent"):
         pipeline.model(Result, {"data": "evidence"})
-    assert len(sent) == 1
+    assert len(sent) == 0 and pipeline.budget.model_calls == 0
 
 
 def test_retry_can_be_disabled(pipeline, monkeypatch):

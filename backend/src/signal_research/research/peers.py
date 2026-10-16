@@ -4,6 +4,33 @@ from statistics import median
 
 from signal_research.domain.enums import FactStatus
 from signal_research.finance.calculations import calculate, numeric_fact
+from signal_research.research.context import exact_excerpt
+
+
+def peer_model_context(benchmark):
+    """Only verified comparison inputs enter prompts; full documents stay in the report."""
+    context = {key: benchmark.get(key, [] if key != 'status' else 'inconclusive')
+               for key in ('status', 'comparisons', 'missing')}
+    context['evidence'] = []
+    used = {identifier for row in benchmark.get('comparisons', [])
+            for peer in row['peers'].values() for identifier in peer['fact_ids']}
+    for bundle in benchmark.get('sources', []):
+        facts = [f for f in bundle['facts'] if str(f['id']) in used]
+        if not facts:
+            continue
+        passage_ids = {f['passage_id'] for f in facts}
+        passages = []
+        for passage in bundle['passages']:
+            if passage['id'] in passage_ids:
+                anchors = [f['value_raw'] for f in facts if f['passage_id'] == passage['id']]
+                passages.append({'id': passage['id'], 'document_id': passage['document_id'],
+                                 **exact_excerpt(passage['text'], anchors, '', limit=3500)})
+        documents = [{k: d[k] for k in ('id', 'canonical_url', 'title', 'origin_family_id')}
+                     for d in bundle['documents'] if d['id'] in {p['document_id'] for p in passages}]
+        context['evidence'].append({'company': bundle['company']['legal_name'], 'facts': facts,
+                                    'passages': passages, 'documents': documents})
+    context['note'] = 'Only verified matching peer inputs are supplied; full original passages are retained in the exported evidence trail. Missing peer evidence is not absence of a sector effect.'
+    return context
 
 
 def signature(fact):

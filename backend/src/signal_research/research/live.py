@@ -41,6 +41,7 @@ from signal_research.extraction.bank_tables import (
     scope_in_text,
     subsidiary_only,
 )
+from signal_research.extraction.column_tables import column_metric_lead
 from signal_research.extraction.dates import (
     declared_duration_periods,
     explicit_duration_ranges,
@@ -49,10 +50,11 @@ from signal_research.extraction.dates import (
 from signal_research.extraction.eligibility import minimum_source_bindings
 from signal_research.extraction.financial_tables import financial_table_batch
 from signal_research.extraction.models import ExtractedFactBatch, source_fact_batch_schema
+from signal_research.extraction.stock_ratios import stock_ratio_batch
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
-from signal_research.research.angles import route_angles
+from signal_research.research.angles import ANGLES, route_angles
 from signal_research.research.brief import (
     compatible_candidate,
     observation_timeline,
@@ -77,6 +79,7 @@ from signal_research.research.identity import (
     issuer_named,
     issuer_symbol_reference,
     multiple_issuer_headings,
+    presentation_issuer_identity,
     structured_issuer_identity,
 )
 from signal_research.research.integrity import attest_report
@@ -86,7 +89,7 @@ from signal_research.research.numeric_claims import (
     supported_percentages,
 )
 from signal_research.research.peer_selector import select_peers
-from signal_research.research.peers import compare_peers
+from signal_research.research.peers import compare_peers, peer_model_context
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
 from signal_research.research.story import quarter_ends, timeline_story
@@ -350,8 +353,20 @@ class LiveResearch:
 
     def analysis_reserve(self):
         """Reserve a real reasoning window, not just one last provider response."""
+        if self.peer_mode:
+            return self.time_reserve(120)
         duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
-        return min(240, duration * .45)
+        stages = self.settings.stage_request_seconds
+        # Leave room for a hypothesis, peer fact extraction/review, independent
+        # challenge, composition and final review. Optional history must not
+        # consume that window simply because the total deadline was increased.
+        core = sum(stages.get(stage, self.settings.model_request_timeout_seconds)
+                   for stage in ('hypothesizing', 'extracting', 'normalizing', 'challenging', 'composing', 'verifying'))
+        return min(core, duration * .65)
+
+    def peer_document_reserve(self):
+        """Keep bounded source slots for numeric peers and opposing evidence."""
+        return min(6, self.budget.max_fetch_documents // 3)
 
     def stage(self, status, summary):
         from signal_research.domain.enums import RunStatus
@@ -380,6 +395,19 @@ class LiveResearch:
             issuer_named(hit.title + " " + hit.snippet, self.company),
             bool(re.search(r"\.pdf(?:[/?#]|$)", hit.url, re.I)),
             bool(re.search(r"financial\s+results|investor\s+presentation", hit.title, re.I))), reverse=True)
+
+    def search_many(self, queries):
+        """Search independent leads concurrently, keeping source-priority order.
+
+        DurableCalls and Budget serialize reservations; a result remains only a
+        retrieval lead until the normal source and numerical gates verify it.
+        """
+        from concurrent.futures import ThreadPoolExecutor
+        if not queries:
+            return []
+        with ThreadPoolExecutor(max_workers=min(3, len(queries))) as pool:
+            futures = [pool.submit(self.search, query, domains) for query, domains in queries]
+            return [future.result() for future in futures]
 
     def ingest(self, hits, *, time_reserve=0, parse_limit=None, stop_when_balance_ready=False,
                stop_when_financial_ready=False, document_reserve=0):
@@ -492,7 +520,7 @@ class LiveResearch:
                     self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
                     queue.extend((lead, 0) for lead in verified_disclosure_indexes(self.company) if lead.url not in self.seen_urls)
             publisher, origin, kind = source_origin(fetched.final_url or hit.url, self.company, hit.title, text)
-            cover_text = '\n'.join(p.text for p in parsed.passages if p.page_index in {0, 1})
+            cover_text = '\n'.join(p.text for p in sorted(parsed.passages, key=lambda p: p.page_index or 0) if p.page_index in {0, 1, 2})
             identified = (issuer_cover_identity(cover_text, self.company) or issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
                           or issuer_symbol_reference(text, self.company))
             if raw.startswith(b"%PDF") and foreign_cover_identity(cover_text or text, self.company):
@@ -502,7 +530,8 @@ class LiveResearch:
                                any(domain_matches(portal_host, domain) for domain in other.verified_ir_domains)
                                for other in self.store.search_companies(''))
             if shared_portal:
-                identified = (issuer_cover_identity(text[:3000], self.company) or structured_issuer_identity(text, self.company)) and not foreign_cover_identity(text, self.company)
+                identified = (issuer_cover_identity(text[:3000], self.company) or structured_issuer_identity(text, self.company)
+                              or presentation_issuer_identity(cover_text, fetched.final_url or hit.url, self.company)) and not foreign_cover_identity(cover_text, self.company)
             if not identified and self.company.business_profiles[0].value == 'bank':
                 # A branded bank presentation can use an acronym cover, while
                 # its comparative SOLO/GROUP table explicitly binds the issuer.
@@ -605,6 +634,28 @@ class LiveResearch:
         finally:
             self.calls.deadline_reserve_seconds = previous_reserve
 
+    def angle_evidence_ready(self, calculations=None):
+        """Stop collection only for a comparable, profile-native research relationship."""
+        calculations = self.calculations if calculations is None else calculations
+        calculations = [c for c in calculations if c.available and c.output_value is not None]
+        definitions = {angle.key: angle for angle in ANGLES}
+        for lane in research_lanes(self.facts, calculations):
+            facts = [f for f in self.facts if f.id in lane['fact_ids']]
+            arithmetic = [c for c in calculations if c.id in lane['calculation_ids']]
+            for angle in route_angles(self.company, facts, arithmetic):
+                if angle['coverage_groups'] != angle['required_groups']:
+                    continue
+                relevant = {f.id for f in facts if f.metric_key in angle['metrics']}
+                linked = [c for c in arithmetic if set(c.input_fact_ids) <= relevant]
+                cited = {identifier for c in linked for identifier in c.input_fact_ids}
+                dates = [{f.period_end for f in facts if f.id in cited
+                          and f.metric_key in group and f.period_end}
+                         for group in definitions[angle['key']].groups]
+                if (dates and set.intersection(*dates)
+                        and has_relationship_evidence(facts, linked)):
+                    return True
+        return False
+
     def extract(self, limit=4, *, preferred_document_ids=None, historical=False, focus_metrics=()):
         self.extraction_deadline_reserve = self.analysis_reserve() if historical or focus_metrics else 0
         profile = self.company.business_profiles[0]
@@ -634,19 +685,20 @@ class LiveResearch:
             unit_header = bool(re.search(r"(?:₹|INR|Rs\.?)\s*(?:in\s+)?(?:crores?|cr|lakhs?|thousands?|[‘’']?000|millions?|billions?)\b", p.text[:1200], re.I))
             financial_rows = sum(bool(re.search(r"(?im)^\s*(?:\d+[.)]?\s+)?" + re.escape(alias) + r"\b[^\n]*\d", p.text))
                                  for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
-            numeric_measures = sum(bool(re.search(r'\b' + re.escape(alias) +
-                r'\b(?:\s*\([^()\d]{1,24}\))?\s*(?:(?:was|were|of|is|stood at|[|:=])\s*)?'
+            numeric_measures = sum(bool(re.search(r'(?<!\w)' + re.escape(alias) +
+                r'(?!\w)(?:\s*\([^()\d]{1,24}\))?\s*(?:(?:was|were|of|is|stood at|[|:=])\s*)?'
                 r'(?:(?:INR|Rs\.?|\u20b9)\s*)?\(?-?\d[\d,]*(?:\.\d+)?', p.text, re.I))
                 for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
             periods = [period for period in source_dates(p.text) if period <= self.cutoff]
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
-            return (p.document_id in (preferred_document_ids or ()), numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
+            numeric_lead = numeric_measures > 0 or column_metric_lead(p, profile)
+            return (p.document_id in (preferred_document_ids or ()), numeric_lead, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
         ranked = sorted([p for p in self.passages if p.extraction_method != 'ocr_identity' and p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
                          (preferred_document_ids is None or p.document_id in preferred_document_ids) and
                          not subsidiary_only(p.text) and self.financial_passage(p) and minimum_source_bindings(p, profile)
                          and score(p)[1] and (not focus or focus_score(p))],
-                        key=lambda p: (focus_score(p), *score(p)), reverse=True)
+                        key=lambda p: (bool(getattr(self, 'preferred_scope', None) and scope_in_text(self.preferred_scope, p.text)), focus_score(p), *score(p)), reverse=True)
         if not ranked and eligible:
             note = 'No unreviewed financial page had the explicit date, scope, unit and numeric metric bindings required for model extraction.'
             if note not in self.limitations:
@@ -669,15 +721,24 @@ class LiveResearch:
                 self.limitations.append('Additional extraction deferred to preserve the discovery, challenge and final-review window.')
                 break
             self.extracted.add(passage.id)
-            identity_passages = [p for p in self.passages if p.document_id == passage.document_id and p.page_index in {None, 0, 1}][:4]
+            identity_passages = [p for p in self.passages if p.document_id == passage.document_id and p.page_index in {None, 0, 1, 2}][:6]
             identity_passages = [p for p in identity_passages if issuer_cover_identity(p.text, self.company)
-                                 or issuer_symbol_reference(p.text, self.company)]
+                                 or issuer_symbol_reference(p.text, self.company)
+                                 or (presentation_issuer_identity('\n'.join(ip.text for ip in identity_passages),
+                                     next(d.canonical_url for d in self.documents if d.id == passage.document_id), self.company)
+                                     and issuer_named(p.text, self.company))]
             issuer_bound = bool(identity_passages)
-            batch = comparative_bank_batch(passage, self.company, document_issuer_verified=issuer_bound) if profile.value == "bank" else None
+            ratio_batch = stock_ratio_batch(passage, self.company, profile,
+                                           document_issuer_verified=issuer_bound, focus_metrics=focus_metrics)
+            batch = ratio_batch if ratio_batch and any(f.metric_key in focus_metrics for f in ratio_batch.facts) else None
+            if batch is None:
+                batch = comparative_bank_batch(passage, self.company, document_issuer_verified=issuer_bound, preferred_scope=getattr(self, "preferred_scope", None)) if profile.value == "bank" else None
             if batch is None:
                 batch = exchange_table_batch(passage, self.company, profile)
             if batch is None:
                 batch = financial_table_batch(passage, self.company, profile, document_issuer_verified=issuer_bound)
+            if batch is None:
+                batch = ratio_batch
             extraction_method = passage.extraction_method if batch and passage.extraction_method == 'exchange_table' else "explicit_comparative_columns" if batch else "model"
             if batch is None:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})
@@ -703,7 +764,7 @@ class LiveResearch:
             if accepted:
                 review = self.extraction_model(passage, fact_review_schema(len(candidates)), {"entity": self.company.legal_name, "source_text": passage.text,
                                            "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages],
-                                           "candidates": [c.model_dump(mode="json") | {"index": i} for i, c in enumerate(candidates)]}, "extract", "normalizing",
+                                           "candidates": [c.model_dump(mode="json", exclude={'evidence_quote', 'extraction_confidence', 'notes'}) | {"index": i} for i, c in enumerate(candidates)]}, "extract", "normalizing",
                                            f"Independently check every indexed candidate. A value appearing somewhere in a passage is insufficient. source_text is the complete evidence passage; evidence_quote=null means review source_text, not missing evidence. document_identity_passages establish issuer identity only, never a financial date or value. Verify exact metric/value/date/column binding, issuer identity (reject peer/subsidiary values), scope, unit, currency, period type, segment and definition. Comparative balance-sheet headers Jun 25 and Dec 25 mean the last calendar day of June and December 2025, respectively. Target-issuer SOLO columns denote standalone scope and GROUP columns consolidated scope; keep the two column groups separate and never treat net advances as gross advances. supported=false for ambiguity. Return exactly {len(candidates)} verdicts, one per explicit candidate index from 0 to {len(candidates) - 1}. Preserve those indices. Compare against each candidate's own current or prior period_end column. Each reason must be one brief sentence of at most 300 characters. Do not repeat candidates or add verdicts.")
                 verdicts = {v.index: v for v in review.verdicts} if review else {}
                 if len(verdicts) != len(candidates) or set(verdicts) != set(range(len(candidates))):
@@ -740,10 +801,10 @@ class LiveResearch:
                 # window. Reading unrelated cash-flow/related-party pages after
                 # it was starving the discovery stages of their entire allowance.
                 break
-            elif not historical and len({fact.metric_key for fact in self.facts}) >= 2 and len(derive_calculations(self.facts)) >= 2:
-                # Comparable verified measures are enough to investigate an angle.
-                # Preserve the remaining call/time allowance for counterevidence
-                # and semantic review instead of extracting unrelated report pages.
+            elif not historical and self.angle_evidence_ready(derive_calculations(self.facts)):
+                # Two P&L figures do not establish an NBFC Track A angle. Require
+                # both routed groups within one reporting lane, shared dates and
+                # verified arithmetic before preserving time for investigation.
                 break
         # Disagreements are withheld, not silently overwritten by a later source.
         buckets = {}
@@ -831,7 +892,7 @@ class LiveResearch:
                 "passages": source_spans,
                 "historical_series": comparable_series(selected_facts),
                 "structural_breaks": self.structural_breaks,
-                "peer_benchmark": self.peer_benchmark,
+                "peer_benchmark": peer_model_context(self.peer_benchmark),
                 "compatible_research_lanes": research_lanes(selected_facts, model_calculations),
                 "coverage_note": ("Planning context uses previously verified structured facts; original numeric spans are omitted here to reduce latency. Exact linked spans are supplied for challenge and final claim review. " if compact else '') + "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
@@ -947,7 +1008,7 @@ class LiveResearch:
                                search_depth='advanced')
             before = {d.id for d in self.documents}
             previously_revalidated = set(self.revalidated_documents)
-            self.ingest(hits[:2], time_reserve=self.analysis_reserve() + 30, parse_limit=25, document_reserve=4)
+            self.ingest(hits[:2], time_reserve=self.analysis_reserve() + 30, parse_limit=25, document_reserve=self.peer_document_reserve())
             fresh = ({d.id for d in self.documents} - before) | (self.revalidated_documents - previously_revalidated)
             if fresh:
                 self.extract(limit=4, preferred_document_ids=fresh, historical=True)
@@ -981,19 +1042,25 @@ class LiveResearch:
             return
         focus = {
             'bank': ('gnpa', 'nnpa', 'nim', 'casa_ratio', 'funding_cost', 'credit_cost'),
-            'nbfc': ('stage2_ratio', 'stage3_ratio', 'gnpa', 'funding_cost', 'credit_cost', 'bank_borrowings', 'co_lending_aum'),
+            'nbfc': ('aum', 'on_book_loans', 'gross_advances', 'stage2_ratio', 'stage3_ratio', 'gnpa', 'funding_cost', 'credit_cost', 'bank_borrowings', 'co_lending_aum'),
             'life_insurer': ('vnb', 'ape', 'vnb_margin', 'persistency_13m', 'persistency_61m'),
             'general_insurer': ('combined_ratio', 'loss_ratio', 'expense_ratio', 'solvency_ratio'),
             'exchange': ('transaction_revenue', 'trading_turnover', 'fee_revenue'),
             'asset_manager': ('fee_revenue', 'average_aum', 'net_flows'),
             'diversified': ('segment_profit', 'segment_revenue', 'bank_borrowings', 'bond_borrowings'),
         }[self.company.business_profiles[0].value]
+        # Fill the missing groups of the best generic angles, rather than
+        # collecting quality ratios while never requesting the lending stock.
+        angles = route_angles(self.company, self.facts, self.calculations)
+        missing = [key for angle in angles for group in angle['missing_groups'] for key in group]
+        permitted = {metric.key for metric in metrics_for_profile(self.company.business_profiles[0])}
+        focus = tuple(key for key in dict.fromkeys([*missing, *focus]) if key in permitted)
         if (self.budget.model_calls >= self.budget.max_model_calls - 8
                 or self.budget.remaining_seconds() <= self.analysis_reserve() + 30):
             return
         observed = {f.metric_key for f in self.facts if f.metric_key in focus
                     and f.period_end and f.period_end >= self.cutoff - timedelta(days=400)}
-        if len(observed) >= 3:
+        if len(observed) >= 3 and self.angle_evidence_ready():
             return
         self.stage('extracting', 'Seeking asset quality, funding composition and operating economics beyond headline growth')
         self.extract(limit=2, focus_metrics=focus)
@@ -1015,7 +1082,7 @@ class LiveResearch:
             self.stage('discovering', f'Seeking original {kind} context for comparison and alternative explanations')
             before = {d.id for d in self.documents}
             hits = self.search(query, domains)
-            self.ingest(hits[:1], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=3)
+            self.ingest(hits[:1], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=self.peer_document_reserve())
             self.context_searches.append({'kind': kind, 'query': query,
                                          'new_document_ids': list({d.id for d in self.documents} - before),
                                          'note': 'Retrieved context; numeric peer comparisons require separate verified bindings.'})
@@ -1114,7 +1181,7 @@ class LiveResearch:
             dates = ' '.join(d.strftime('%B %Y') for d in targets if d.year == year)
             hits = self.search(self.focused_query(f'quarterly financial results investor presentation {dates}'), self.company.verified_ir_domains or None)
             before, revalidated = {d.id for d in self.documents}, set(self.revalidated_documents)
-            self.ingest(hits[:2], time_reserve=self.analysis_reserve(), parse_limit=30, document_reserve=4)
+            self.ingest(hits[:2], time_reserve=self.analysis_reserve(), parse_limit=30, document_reserve=self.peer_document_reserve())
             self.extract(limit=2, historical=True, preferred_document_ids=({d.id for d in self.documents} - before) | (self.revalidated_documents - revalidated))
         verified = {f.period_end for f in self.facts}
         self.store.artifact(self.run_id, 'quarterly_coverage', {'requested': [str(d) for d in targets], 'missing': [str(d) for d in targets if d not in verified]})
@@ -1130,7 +1197,10 @@ class LiveResearch:
             research.peer_mode = True
             metrics = ' '.join(dict.fromkeys(f.metric_key.replace('_', ' ') for f in facts))[:100]
             periods = ' '.join(sorted({str(f.period_end) for f in facts if f.period_end})[-3:])
-            hits = research.search(f'"{peer.legal_name}" financial results {metrics} {periods}', peer.verified_ir_domains or None)
+            scopes = {f.scope.value for f in facts}
+            research.preferred_scope = next(iter(scopes)) if len(scopes) == 1 else None
+            scope_query = research.preferred_scope or ''
+            hits = research.search(f'"{peer.legal_name}" {scope_query} financial results balance sheet {metrics} {periods}', peer.verified_ir_domains or None)
             research.ingest(hits[:2], time_reserve=self.time_reserve(150), parse_limit=25)
             research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
             return research
@@ -1185,8 +1255,7 @@ class LiveResearch:
         if peers.peers:
             peer_names = " ".join(f'"{peer.legal_name}"' for peer in peers.peers)
             queries.append((f'"{self.company.legal_name}" {peer_names} {CONTEXT_TERMS[profile]} comparison {self.cutoff.year}', None))
-        for query, domains in queries:
-            initial.append(self.search(query, domains))
+        initial = self.search_many(queries)
         hits = [items[i] for i in range(4) for items in initial if len(items) > i]
         if not any(any(domain_matches(urlparse(hit.url).hostname or "", domain)
                        for domain in self.company.verified_ir_domains) for hit in hits):
@@ -1247,7 +1316,7 @@ class LiveResearch:
         self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
         if any(b['status'].startswith('suspected') for b in self.structural_breaks) and self.budget.remaining_seconds() > self.analysis_reserve():
             event_hits = self.search(self.focused_query('merger amalgamation acquisition scheme of arrangement reclassification restatement filings'), self.company.verified_ir_domains or None)
-            self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15)
+            self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=self.peer_document_reserve())
             self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
         self.store.artifact(self.run_id, 'structural_breaks', {'events': self.structural_breaks})
         self.calculations.extend(c for c in recovery_calculations(self.facts, self.structural_breaks) if c.id not in {v.id for v in self.calculations})
@@ -1334,9 +1403,23 @@ class LiveResearch:
             if not self.current_candidate(hypothesis):
                 continue
             self.recover_context(hypothesis)
-            self.check_current_reconciliation(hypothesis)
-            self.stage("challenging", "Testing the strongest alternative and revising or rejecting the mechanism")
-            challenge = self.challenge(hypothesis)
+            response_allowance = min(self.settings.max_model_output_tokens_per_call,
+                self.settings.stage_output_tokens.get('challenging', self.settings.max_model_output_tokens_per_call))
+            can_parallel_review = self.budget.max_output_tokens - self.budget.output_tokens >= response_allowance * 2
+            if can_parallel_review:
+                self.stage("challenging", "Checking current reconciliations and the strongest alternative in parallel")
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    reconciliation = pool.submit(self.check_current_reconciliation, hypothesis)
+                    adversarial = pool.submit(self.challenge, hypothesis)
+                    reconciliation.result()
+                    challenge = adversarial.result()
+            else:
+                # Preserve full response allowances when a small run budget
+                # cannot reserve both independent checks at once.
+                self.check_current_reconciliation(hypothesis)
+                self.stage("challenging", "Testing the strongest alternative against the verified evidence")
+                challenge = self.challenge(hypothesis)
             self.store.artifact(self.run_id, "challenge", challenge.model_dump(mode="json"))
             self.progress(iteration + 1)
             if challenge.refuted:
@@ -1368,7 +1451,7 @@ class LiveResearch:
                 continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
-            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write one clear, qualified discovery sentence (prefer under forty words), 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
+            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write exactly one plain-English, qualified discovery sentence of at most 35 words, naming the entity, the change, one or two verified key numbers with units, and the observed time span; then 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
@@ -1536,13 +1619,23 @@ class LiveResearch:
     def write_plain_headline(self, report):
         discovery = report.discoveries[0]
         technical = next(c for c in report.claims if c.text == discovery.discovery_sentence)
+        blocked = break_calculations(self.structural_breaks, report.calculations)
         selected = [c for c in report.calculations if c.id in technical.calculation_ids
-                    and c.id not in break_calculations(self.structural_breaks, report.calculations)]
+                    and c.id not in blocked]
         if not selected:
             selected = [c for c in report.calculations if c.id in discovery.calculation_ids
-                        and c.id not in break_calculations(self.structural_breaks, report.calculations)]
+                        and c.id not in blocked]
         selected_facts = [f for f in report.facts if f.id in {i for c in selected for i in c.input_fact_ids}
                           or f.id in {link.passage_or_fact_id for link in technical.evidence_links}]
+        if (technical.verification_status == VerificationStatus.SUPPORTED
+                and not set(technical.calculation_ids) & blocked
+                and not validate_headline(technical.text, report.company.legal_name, selected_facts, selected)):
+            # Identical text and lineage already passed the independent semantic
+            # review; a second writer and entailment review add no new evidence.
+            report.generation_metadata['headline'] = {
+                'technical_detail': technical.text, 'technical_claim_id': str(technical.id),
+                'claim_id': str(technical.id), 'method': 'already_reviewed_headline', 'validation_errors': []}
+            return
         fallback, fallback_calc = template_headline(report.company, selected_facts, selected)
         text, method = fallback, 'verified_arithmetic_template'
         errors = []
