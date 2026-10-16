@@ -61,6 +61,11 @@ def clear_queue(store: Store = Depends(get_store)):
     return {"cancelled_count": len(run_ids), "run_ids": run_ids}
 
 
+@router.get('/history')
+def run_history(limit: int = Query(12, ge=1, le=50), store: Store = Depends(get_store)):
+    return {'items': [run.model_dump(mode='json') for run in store.run_history(limit)]}
+
+
 @router.get("/{run_id}")
 def get_run(run_id: UUID, store: Store = Depends(get_store)):
     return require_summary(run_id, store).model_dump(mode="json")

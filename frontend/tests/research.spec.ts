@@ -289,6 +289,7 @@ test('lost creation response reuses the same idempotency key on retry', async ({
 test('saved run polling reconnects after a temporary local API failure', async ({ page }) => {
   let polls = 0
   await page.route('**/api/v1/**', route => {
+    if (new URL(route.request().url()).pathname.endsWith('/history')) return route.fulfill({ json: { items: [] } })
     const path = new URL(route.request().url()).pathname
     if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })

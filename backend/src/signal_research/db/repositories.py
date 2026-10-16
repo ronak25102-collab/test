@@ -400,6 +400,12 @@ class Store:
                     continue
             return reports
 
+    def run_history(self, limit=12):
+        with self.session_factory() as session:
+            identifiers = session.scalars(select(ResearchRunModel.id).order_by(
+                ResearchRunModel.created_at.desc(), ResearchRunModel.id.desc()).limit(limit)).all()
+        return [summary for identifier in identifiers if (summary := self.get_summary(identifier))]
+
     def get_summary(self, run_id: UUID | str) -> RunSummary | None:
         with self.session_factory() as session:
             row = session.get(ResearchRunModel, str(run_id))

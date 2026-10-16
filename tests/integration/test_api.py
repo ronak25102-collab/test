@@ -13,6 +13,12 @@ def test_health_and_replay_run(tmp_path):
         response = client.post("/api/v1/runs", json={"company_id": company["id"], "as_of": "2026-10-08", "mode": "replay"})
         assert response.status_code == 202
         assert client.get(f"/api/v1/runs/{response.json()['run_id']}").status_code == 200
+        history = client.get('/api/v1/runs/history?limit=1')
+        assert history.status_code == 200
+        assert history.json()['items'][0]['id'] == response.json()['run_id']
+        assert history.json()['items'][0]['mode'] == 'replay'
+        assert 'api_key' not in history.text
+        assert client.get('/api/v1/runs/history?limit=0').status_code == 422
 
 
 def test_report_evidence_and_exports(tmp_path):

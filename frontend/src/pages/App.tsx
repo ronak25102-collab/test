@@ -8,6 +8,7 @@ import { Arrow, BeyondMark, Landing } from './Landing'
 import { usePageMotion } from '../usePageMotion'
 import { QueueControls } from './QueueControls'
 import { ResearchProgress } from './ResearchProgress'
+import { RunHistory } from './RunHistory'
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
 
@@ -184,6 +185,7 @@ export function App() {
         {run?.status === 'queued' && <p role="status" className="muted">Research is queued. The worker processes one run at a time; another click is not needed.</p>}
       </section>
       </details>
+      {!landingVisible && <RunHistory refreshKey={`${runId || ''}:${run?.status || ''}`} />}
       {error && <div className="error" role="alert">{error}</div>}
       {run && !report && <ResearchProgress run={run} events={events} onCancel={() => api.cancel(run.id).then(() => setPollVersion(v => v + 1)).catch(err => setError(err.message))} onResume={resume} onRestart={() => start(run.company, run.as_of, run.mode)} />}
       {report && <ResearchResult report={report} onClaim={setClaimId} key={report.run_id} />}

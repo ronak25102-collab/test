@@ -10,7 +10,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}/api/v1${path}`, init)
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new RequestError(body.message || 'Request failed', response.status)
+    throw new RequestError(body.message || body.detail?.message || (typeof body.detail === 'string' ? body.detail : 'Request failed'), response.status)
   }
   return response.json()
 }
@@ -21,6 +21,7 @@ export const api = {
   resolve: (query: string) => request<{ resolved: Company }>('/companies/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) }),
   createRun: (company_id: string, as_of: string, mode: string, idempotencyKey: string = crypto.randomUUID(), cold_start = false) => request<{ run_id: string }>('/runs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify({ company_id, as_of, mode, cold_start }) }),
   run: (id: string) => request<RunSummary>(`/runs/${id}`),
+  history: () => request<{ items: RunSummary[] }>('/runs/history'),
   events: (id: string, after = 0) => request<{ items: { sequence: number; stage: string; public_summary: string }[]; next_cursor: number }>(`/runs/${id}/events?after=${after}`),
   report: (id: string) => request<Report>(`/runs/${id}/report`),
   cancel: (id: string) => request(`/runs/${id}/cancel`, { method: 'POST' }),

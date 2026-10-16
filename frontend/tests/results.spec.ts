@@ -47,6 +47,24 @@ test('completed output prioritizes the report and filters source-bound figures w
   expect(mutations).toEqual([])
 })
 
+test('interrupted research with zero verified figures never implies a completed investigation', async ({ page }) => {
+  const interrupted = { ...result, outcome: 'partial', facts: [], calculations: [],
+    limitations: ['The final review allowance ended before verified facts were available.'] }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: interrupted }))
+  await page.goto(`/?run=${report.run_id}`)
+  const output = page.getByRole('region', { name: 'SYNTHBANK research report', exact: true })
+  await expect(output.getByRole('heading', { name: 'Investigation incomplete', exact: true })).toBeVisible()
+  await expect(output).toContainText('this incomplete investigation does not support a conclusion about the company')
+  await expect(output.getByText('No verified figures were established', { exact: true })).toBeVisible()
+  await expect(output.getByText(/The run completed/)).toHaveCount(0)
+  await expect(output.getByText(interrupted.limitations[0], { exact: true })).not.toBeVisible()
+  await output.getByText('Source access and coverage details', { exact: true }).click()
+  await expect(output.getByText(interrupted.limitations[0], { exact: true })).toBeVisible()
+  await output.evaluate(element => element.scrollIntoView({ block: 'start', behavior: 'instant' }))
+  const topbarBottom = await page.locator('.topbar').evaluate(element => element.getBoundingClientRect().bottom)
+  expect(await output.evaluate(element => element.getBoundingClientRect().top)).toBeGreaterThanOrEqual(topbarBottom)
+})
+
 test('chart points and calculation inputs open their exact evidence', async ({ page }) => {
   await page.goto(`/?run=${report.run_id}`)
   const audit = page.getByRole('region', { name: 'Research coverage and decisions', exact: true })
