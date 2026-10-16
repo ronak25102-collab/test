@@ -1195,12 +1195,12 @@ class LiveResearch:
         def collect(peer):
             research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget, settings=self.settings)
             research.peer_mode = True
-            metrics = ' '.join(dict.fromkeys(f.metric_key.replace('_', ' ') for f in facts))[:100]
-            periods = ' '.join(sorted({str(f.period_end) for f in facts if f.period_end})[-3:])
+            from signal_research.research.peers import peer_search_query
             scopes = {f.scope.value for f in facts}
             research.preferred_scope = next(iter(scopes)) if len(scopes) == 1 else None
-            scope_query = research.preferred_scope or ''
-            hits = research.search(f'"{peer.legal_name}" {scope_query} financial results balance sheet {metrics} {periods}', peer.verified_ir_domains or None)
+            hits = research.search(peer_search_query(peer, facts), peer.verified_ir_domains or None)
+            if not hits and self.budget.remaining_seconds() > self.time_reserve(180):
+                hits = research.search(peer_search_query(peer, facts, broad=True), peer.verified_ir_domains or None)
             research.ingest(hits[:2], time_reserve=self.time_reserve(150), parse_limit=25)
             research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
             return research

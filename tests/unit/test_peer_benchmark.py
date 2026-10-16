@@ -36,3 +36,20 @@ def test_peer_prompt_excludes_unverified_reports_and_bounds_exact_used_passages(
     assert '999999' not in json.dumps(context)
     assert '100' in context['evidence'][0]['passages'][0]['text']
     assert len(bundle['passages'][0]['text']) > 500000
+
+
+def test_peer_query_uses_source_labels_and_month_not_internal_names_or_iso_dates():
+    from types import SimpleNamespace
+
+    from signal_research.research.peers import peer_search_query
+    facts = [Fact(id=uuid4(), entity_id=uuid4(), metric_key=key, value_decimal=100,
+        currency='INR', unit_normalized='INR_crore', period_end='2026-06-30',
+        period_type='instant', scope='consolidated', definition_id=key+'_as_reported_v1',
+        passage_id=uuid4(), status='verified') for key in ['advances_as_reported','deposits']]
+    peer = SimpleNamespace(legal_name='Quartz Bank')
+    query = peer_search_query(peer, facts)
+    assert query.startswith('"Quartz Bank" financial results')
+    assert 'June 2026' in query and 'consolidated' in query and 'advances' in query
+    assert 'as reported' not in query and '2026-06-30' not in query
+    broad = peer_search_query(peer, facts, broad=True)
+    assert broad == '"Quartz Bank" financial results June 2026'

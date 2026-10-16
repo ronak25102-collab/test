@@ -4,7 +4,25 @@ from statistics import median
 
 from signal_research.domain.enums import FactStatus
 from signal_research.finance.calculations import calculate, numeric_fact
+from signal_research.finance.registry import METRICS
 from signal_research.research.context import exact_excerpt
+
+
+def peer_search_query(company, target_facts, *, broad=False):
+    """Use public filing language; exact matching belongs to verification."""
+    ends = [fact.period_end for fact in target_facts if fact.period_end]
+    period = max(ends).strftime('%B %Y') if ends else ''
+    scopes = {fact.scope.value for fact in target_facts}
+    scope = next(iter(scopes)) if len(scopes) == 1 and not broad else ''
+    labels = []
+    if not broad:
+        for key in dict.fromkeys(fact.metric_key for fact in target_facts):
+            definition = METRICS.get(key)
+            if definition:
+                label = next((alias for alias in definition.aliases if '%' not in alias), definition.aliases[0])
+                labels.append(label)
+    return ' '.join(part for part in [f'"{company.legal_name}"', 'financial results', scope,
+        'balance sheet' if labels else '', ' '.join(labels[:3]), period] if part)
 
 
 def peer_model_context(benchmark):
