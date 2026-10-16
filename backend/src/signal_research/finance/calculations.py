@@ -99,7 +99,21 @@ def _deposit_borrowing_mix_change(values: list[Decimal], parameters: dict) -> De
     return _deposit_borrowing_mix(values[:2], parameters) - _deposit_borrowing_mix(values[2:], parameters)
 
 
+def _recovery_ratio(values: list[Decimal], _: dict) -> Decimal:
+    current, trough, before = values
+    if before <= trough or current < trough:
+        raise ValueError('recovery needs a pre-break level above the verified post-break trough')
+    return (current - trough) / (before - trough) * Decimal('100')
+
+
+def _recovery_mix(values: list[Decimal], parameters: dict) -> Decimal:
+    ratios = [_deposit_borrowing_mix(values[i:i + 2], parameters) for i in (0, 2, 4)]
+    return _recovery_ratio(ratios, parameters)
+
+
 FORMULAS: dict[str, tuple[str, Formula, str]] = {
+    'recovery_ratio': ('1.0', _recovery_ratio, 'percent'),
+    'recovery_ratio_funding_mix': ('1.0', _recovery_mix, 'percent'),
     "yoy_growth": ("1.0", _positive_growth, "percent"),
     "share_pct": ("1.0", _share, "percent"),
     "change_pp": ("1.0", _change_pp, "percentage_points"),
@@ -119,7 +133,7 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
 
 
 def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
-    expected = 4 if formula_id in {"growth_gap", "ldr_change", 'deposit_borrowing_mix_change'} else 2
+    expected = 6 if formula_id == 'recovery_ratio_funding_mix' else 3 if formula_id == 'recovery_ratio' else 4 if formula_id in {"growth_gap", "ldr_change", 'deposit_borrowing_mix_change'} else 2
     if len(facts) != expected:
         raise ValueError(f"{formula_id} requires {expected} facts")
     for field_name in ("entity_id", "unit", "scope", "segment", "currency", "period_type"):
@@ -127,7 +141,21 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError(f"incomparable {field_name}")
     if any(not isinstance(f.value, Decimal) or not f.value.is_finite() for f in facts):
         raise ValueError("non-finite input")
-    if formula_id == 'deposit_borrowing_mix_change':
+    if formula_id.startswith('recovery_ratio'):
+        levels = facts
+        if formula_id == 'recovery_ratio_funding_mix':
+            for i in (0, 2, 4):
+                comparable('deposit_borrowing_mix', facts[i:i + 2])
+            levels = facts[::2]
+            if len({f.definition_id for f in facts[1::2]}) != 1:
+                raise ValueError('recovery component definitions differ')
+        if len({f.metric_key for f in levels}) != 1 or len({f.definition_id for f in levels}) != 1:
+            raise ValueError('recovery metric definitions differ')
+        if levels[0].period_type != 'instant' or not (levels[0].period > levels[1].period > levels[2].period):
+            raise ValueError('recovery requires ordered current, post-break trough, pre-break stock dates')
+        if formula_id == 'recovery_ratio' and facts[0].unit != 'percent':
+            raise ValueError('recovery requires a verified ratio or percentage')
+    elif formula_id == 'deposit_borrowing_mix_change':
         comparable('deposit_borrowing_mix', facts[:2])
         comparable('deposit_borrowing_mix', facts[2:])
         if date.fromisoformat(facts[0].period) <= date.fromisoformat(facts[2].period):

@@ -5,7 +5,9 @@ def calculation_context(calculation, facts):
     by_id = {fact.id: fact for fact in facts}
     inputs = [by_id[identifier] for identifier in calculation.input_fact_ids]
     formula = calculation.formula_id
-    roles = (['first_current', 'first_prior', 'second_current', 'second_prior']
+    roles = (['current', 'post_break_trough', 'pre_break'] if formula == 'recovery_ratio' else
+             ['current_deposits', 'current_borrowings', 'trough_deposits', 'trough_borrowings', 'pre_break_deposits', 'pre_break_borrowings'] if formula == 'recovery_ratio_funding_mix' else
+             ['first_current', 'first_prior', 'second_current', 'second_prior']
              if formula in {'growth_gap', 'ldr_change'} else
              ['deposits_current', 'borrowings_current', 'deposits_prior', 'borrowings_prior']
              if formula == 'deposit_borrowing_mix_change' else

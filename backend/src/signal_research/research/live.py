@@ -59,6 +59,7 @@ from signal_research.research.brief import (
 )
 from signal_research.research.calculation_context import calculation_context
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
+from signal_research.research.headline import template_headline, validate_headline
 from signal_research.research.history import (
     comparable_series,
     has_relationship_evidence,
@@ -84,7 +85,11 @@ from signal_research.research.peer_selector import select_peers
 from signal_research.research.peers import compare_peers
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
-from signal_research.research.structural import break_calculations, detect_breaks
+from signal_research.research.structural import (
+    break_calculations,
+    detect_breaks,
+    recovery_calculations,
+)
 from signal_research.retrieval.disclosures import (
     embedded_disclosures,
     issuer_navigation,
@@ -182,6 +187,10 @@ class DiscoveryDraft(StrictModel):
     falsification: str = Field(max_length=500)
     falsification_window: str = Field(min_length=5, max_length=300)
     falsification_source: str = Field(min_length=5, max_length=300)
+
+
+class PlainHeadline(StrictModel):
+    sentence: str = Field(max_length=500)
 
 
 def cited_draft_schema(payload):
@@ -1097,6 +1106,7 @@ class LiveResearch:
             self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15)
             self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
         self.store.artifact(self.run_id, 'structural_breaks', {'events': self.structural_breaks})
+        self.calculations.extend(c for c in recovery_calculations(self.facts, self.structural_breaks) if c.id not in {v.id for v in self.calculations})
         if not self.calculations:
             return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms within comparable reporting boundaries")
@@ -1332,4 +1342,51 @@ class LiveResearch:
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
+        self.write_plain_headline(report)
         return attest_report(report)
+
+    def write_plain_headline(self, report):
+        discovery = report.discoveries[0]
+        technical = next(c for c in report.claims if c.text == discovery.discovery_sentence)
+        selected = [c for c in report.calculations if c.id in technical.calculation_ids
+                    and c.id not in break_calculations(self.structural_breaks, report.calculations)]
+        selected_facts = [f for f in report.facts if f.id in {i for c in selected for i in c.input_fact_ids}
+                          or f.id in {link.passage_or_fact_id for link in technical.evidence_links}]
+        fallback, fallback_calc = template_headline(report.company, selected_facts, selected)
+        text, method = fallback, 'verified_arithmetic_template'
+        errors = []
+        from signal_research.domain.errors import BudgetExceeded
+        from signal_research.providers.llm.codecraft_provider import CodeCraftError
+        from signal_research.providers.llm.nvidia_provider import NvidiaRequestError
+        for attempt in range(3):
+            if self.budget.remaining_seconds() < 12:
+                break
+            try:
+                response = self.calls.model(PlainHeadline, {'entity': report.company.legal_name, 'technical_detail': technical.text,
+                    'facts': [f.model_dump(mode='json') for f in selected_facts],
+                    'calculations': [calculation_context(c, selected_facts) for c in selected], 'errors': errors, 'attempt': attempt},
+                    stage='verifying', instruction='Rewrite the already reviewed finding as exactly one plain-English sentence of at most 35 words. Name the entity, the change, one or two key numbers with units, and the observed time span. No jargon or unsupported causality. Use only supplied verified numbers; preserve signs and definitions. Do not lead with a structural-break interval.')
+                errors = validate_headline(response.sentence, report.company.legal_name, selected_facts, selected)
+                if errors:
+                    continue
+                reviewed = self.calls.model(fact_review_schema(1), {'source_text': technical.text,
+                    'candidates': [{'index': 0, 'text': response.sentence}]}, stage='verifying',
+                    instruction='Check that candidate 0 is fully entailed by the already verified source_text, including its time span, numbers, comparison direction, units and qualifications. Reject new causal claims or removal of material uncertainty. Return one verdict for index 0.')
+                if len(reviewed.verdicts) == 1 and reviewed.verdicts[0].index == 0 and reviewed.verdicts[0].supported:
+                    text, method = response.sentence, 'independently_reviewed_writer'
+                    break
+                errors = ['Rewrite was not entailed by the verified technical detail.']
+            except (BudgetExceeded, CodeCraftError, NvidiaRequestError):
+                break
+        if validate_headline(text, report.company.legal_name, selected_facts, selected):
+            raise ValueError('No valid source-bound headline could be produced.')
+        claim = technical.model_copy(update={'id': uuid5(self.run_id, 'plain-headline:' + text), 'text': text})
+        claim.evidence_links = [link.model_copy(update={'claim_id': claim.id}) for link in claim.evidence_links]
+        if method == 'verified_arithmetic_template':
+            claim.calculation_ids = [fallback_calc.id]
+            claim.kind = ClaimKind.DERIVED
+        report.claims.append(claim)
+        discovery.discovery_sentence = text
+        discovery.evidence_claim_ids.append(claim.id)
+        report.generation_metadata['headline'] = {'technical_detail': technical.text, 'technical_claim_id': str(technical.id),
+            'claim_id': str(claim.id), 'method': method, 'validation_errors': errors}

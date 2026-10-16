@@ -35,6 +35,7 @@ export type Report = {
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
   generation_metadata?: {
+    headline?: { technical_detail: string; technical_claim_id: string; claim_id: string; method: string }
     novelty_rationale?: string
     temporal_reasoning?: { text: string; claim_id: string; onset_status: string }
     research_decisions?: { candidate: string; disposition: string; reason: string; published: boolean; proposed_falsification?: string; mechanism?: string; opposing_query?: string }[]
