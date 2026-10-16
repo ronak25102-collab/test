@@ -34,6 +34,7 @@ from signal_research.domain.schemas import (
     WhyItMatters,
 )
 from signal_research.evidence.duplicates import near_duplicate
+from signal_research.evidence.tiers import evidence_tier
 from signal_research.extraction.bank_tables import (
     comparative_bank_batch,
     month_end_columns,
@@ -804,6 +805,13 @@ class LiveResearch:
         report.generation_metadata['historical_cache'] = self.history_cache
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
+        best = max(self.decisions, key=lambda d: d.get('score', 0), default=None)
+        report.generation_metadata['best_candidate'] = {
+            'label': 'Not established', 'text': best['candidate'] if best and supported_percentages(best['candidate'], self.facts, self.calculations)
+            else f'Can comparable verified operating figures establish a non-obvious relationship for {self.company.legal_name}?',
+            'fact_ids': best['fact_ids'] if best else [str(f.id) for f in self.facts[:4]],
+            'calculation_ids': best['calculation_ids'] if best else [], 'missing': list(reasons),
+            'reason': best['reason'] if best else 'No candidate passed the evidence gates; this is a research question, not a discovery.'}
         report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
@@ -833,6 +841,7 @@ class LiveResearch:
 
     def record_decision(self, hypothesis, disposition, reason, passage_ids=()):
         decision = {'candidate': hypothesis.statement, 'disposition': disposition,
+                    'score': hypothesis.significance + hypothesis.novelty,
                     'reason': reason, 'fact_ids': hypothesis.fact_ids,
                     'calculation_ids': hypothesis.calculation_ids,
                     'passage_ids': list(passage_ids), 'published': False,
@@ -1388,6 +1397,18 @@ class LiveResearch:
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
         self.write_plain_headline(report)
+        peer_done = self.peer_benchmark.get('status') == 'verified'
+        supporting_passages = {p.id: p for p in self.passages}
+        supporting_docs = {d.id: d for d in self.documents}
+        issuer_only = all(supporting_docs[supporting_passages[f.passage_id].document_id].origin_family_id.startswith('issuer:') for f in self.facts)
+        strength, trace = evidence_tier(origin_families=origins,
+            non_issuer=any(not d.origin_family_id.startswith('issuer:') for d in documents),
+            peer_comparison_done=peer_done, unresolved_break=bool(self.structural_breaks) and self.now_check['status'] != 'contradicted',
+            counterargument_searched=bool(self.opposing_queries), counterargument_addressed=not challenge.unresolved,
+            issuer_only_facts=issuer_only)
+        discovery.evidence_strength = strength
+        discovery.strength_rationale = 'Evidence tier follows the displayed origin, peer, structural-break and counterargument rules.'
+        report.generation_metadata['strength_trace'] = trace
         report.generation_metadata['falsification_tests'] = observable_tests(self.facts, [c for c in self.calculations if c.id in used_calcs], self.passages, self.documents, self.cutoff, self.now_check)
         report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         return attest_report(report)
