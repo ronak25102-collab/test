@@ -115,6 +115,7 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
     'recovery_ratio': ('1.0', _recovery_ratio, 'percent'),
     'recovery_ratio_funding_mix': ('1.0', _recovery_mix, 'percent'),
     "yoy_growth": ("1.0", _positive_growth, "percent"),
+    'period_change': ('1.0', _positive_growth, 'percent'),
     "share_pct": ("1.0", _share, "percent"),
     "change_pp": ("1.0", _change_pp, "percentage_points"),
     "change_bps": ("1.0", _change_bps, "basis_points"),
@@ -169,7 +170,7 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError("growth intervals differ")
         if formula_id == "ldr_change" and [facts[0].metric_key, facts[2].metric_key] != ["gross_advances", "deposits"]:
             raise ValueError("LDR requires advances and deposits")
-    elif formula_id in {"yoy_growth", "change_pp", "change_bps", "cagr"}:
+    elif formula_id in {"yoy_growth", 'period_change', "change_pp", "change_bps", "cagr"}:
         if len({f.metric_key for f in facts}) != 1 or len({f.definition_id for f in facts}) != 1:
             raise ValueError("metric definitions differ")
         current, prior = facts if formula_id != "cagr" else list(reversed(facts))
@@ -179,14 +180,18 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError("explicit comparable dates are required") from exc
         if end <= start:
             raise ValueError("current date must follow prior date")
+        if formula_id == 'period_change' and not 80 <= (end - start).days <= 100:
+            raise ValueError('quarterly change requires adjacent quarter endpoints')
         if formula_id == "yoy_growth" and (end.month, end.day, end.year - start.year) != (start.month, start.day, 1):
             raise ValueError("year-on-year endpoints must be one year apart")
         if current.period_type == "duration":
             if not current.period_start or not prior.period_start:
                 raise ValueError("duration starts are required")
             a, b = date.fromisoformat(current.period_start), date.fromisoformat(prior.period_start)
-            if (a.month, a.day) != (b.month, b.day) or abs((end - a).days - (start - b).days) > 1:
+            if (formula_id != 'period_change' and (a.month, a.day) != (b.month, b.day)) or abs((end - a).days - (start - b).days) > (4 if formula_id == 'period_change' else 1):
                 raise ValueError("duration windows differ")
+            if formula_id == 'period_change' and not 88 <= (end - a).days <= 92:
+                raise ValueError('quarterly flow must cover three months, not year to date')
         if formula_id in {"change_pp", "change_bps"} and facts[0].unit != "percent":
             raise ValueError("percentage changes require percentage inputs")
     else:

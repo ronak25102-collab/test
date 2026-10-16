@@ -85,6 +85,7 @@ from signal_research.research.peer_selector import select_peers
 from signal_research.research.peers import compare_peers
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
+from signal_research.research.story import quarter_ends, timeline_story
 from signal_research.research.structural import (
     break_calculations,
     detect_breaks,
@@ -296,6 +297,12 @@ def derive_calculations(facts):
         if len(complete) > 2:
             prior, current = complete[0][1], complete[-1][1]
             add('deposit_borrowing_mix_change', [current['deposits'], current['borrowings'], prior['deposits'], prior['borrowings']])
+    for series in comparable_series(facts):
+        if series['cadence'] == 'quarterly':
+            by_id = {f.id: f for f in facts}
+            ordered = [by_id[o['fact_id']] for o in series['observations']]
+            for prior, current in zip(ordered, ordered[1:]):
+                add('change_pp' if current.unit_normalized == 'percent' else 'period_change', [current, prior])
     return results
 
 
@@ -789,6 +796,7 @@ class LiveResearch:
         report.generation_metadata['historical_cache'] = self.history_cache
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
+        report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         fact_passages = {f.passage_id for f in self.facts}
@@ -984,6 +992,20 @@ class LiveResearch:
         self.progress()
         return result
 
+    def collect_quarters(self):
+        targets = quarter_ends(self.cutoff)
+        for year in sorted({d.year for d in targets}, reverse=True):
+            if self.budget.remaining_seconds() <= self.analysis_reserve() or self.budget.search_calls >= self.budget.max_search_calls - 5:
+                self.limitations.append('Quarterly retrieval stopped at its allowance; missing quarters remain unverified.')
+                break
+            dates = ' '.join(d.strftime('%B %Y') for d in targets if d.year == year)
+            hits = self.search(self.focused_query(f'quarterly financial results investor presentation {dates}'), self.company.verified_ir_domains or None)
+            before, revalidated = {d.id for d in self.documents}, set(self.revalidated_documents)
+            self.ingest(hits[:2], time_reserve=self.analysis_reserve(), parse_limit=30, document_reserve=4)
+            self.extract(limit=2, historical=True, preferred_document_ids=({d.id for d in self.documents} - before) | (self.revalidated_documents - revalidated))
+        verified = {f.period_end for f in self.facts}
+        self.store.artifact(self.run_id, 'quarterly_coverage', {'requested': [str(d) for d in targets], 'missing': [str(d) for d in targets if d not in verified]})
+
     def collect_peer_benchmark(self, hypothesis):
         selected = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
         facts = [f for f in self.facts if f.id in selected]
@@ -1098,6 +1120,7 @@ class LiveResearch:
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
         self.collect_operating_metrics()
+        self.collect_quarters()
         self.collect_history()
         self.collect_sector_context(peers)
         self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
@@ -1343,6 +1366,7 @@ class LiveResearch:
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
         self.write_plain_headline(report)
+        report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         return attest_report(report)
 
     def write_plain_headline(self, report):

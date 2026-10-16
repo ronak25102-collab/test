@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
 import type { Fact, Report } from '../api/generated'
+import { TimelineStory } from './TimelineStory'
 import { API_BASE } from '../api/client'
 import { Arrow } from './Landing'
 import { ResearchAudit } from './ResearchAudit'
@@ -73,6 +74,7 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
         <SubmissionBrief report={report} />
         {discovery && <div className="report-why"><h3>Why it matters</h3><ul className="linked-list">{discovery.why_it_matters.map(item => <li key={item.claim_id}><button onClick={() => onClaim(item.claim_id)}>{item.text}<Arrow diagonal /></button></li>)}</ul></div>}
         <ResearchAudit report={report} onFact={setSelectedFact} />
+        <TimelineStory report={report} onFact={setSelectedFact} />
         {report.generation_metadata?.temporal_reasoning && <section className="report-why"><h3>When the relationship emerged</h3><p>{report.generation_metadata.temporal_reasoning.text}</p><p className="muted">Onset: {report.generation_metadata.temporal_reasoning.onset_status}</p><button onClick={() => onClaim(report.generation_metadata!.temporal_reasoning!.claim_id)}>Inspect timeline evidence <Arrow diagonal /></button></section>}
       </section>
       <section className="report-section report-reveal" id="report-figures" aria-labelledby={`${id}-figures`}><div className="report-section-title"><div><span className="section-kicker">02 / SOURCE-BOUND FIGURES</span><h3 id={`${id}-figures`}>Verified source figures</h3></div><span>{report.facts.length} figures to explore</span></div>
