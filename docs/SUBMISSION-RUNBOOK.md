@@ -8,7 +8,8 @@ only when its evidence gates pass. The green and beige dashboard exposes the tra
 **Read the measured acceptance audit before presenting a result.** Tests and
 synthetic replay demonstrate software behavior; they are not proof of a live
 financial discovery. A partial run or “Not established” candidate is not a verified
-finding. A five-minute cold success is a target, not a guarantee. Consult
+finding. Live research now allows ten minutes; earlier five-minute validation
+records do not establish success under the new budget. Consult
 [the release acceptance record](RELEASE-ACCEPTANCE.md) and
 [recorded cold regression results](../reports/regression-final.md) for measured outcomes.
 
@@ -103,7 +104,7 @@ Do not work around a readiness failure by removing numerical or cost checks.
    rehearsal that must not reuse historical facts. Cold start still uses the
    exchange directory and the same generic metric definitions.
 2. Start once. The progress display shows stages and elapsed time. Live mode is
-   bounded by the 300-second demo target; it may finish with partial evidence.
+   bounded by the 600-second Live ceiling; it may finish with partial evidence.
    Deep mode uses the longer configured run ceiling and is clearly outside that
    target. Do not describe a Deep run as a five-minute cold run.
 3. Lead with the one-sentence discovery and strength rule trace. Explain the

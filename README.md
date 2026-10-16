@@ -115,9 +115,9 @@ services were enabled during validation.
 
 The current `.env.example` uses free NVIDIA Nemotron Super for both roles and
 Tavily advanced search within its included allowance. Live mode targets a maximum
-of 300 seconds, including a reserved analysis window. A completed partial report
+of 600 seconds (ten minutes), including a reserved analysis window. A completed partial report
 is not a successful discovery. Deep mode can use a longer configured deadline
-and is explicitly outside the five-minute demo budget. SYNTHBANK remains synthetic.
+and is explicitly outside the ten-minute Live budget. SYNTHBANK remains synthetic.
 
 ## Local setup / WSL
 
@@ -196,7 +196,7 @@ runs use the new allowance, while existing durable request plans stay unchanged.
 The extended `.env.example` profile allows 65536 tokens per response, 5000000
 input and 5000000 output tokens per run, 200 model calls, 100 searches, 100
 document downloads and 50 OCR pages. It allows 900 seconds per model request
-within the configured run deadline; Live mode still caps its target at 300 seconds. The template retains `FREE_SERVICES_ONLY=true` and
+within the configured run deadline; Live mode caps its target at 600 seconds. The template retains `FREE_SERVICES_ONLY=true` and
 `MAX_RUN_COST_USD=0`; for CodeCraft, set `FREE_SERVICES_ONLY=false` and
 `MAX_RUN_COST_USD=100` in your private `.env`. These are maximum allowances,
 not promised usage or provider entitlements. CodeCraft's
@@ -244,10 +244,10 @@ the server keeps sending heartbeat chunks. A timeout remains an uncertain call
 and is not resubmitted automatically. The error message identifies this limit.
 Independent fact reviews have an exact verdict count and short explanations to
 prevent runaway generation; duplicate or missing candidate indices are rejected.
-The example targets `MAX_RUN_SECONDS=300`, with separate per-stage request budgets
+The example targets `MAX_RUN_SECONDS=600`, with separate per-stage request budgets
 and a model-request ceiling. A completed abstention is not a successful
 discovery; see docs/LIVE-RESULTS.md and docs/READINESS.md. Longer research can be
-configured explicitly in Deep mode but does not meet the five-minute live-demo target.
+configured explicitly in Deep mode beyond the ten-minute Live ceiling. Earlier five-minute validation records retain their original budgets and outcomes.
 Run `scripts/configure_free.py` to verify access and generate the private card
 when using the [free NVIDIA Developer Program prototype API](https://docs.api.nvidia.com/nim/docs/run-anywhere).
 The example card is illustrative; it does not establish your account entitlement.
