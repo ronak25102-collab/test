@@ -20,6 +20,7 @@ export function App() {
   const [selected, setSelected] = useState<Company | null>(null)
   const [asOf, setAsOf] = useState(today)
   const [mode, setMode] = useState('live')
+  const [coldStart, setColdStart] = useState(false)
   const [runId, setRunId] = useState<string | null>(new URLSearchParams(location.search).get('run'))
   const [run, setRun] = useState<RunSummary | null>(null)
   const [report, setReport] = useState<Report | null>(null)
@@ -145,13 +146,13 @@ export function App() {
   async function start(company: Company | null = selected, cutoff = asOf, runMode = mode) {
     if (!company || creatingRun.current || runPending) return
     creatingRun.current = true
-    const signature = JSON.stringify([company.id, cutoff, runMode])
+    const signature = JSON.stringify([company.id, cutoff, runMode, coldStart])
     if (pendingCreation.current?.signature !== signature) pendingCreation.current = { signature, key: crypto.randomUUID() }
     const previousRun = run
     const previousReport = report
     setBusy(true); setError(''); setRun(null); setClaimId(null); setReport(null); setEvents([])
     try {
-      const result = await api.createRun(company.id, cutoff, runMode, pendingCreation.current.key)
+      const result = await api.createRun(company.id, cutoff, runMode, pendingCreation.current.key, coldStart)
       pendingCreation.current = null
       revealNewRun.current = true
       setLandingVisible(false)
@@ -177,7 +178,7 @@ export function App() {
         <div className="company-results">{companies.slice(0, 5).map((company) => <button key={company.id} className={selected?.id === company.id ? 'company selected' : 'company'} onClick={() => setSelected(company)}><strong>{company.legal_name}</strong><span>{company.symbols.join(' · ')} · {company.business_profiles.join(', ')}</span></button>)}</div>
         <div className="resolve-line"><button className="quiet" disabled={busy || !query.trim()} onClick={resolveCompany}>Resolve from exchange directory</button><span>Search by company name or NSE symbol.</span></div>
         {mode !== 'replay' && configuration?.ready === false && <div className="error" role="status"><strong>Live research needs configuration.</strong> {configuration.issues.join(' ')} Replay remains available for SYNTHBANK.</div>}
-        {mode !== 'replay' && configuration?.ready === true && configuration.demo_time_warning && <p className="muted">The configured research time limit exceeds eight minutes. Measure live runtime before the demo.</p>}
+        {mode !== 'replay' && <label className="cold-start-control"><input type="checkbox" checked={coldStart} onChange={e => setColdStart(e.target.checked)} /> Cold start rehearsal · disable historical fact reuse</label>}
         <div className="research-launch"><button className="primary" disabled={!selected || busy || runPending || (mode !== 'replay' && configuration?.ready === false)} onClick={() => start()}>{busy ? 'Preparing research…' : 'Start autonomous research'} <Arrow /></button><span>Original sources. Visible reasoning.<br />Conclusions that earn their place.</span></div>
         {run?.status === 'queued' && <p role="status" className="muted">Research is queued. The worker processes one run at a time; another click is not needed.</p>}
       </section>

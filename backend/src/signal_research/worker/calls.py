@@ -180,7 +180,8 @@ class DurableCalls:
         cost = (inputs * rate.get("input_usd_per_million_tokens", 0) + outputs * rate.get("output_usd_per_million_tokens", 0)) / 1_000_000
         def request():
             try:
-                output, usage = adapter.generate(schema, messages, role, timedelta(seconds=min(settings.model_request_timeout_seconds, self.budget.remaining_seconds())), outputs)
+                output, usage = adapter.generate(schema, messages, role, timedelta(seconds=min(settings.model_request_timeout_seconds,
+                    settings.stage_request_seconds.get(stage, settings.model_request_timeout_seconds), self.budget.remaining_seconds())), outputs)
             except CodeCraftCreditsExhausted:
                 self.budget.release_rejected_model(inputs, outputs, cost)
                 raise

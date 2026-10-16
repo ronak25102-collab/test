@@ -60,7 +60,8 @@ class ResearchMachine:
         saved = summary.budget
         limits = saved.get("limits", {})
         started = summary.started_at.replace(tzinfo=UTC) if summary.started_at.tzinfo is None else summary.started_at
-        deadline = datetime.fromisoformat(saved["deadline"]) if saved.get("deadline") else started + timedelta(seconds=self.settings.max_run_seconds)
+        duration = min(self.settings.max_run_seconds, self.settings.demo_target_seconds) if summary.mode == RunMode.LIVE else self.settings.max_run_seconds
+        deadline = datetime.fromisoformat(saved["deadline"]) if saved.get("deadline") else started + timedelta(seconds=duration)
         budget = Budget(**{k: limits.get(k, getattr(self.settings, k)) for k in ("max_search_calls", "max_fetch_documents", "max_model_calls", "max_ocr_pages", "max_input_tokens", "max_output_tokens")},
                         max_cost_usd=limits.get("max_cost_usd", self.settings.max_run_cost_usd), deadline=deadline,
                         **{k: saved.get(k, 0) for k in ("search_calls", "fetch_documents", "model_calls", "ocr_pages", "input_tokens", "output_tokens", "reserved_cost_usd")},
@@ -145,7 +146,10 @@ class ResearchMachine:
         from signal_research.providers.search.account import FreeQuotaUnavailable
         from signal_research.research.live import LiveResearch
         from signal_research.worker.calls import UncertainCall
+        run_settings = self.settings.model_copy(update={'cold_start': self.settings.cold_start or self.store.get_summary(run_id).cold_start})
         research = LiveResearch(self, run_id, company, as_of, budget)
+        research.settings = run_settings
+        research.calls.settings = run_settings
         try:
             return research.run(plan)
         except BudgetExceeded as exc:

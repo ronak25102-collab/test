@@ -341,11 +341,12 @@ class LiveResearch:
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
-        return min(seconds, self.settings.max_run_seconds * seconds / 900)
+        duration = min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
+        return min(seconds, duration * seconds / 900)
 
     def analysis_reserve(self):
         """Reserve a real reasoning window, not just one last provider response."""
-        return min(240, self.settings.max_run_seconds * .45)
+        return min(240, min(self.settings.max_run_seconds, self.settings.demo_target_seconds) * .45)
 
     def stage(self, status, summary):
         from signal_research.domain.enums import RunStatus
@@ -377,6 +378,21 @@ class LiveResearch:
 
     def ingest(self, hits, *, time_reserve=0, parse_limit=None, stop_when_balance_ready=False,
                stop_when_financial_ready=False, document_reserve=0):
+        from concurrent.futures import ThreadPoolExecutor
+        candidates = list({hit.url: hit for hit in hits if hit.url not in self.seen_urls}.values())
+        count = min(len(candidates), self.settings.max_fetch_concurrency,
+                    max(0, self.budget.max_fetch_documents - document_reserve - self.budget.fetch_documents))
+        def prefetch(hit):
+            fetcher = PublicFetcher(self.settings.data_dir, min(self.settings.source_request_timeout_seconds,
+                max(.1, self.budget.remaining_seconds() - time_reserve)), self.settings.max_source_bytes)
+            return self.calls.invoke(['fetch', hit.url], 'fetching', lambda: self.budget.reserve('fetch_documents'),
+                lambda: (fetcher.fetch(hit.url), {'provider': 'public_http'}), asdict, lambda p: FetchResult(**p))
+        prefetched = {}
+        if count and self.budget.remaining_seconds() > time_reserve:
+            with ThreadPoolExecutor(max_workers=count) as pool:
+                futures = {hit.url: pool.submit(prefetch, hit) for hit in candidates[:count]}
+                for url, future in futures.items():
+                    prefetched[url] = future.result()
         queue = [(hit, 0) for hit in hits]
         while queue:
             hit, depth = queue.pop(0)
@@ -389,11 +405,11 @@ class LiveResearch:
             if hit.url in self.seen_urls:
                 continue
             self.seen_urls.add(hit.url)
-            if self.budget.fetch_documents >= self.budget.max_fetch_documents - document_reserve:
+            if hit.url not in prefetched and self.budget.fetch_documents >= self.budget.max_fetch_documents - document_reserve:
                 self.limitations.append("Document cap reached; remaining source leads were withheld.")
                 break
             fetcher = PublicFetcher(self.settings.data_dir, min(self.settings.source_request_timeout_seconds, max(.1, self.budget.remaining_seconds() - time_reserve)), self.settings.max_source_bytes)
-            fetched = self.calls.invoke(["fetch", hit.url], "fetching", lambda: self.budget.reserve("fetch_documents"),
+            fetched = prefetched[hit.url] if hit.url in prefetched else self.calls.invoke(["fetch", hit.url], "fetching", lambda: self.budget.reserve("fetch_documents"),
                                         lambda: (fetcher.fetch(hit.url), {"provider": "public_http"}), asdict, lambda p: FetchResult(**p))
             if not fetched.local_path or not fetched.body_hash:
                 self.limitations.append(f"Source unavailable: {hit.url}: {fetched.error}")
@@ -526,7 +542,10 @@ class LiveResearch:
     def progress(self, checks=None):
         if self.peer_mode:
             return
-        self.store.update_run(self.run_id, progress={"sources_found": len(self.seen_urls), "documents_parsed": len(self.documents), "calculations_completed": len(self.calculations), "counterevidence_checks": len(self.challenge_reviews)})
+        reused = {identifier for item in self.history_cache for identifier in item['fact_ids']}
+        self.store.update_run(self.run_id, progress={"sources_found": len(self.seen_urls), "documents_parsed": len(self.documents), 'facts_verified': len(self.facts),
+            'facts_reused': sum(str(f.id) in reused for f in self.facts), 'facts_fresh': sum(str(f.id) not in reused for f in self.facts),
+            "calculations_completed": len(self.calculations), "counterevidence_checks": len(self.challenge_reviews)})
 
     def financial_passage(self, passage):
         aliases = [alias for metric in metrics_for_profile(self.company.business_profiles[0])
@@ -813,6 +832,8 @@ class LiveResearch:
         report.generation_metadata['opposing_queries'] = self.opposing_queries
         report.generation_metadata['context_searches'] = self.context_searches
         report.generation_metadata['historical_cache'] = self.history_cache
+        reused_ids = {identifier for entry in self.history_cache for identifier in entry['fact_ids']}
+        report.generation_metadata['cache_usage'] = {'cold_start': self.settings.cold_start, 'reused': sum(str(f.id) in reused_ids for f in self.facts), 'fresh': sum(str(f.id) not in reused_ids for f in self.facts)}
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         best = max(self.decisions, key=lambda d: d.get('score', 0), default=None)
@@ -1076,13 +1097,9 @@ class LiveResearch:
         selected = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
         facts = [f for f in self.facts if f.id in selected]
         peers = select_peers(self.company, self.store.search_companies(''), self.company.business_profiles[0])
+        from concurrent.futures import ThreadPoolExecutor, as_completed
         observations, bundles, errors = [], [], []
-        for peer in peers.peers:
-            if (self.budget.remaining_seconds() < self.time_reserve(180)
-                    or self.budget.search_calls >= self.budget.max_search_calls - 2
-                    or self.budget.model_calls >= self.budget.max_model_calls - 4):
-                errors.append('Peer collection deferred to preserve final review allowance.')
-                break
+        def collect(peer):
             research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget)
             research.peer_mode = True
             metrics = ' '.join(dict.fromkeys(f.metric_key.replace('_', ' ') for f in facts))[:100]
@@ -1090,11 +1107,23 @@ class LiveResearch:
             hits = research.search(f'"{peer.legal_name}" financial results {metrics} {periods}', peer.verified_ir_domains or None)
             research.ingest(hits[:2], time_reserve=self.time_reserve(150), parse_limit=25)
             research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
-            observations.extend(research.facts)
-            bundles.append({'company': peer.model_dump(mode='json'), 'facts': [f.model_dump(mode='json') for f in research.facts],
+            return research
+        if self.budget.remaining_seconds() > self.time_reserve(180):
+            with ThreadPoolExecutor(max_workers=3) as pool:
+                futures = [pool.submit(collect, peer) for peer in peers.peers]
+                for future in as_completed(futures):
+                    try:
+                        research = future.result()
+                        observations.extend(research.facts)
+                        bundles.append({'company': research.company.model_dump(mode='json'),
+                            'facts': [f.model_dump(mode='json') for f in research.facts],
                             'passages': [p.model_dump(mode='json') for p in research.passages],
                             'documents': [d.model_dump(mode='json') for d in research.documents]})
-            errors.extend(research.limitations)
+                        errors.extend(research.limitations)
+                    except Exception as exc:
+                        errors.append('Peer evidence incomplete: ' + type(exc).__name__)
+        else:
+            errors.append('Peer collection deferred to preserve final review allowance.')
         self.peer_benchmark = compare_peers(facts, observations) | {'sources': bundles, 'limitations': errors}
         self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
 
@@ -1435,6 +1464,8 @@ class LiveResearch:
                                                           'claim_id': claims[-2].id,
                                                           'onset_status': draft.onset_status}
         report.generation_metadata['historical_cache'] = self.history_cache
+        reused_ids = {identifier for entry in self.history_cache for identifier in entry['fact_ids']}
+        report.generation_metadata['cache_usage'] = {'cold_start': self.settings.cold_start, 'reused': sum(str(f.id) in reused_ids for f in self.facts), 'fresh': sum(str(f.id) not in reused_ids for f in self.facts)}
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)

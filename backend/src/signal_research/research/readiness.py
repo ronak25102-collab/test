@@ -42,9 +42,9 @@ def live_readiness(settings) -> dict:
                           else "The model rate card is unreadable or malformed.")
     return {"ready": not issues, "issues": issues,
             "provider": settings.llm_provider,
-            "max_run_seconds": settings.max_run_seconds,
+            "max_run_seconds": min(settings.max_run_seconds, settings.demo_target_seconds),
             "model_request_timeout_seconds": settings.model_request_timeout_seconds,
             "codecraft_backup_keys": max(0, len([slot for slot, _ in settings.model_routes() if slot.startswith("codecraft:")]) - 1),
             "nvidia_fallback_enabled": nvidia_fallback,
             "cost_policy": "unknown prices; hard limits only" if settings.allow_unknown_cost else "account rate card",
-            "demo_time_warning": settings.max_run_seconds > 480}
+            "demo_time_warning": False}

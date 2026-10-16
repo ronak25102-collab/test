@@ -27,6 +27,10 @@ function FinanceIcon({ phase }: { phase: number }) {
 
 function MoneyJourney({ run, events }: { run: RunSummary; events: RunEvent[] }) {
   const [inspectedPhase, setInspectedPhase] = useState<number | null>(null)
+  const [clock, setClock] = useState(Date.now())
+  useEffect(() => { const timer = window.setInterval(() => setClock(Date.now()), 1000); return () => window.clearInterval(timer) }, [])
+  const timestamp = (value: string) => Date.parse(/[zZ]|[+-]\d\d:\d\d$/.test(value) ? value : value + 'Z')
+  const elapsed = run.started_at ? Math.max(0, Math.floor(((run.ended_at ? timestamp(run.ended_at) : clock) - timestamp(run.started_at)) / 1000)) : 0
   const id = useId()
   const scene = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -57,6 +61,7 @@ function MoneyJourney({ run, events }: { run: RunSummary; events: RunEvent[] }) 
 
   return <div className={`money-journey ${moving ? 'journey-moving' : 'journey-still'} ${stopped ? 'journey-stopped' : ''}`}>
     <div className="journey-heading"><div><span className="journey-kicker">FOLLOW THE EVIDENCE</span><h3>Following the money.<br /><span>Checking the story.</span></h3></div><span className="journey-live"><i />{state}</span></div>
+    <p className="journey-live-metrics" role="status">Stage: {run.stage} · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')} elapsed · {run.progress.facts_verified || 0} facts verified · {run.progress.facts_reused || 0} reused / {run.progress.facts_fresh || 0} fresh</p>
     <div className="journey-caption" aria-live="polite"><strong>{caption}</strong><span>{run.company.legal_name} · {run.mode === 'replay' ? 'Synthetic replay' : 'Public financial research'}</span></div>
     <div className="finance-scene" aria-hidden="true" ref={scene}>
       <svg viewBox="0 0 960 280" fill="none">

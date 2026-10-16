@@ -286,6 +286,7 @@ class RunCreate(StrictModel):
     company_id: UUID
     as_of: date
     mode: RunMode = RunMode.LIVE
+    cold_start: bool = False
 
 
 class ResolveRequest(StrictModel):
@@ -297,6 +298,7 @@ class RunSummary(StrictModel):
     company: Company
     as_of: date
     mode: RunMode
+    cold_start: bool = False
     status: RunStatus
     outcome: ResearchOutcome | None = None
     stage: str

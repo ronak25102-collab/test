@@ -38,7 +38,9 @@ class Settings(BaseSettings):
     tavily_search_depth: Literal["basic", "advanced"] = "basic"
     research_mode: str = "live"
     cold_start: bool = False
-    max_run_seconds: int = 420
+    max_run_seconds: int = 300
+    demo_target_seconds: int = Field(default=300, ge=30, le=300)
+    stage_request_seconds: dict[str, float] = Field(default_factory=lambda: {'extracting': 55, 'normalizing': 55, 'hypothesizing': 35, 'challenging': 35, 'composing': 40, 'verifying': 40})
     max_search_calls: int = 30
     max_fetch_documents: int = 30
     max_model_calls: int = 50

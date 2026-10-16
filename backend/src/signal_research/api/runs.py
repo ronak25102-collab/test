@@ -43,7 +43,7 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
             raise HTTPException(status_code=503, detail={"code": "LIVE_CONFIGURATION_INCOMPLETE",
                 "message": " ".join(readiness["issues"]), "issues": readiness["issues"]})
     try:
-        run_id = store.create_run(company, request.as_of, request.mode, idempotency_key)
+        run_id = store.create_run(company, request.as_of, request.mode, idempotency_key, cold_start=request.cold_start)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(exc)})
     response.headers["Location"] = f"/api/v1/runs/{run_id}"

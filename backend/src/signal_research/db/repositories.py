@@ -193,19 +193,21 @@ class Store:
             row = session.get(CompanyModel, str(company_id))
             return company_schema(row) if row else None
 
-    def create_run(self, company: Company, as_of: date, mode: RunMode, idempotency_key: str | None = None) -> UUID:
+    def create_run(self, company: Company, as_of: date, mode: RunMode, idempotency_key: str | None = None, cold_start: bool = False) -> UUID:
         with self.session_factory() as session:
             if idempotency_key:
                 existing = session.scalar(select(ResearchRunModel).where(ResearchRunModel.idempotency_key == idempotency_key))
                 if existing:
                     if (existing.company_id, existing.as_of, existing.mode) != (str(company.id), as_of, mode.value):
                         raise ValueError("idempotency key already belongs to a different request")
+                    if bool((existing.config_json or {}).get('cold_start', False)) != cold_start:
+                        raise ValueError('idempotency key already belongs to a different cache policy')
                     return UUID(existing.id)
             run_id = uuid4()
             row = ResearchRunModel(
                 id=str(run_id), company_id=str(company.id), as_of=as_of, mode=mode.value,
                 status=RunStatus.QUEUED.value, stage=RunStatus.QUEUED.value,
-                config_json={"schema_version": "1.0", "mode": mode.value},
+                config_json={"schema_version": "1.0", "mode": mode.value, 'cold_start': cold_start},
                 budget_json={"search_calls": 0, "fetch_documents": 0, "model_calls": 0, "ocr_pages": 0},
                 progress_json={"sources_found": 0, "documents_parsed": 0, "calculations_completed": 0, "counterevidence_checks": 0},
                 limitations=[], idempotency_key=idempotency_key,
@@ -408,7 +410,7 @@ class Store:
                 id=UUID(row.id), company=company_schema(company), as_of=row.as_of, mode=row.mode,
                 status=row.status, outcome=row.outcome, stage=row.stage, progress=row.progress_json or {},
                 budget=row.budget_json or {}, limitations=row.limitations or [], started_at=row.started_at,
-                ended_at=row.ended_at,
+                ended_at=row.ended_at, cold_start=bool((row.config_json or {}).get('cold_start', False)),
             )
 
     def get_events(self, run_id: UUID | str, after: int = 0) -> list[RunEvent]:

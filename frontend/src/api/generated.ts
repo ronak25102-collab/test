@@ -6,6 +6,9 @@ export type Company = {
 }
 
 export type RunSummary = {
+  cold_start?: boolean
+  started_at?: string
+  ended_at?: string
   id: string
   company: Company
   as_of: string
@@ -35,6 +38,7 @@ export type Report = {
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
   generation_metadata?: {
+    cache_usage?: { cold_start: boolean; reused: number; fresh: number }
     strength_trace?: { rating: string; rules: Record<string, boolean>; caps: string[]; origin_families: string[]; note: string }
     best_candidate?: { label: string; text: string; fact_ids: string[]; calculation_ids: string[]; missing: string[]; reason: string }
     falsification_tests?: { cadence: { expected_disclosure_date?: string; confidence: string; note: string; missing: string[] }; conditions: { kind: string; metric: string; operator: string; threshold: string; unit: string; window?: string; expected_disclosure_date?: string; source_type: string; checkable_now: boolean; status: string; reason?: string; passage_ids?: string[]; interpretation?: string }[] }
