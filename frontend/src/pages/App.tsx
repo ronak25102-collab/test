@@ -100,6 +100,7 @@ export function App() {
           setQuery(current.company.symbols[0] || current.company.legal_name)
           setCompanies([current.company]); setSelected(current.company)
           setAsOf(current.as_of); setMode(current.mode)
+          setColdStart(Boolean(current.cold_start))
         }
         const eventData = await api.events(runId)
         setEvents(eventData.items)
@@ -174,7 +175,7 @@ export function App() {
       <details className={`research-setup ${report ? 'setup-collapsible' : ''}`} open={!report || undefined}><summary className="setup-summary"><span className="setup-symbol">↳</span><span><strong>Investigation settings</strong><small>{report?.company.legal_name} · Cutoff {report?.cutoff} · {report?.source_coverage.mode as string}</small></span><span className="setup-toggle">Adjust setup <span>+</span></span></summary>
       <section className="control-card" aria-labelledby="start-heading">
         <div className="control-heading"><span className="control-number">01</span><div><span className="eyebrow">SET THE DIRECTION</span><h2 id="start-heading" tabIndex={-1}>Investigate a listed financial business</h2><p className="muted">Choose the company, define your cutoff, and follow the evidence.</p></div></div>
-        <div className="form-grid"><label>Company search<input value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null) }} placeholder="Name or exchange symbol" /></label><label>Cutoff date<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><label>Mode<select value={mode} onChange={(e) => setMode(e.target.value)}><option value="replay">Replay · synthetic fixture</option><option value="live">Live · public sources</option><option value="deep">Deep · more candidates, same caps</option></select></label></div>
+        <div className="form-grid"><label>Company search<input value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null) }} placeholder="Name or exchange symbol" /></label><label>Cutoff date<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><label>Mode<select value={mode} onChange={(e) => setMode(e.target.value)}><option value="replay">Replay · synthetic fixture</option><option value="live">Live · public sources</option><option value="deep">Deep · extended research, outside demo budget</option></select></label></div>
         <div className="company-results">{companies.slice(0, 5).map((company) => <button key={company.id} className={selected?.id === company.id ? 'company selected' : 'company'} onClick={() => setSelected(company)}><strong>{company.legal_name}</strong><span>{company.symbols.join(' · ')} · {company.business_profiles.join(', ')}</span></button>)}</div>
         <div className="resolve-line"><button className="quiet" disabled={busy || !query.trim()} onClick={resolveCompany}>Resolve from exchange directory</button><span>Search by company name or NSE symbol.</span></div>
         {mode !== 'replay' && configuration?.ready === false && <div className="error" role="status"><strong>Live research needs configuration.</strong> {configuration.issues.join(' ')} Replay remains available for SYNTHBANK.</div>}

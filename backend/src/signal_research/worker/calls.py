@@ -27,6 +27,7 @@ class DurableCalls:
     """Persist before requests; fail over only after explicit credit rejection."""
     def __init__(self, store, settings, run_id, budget):
         self.store, self.settings, self.run_id, self.budget = store, settings, run_id, budget
+        self.deadline_reserve_seconds = 0
         self.rates = {}
         if settings.model_rate_card_path.exists():
             self.rates = {r["model_id"]: r for r in json.loads(settings.model_rate_card_path.read_text(encoding="utf-8-sig"))["models"]}
@@ -90,9 +91,14 @@ class DurableCalls:
                            lambda hits: [asdict(hit) for hit in hits], decode)
 
     def model(self, schema, payload, role="research", stage="investigating", instruction=""):
-        routes = self.settings.model_routes()
+        routes = self.settings.routes_for_stage(role, stage)
         if len(routes) <= 1:
-            return self._model(schema, payload, role, stage, instruction, self.settings)
+            settings = routes[0][1] if routes else self.settings
+            if self.settings.nvidia_planning and not settings.llm_configured:
+                raise ProviderNotConfigured('The selected model route requires credentials and both model roles')
+            if self.settings.nvidia_planning and not settings.allow_unknown_cost and settings.model_for_role(role) not in self.rates:
+                raise ProviderNotConfigured('The selected model route is missing from the account rate card')
+            return self._model(schema, payload, role, stage, instruction, settings)
         signature = cache_key([(slot, settings.llm_provider, settings.model_for_role("research"),
                                settings.model_for_role("extract")) for slot, settings in routes])
         operation = f"modelroute:{cache_key([signature, schema.model_json_schema(), payload, role, stage, instruction])}"
@@ -181,7 +187,7 @@ class DurableCalls:
         def request():
             try:
                 output, usage = adapter.generate(schema, messages, role, timedelta(seconds=min(settings.model_request_timeout_seconds,
-                    settings.stage_request_seconds.get(stage, settings.model_request_timeout_seconds), self.budget.remaining_seconds())), outputs)
+                    settings.stage_request_seconds.get(stage, settings.model_request_timeout_seconds), max(.1, self.budget.remaining_seconds() - self.deadline_reserve_seconds))), outputs)
             except CodeCraftCreditsExhausted:
                 self.budget.release_rejected_model(inputs, outputs, cost)
                 raise

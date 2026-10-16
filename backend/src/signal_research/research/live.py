@@ -60,6 +60,7 @@ from signal_research.research.brief import (
     submission_checklist,
 )
 from signal_research.research.calculation_context import calculation_context
+from signal_research.research.claim_numbers import supported_numbers
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
 from signal_research.research.falsification import observable_tests
 from signal_research.research.headline import template_headline, validate_headline
@@ -333,6 +334,7 @@ class LiveResearch:
         self.context_searches = []
         self.draft_feedback = None
         self.extraction_paused = False
+        self.extraction_deadline_reserve = 0
         self.history_cache = []
         self.plan_questions = []
         self.revalidated_documents = set()
@@ -509,7 +511,8 @@ class LiveResearch:
             own_host = any(domain_matches(portal_host, d) for d in self.company.verified_ir_domains)
             exchange_host = any(domain_matches(portal_host, d) for d in ('nseindia.com', 'bseindia.com'))
             original_filing = bool(re.search(r'annual\s+report|statement\s+of\s+(?:assets|financial)|audited\s+financial\s+results|integrated\s+filing', cover_text[:5000], re.I))
-            if identified and original_filing and not own_host and not exchange_host and raw.startswith(b'%PDF'):
+            external_analysis = bool(re.search(r'equity\s+research|research\s+(?:report|analyst)|target\s+price|rating\s+(?:rationale|action)|ratings?\s+(?:reaffirmed|assigned)', cover_text[:5000], re.I))
+            if identified and original_filing and not external_analysis and not own_host and not exchange_host and raw.startswith(b'%PDF'):
                 publisher, origin, kind = self.company.legal_name, f'issuer:{self.company.id}', 'issuer_mirror'
                 self.limitations.append(f'Third-party mirror: {hit.url}. Original issuer origin retained; this is not independent corroboration.')
             if raw.startswith(b"%PDF") and kind.startswith("issuer") and not identified:
@@ -572,6 +575,8 @@ class LiveResearch:
             NvidiaTimeout,
         )
 
+        previous_reserve = self.calls.deadline_reserve_seconds
+        self.calls.deadline_reserve_seconds = self.extraction_deadline_reserve
         try:
             return self.calls.model(schema, payload, *args)
         except (CodeCraftTimeout, NvidiaTimeout) as exc:
@@ -597,8 +602,11 @@ class LiveResearch:
                 'reason': str(exc), 'action': 'source withheld; request not retried'})
             self.limitations.append(f"Extraction response withheld: {exc}; this source request was not retried.")
             return None
+        finally:
+            self.calls.deadline_reserve_seconds = previous_reserve
 
     def extract(self, limit=4, *, preferred_document_ids=None, historical=False, focus_metrics=()):
+        self.extraction_deadline_reserve = self.analysis_reserve() if historical or focus_metrics else 0
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
         focus = [metric for metric in metrics if metric.key in focus_metrics]
@@ -833,13 +841,14 @@ class LiveResearch:
         used = list({(call["provider"], call["model"]): None for call in self.store.provider_calls(self.run_id)
                      if call["model"] and call["status"] == "ok"})
         return {"configured_provider": self.settings.llm_provider,
+                "routing": "nvidia_planning_configured_review" if self.settings.nvidia_planning else "configured",
                 "configured_model_id": self.settings.model_for_role("research"),
                 "models_used": [{"provider": provider, "model_id": model} for provider, model in used],
                 "provider": (used[0][0] if len({p for p, _ in used}) == 1 else "mixed") if used else self.settings.llm_provider,
                 "model_id": used[0][1] if len(used) == 1 else None}
 
     def abstain(self, reasons):
-        report = build_abstention(self.run_id, self.company, self.cutoff, self.documents, self.passages, self.facts, reasons, mode="live")
+        report = build_abstention(self.run_id, self.company, self.cutoff, self.documents, self.passages, self.facts, reasons, mode='deep' if self.is_deep else 'live')
         report.limitations += self.limitations
         report.generation_metadata["search_queries"] = self.queries
         report.generation_metadata["research_decisions"] = self.decisions
@@ -1411,13 +1420,16 @@ class LiveResearch:
         for statement in statements:
             statement = statement.model_copy(update={'calculation_ids': complete_calculation_lineage(
                 statement.text, statement.fact_ids, statement.calculation_ids, self.calculations)})
+            if not (statement.fact_ids or statement.calculation_ids):
+                self.limitations.append('A financial statement lacked a verified fact or calculation anchor; source-only prose was withheld.')
+                return None
             if not set(statement.fact_ids) <= facts.keys() or not set(statement.passage_ids) <= passages.keys() or not set(statement.calculation_ids) <= calculations.keys() or not (statement.fact_ids or statement.passage_ids):
                 self.limitations.append("Draft referenced missing evidence and was withheld.")
                 return None
             bound_facts = [facts[i] for i in statement.fact_ids]
             bound_calcs = [calculations[i] for i in statement.calculation_ids]
-            if not supported_percentages(statement.text, bound_facts, bound_calcs):
-                self.limitations.append('Draft introduced a percentage without its own linked verified inputs; publication withheld.')
+            if not supported_percentages(statement.text, bound_facts, bound_calcs) or not supported_numbers(statement.text, bound_facts, bound_calcs):
+                self.limitations.append('Draft introduced numerical detail without its own linked verified inputs; publication withheld.')
                 return None
             compatible, reason = compatible_candidate(statement, self.facts, self.calculations)
             if not compatible:
@@ -1493,6 +1505,10 @@ class LiveResearch:
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
+        if not any(c.id in used_calcs and c.id not in break_calculations(self.structural_breaks, self.calculations)
+                   for c in self.calculations):
+            self.limitations.append('No verified calculation outside the flagged break interval can support a short headline.')
+            return None
         self.write_plain_headline(report)
         peer_done = self.peer_benchmark.get('status') == 'verified'
         supporting_passages = {p.id: p for p in self.passages}
@@ -1507,7 +1523,7 @@ class LiveResearch:
         discovery.strength_rationale = 'Evidence tier follows the displayed origin, peer, structural-break and counterargument rules.'
         report.generation_metadata['strength_trace'] = trace
         report.generation_metadata['tiered_publication'] = True
-        if len(origins) < 2:
+        if len(origins) < 2 and not peer_done:
             discovery.evidence_strength = EvidenceStrength.WEAK
             trace['rating'] = 'Weak'
             trace['caps'].append('Only primary-origin arithmetic was corroborated: non-causal Weak observation only.')

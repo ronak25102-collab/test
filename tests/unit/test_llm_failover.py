@@ -180,3 +180,28 @@ def test_readiness_requires_fallback_models_and_prices(pipeline, monkeypatch):
     with pytest.raises(ProviderNotConfigured, match='rate card'):
         pipeline.model(Result, {})
     assert len(sent) == 3
+
+
+def test_hybrid_uses_nvidia_for_extract_and_plan_but_configured_model_for_review(pipeline, monkeypatch):
+    pipeline.settings.nvidia_planning = True
+    sent = install_http(monkeypatch, lambda _: codecraft_success())
+    nvidia = []
+    def generate(self, schema, messages, role, deadline, outputs):
+        nvidia.append(self.settings.model_for_role(role))
+        return schema(value=42), ProviderUsage(input_tokens=120, output_tokens=80)
+    monkeypatch.setattr(NvidiaProvider, 'generate', generate)
+    pipeline.model(Result, {'operation': 'extract'}, role='extract', stage='extracting')
+    pipeline.model(Result, {'operation': 'plan'}, stage='hypothesizing')
+    pipeline.model(Result, {'operation': 'review'}, stage='verifying')
+    assert nvidia == ['nv-extract', 'nv-research']
+    assert sent == ['primary-test']
+    assert [r['provider'] for r in pipeline.store.provider_calls(pipeline.run_id)] == ['nvidia', 'nvidia', 'codecraft']
+
+
+def test_hybrid_does_not_silently_replace_exhausted_final_review_with_nvidia(pipeline, monkeypatch):
+    pipeline.settings.nvidia_planning = True
+    sent = install_http(monkeypatch, lambda _: httpx.Response(402))
+    with pytest.raises(CodeCraftCreditsExhausted):
+        pipeline.model(Result, {'operation': 'final'}, stage='verifying')
+    assert sent == ['primary-test', 'backup-one-test', 'backup-two-test']
+    assert not any(r['provider'] == 'nvidia' for r in pipeline.store.provider_calls(pipeline.run_id))

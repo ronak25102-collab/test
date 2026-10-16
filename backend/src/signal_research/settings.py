@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     codecraft_api_key: str = Field(default="", repr=False)
     codecraft_secondary_api_keys: list[str] = Field(default_factory=list, repr=False, exclude=True, max_length=5)
     codecraft_nvidia_fallback: bool = False
+    nvidia_planning: bool = False
     codecraft_model_research: str = ""
     codecraft_model_extract: str = ""
     openai_api_key: str = Field(default="", repr=False)
@@ -78,6 +79,15 @@ class Settings(BaseSettings):
                   for index, key in enumerate(keys)]
         if self.codecraft_nvidia_fallback:
             routes.append(("nvidia", self.model_copy(update={"llm_provider": "nvidia"})))
+        return routes
+
+    def routes_for_stage(self, role: str, stage: str):
+        """Hybrid routing is explicit; final review stays on the configured provider."""
+        if self.nvidia_planning and (role == 'extract' or stage in {'planning', 'hypothesizing'}):
+            return [('nvidia-planning', self.model_copy(update={'llm_provider': 'nvidia'}))]
+        routes = self.model_routes()
+        if self.nvidia_planning and self.llm_provider != 'nvidia':
+            routes = [(slot, settings) for slot, settings in routes if settings.llm_provider != 'nvidia']
         return routes
 
     @property

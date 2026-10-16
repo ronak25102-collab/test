@@ -17,4 +17,20 @@ def test_export_embeds_evidence_without_network_assets_or_local_links(store):
     assert not any('localhost' in a.get('href', '') or '127.0.0.1' in a.get('href', '') for a in soup.select('a'))
     assert public_url('http://127.0.0.1:5173/') is None
     assert public_url('http://localhost/') is None
+    assert public_url('http://localhost./') is None
     assert public_url('javascript:alert(1)') is None
+
+
+def test_export_keeps_peer_lineage_and_prints_significance_and_checked_passages(store):
+    report = build_synthetic_report(uuid4(), store.search_companies('SYNTHBANK')[0], date(2026, 10, 15))
+    bundle = {name: [x.model_dump(mode='json') for x in getattr(report, name)] for name in ('facts', 'passages', 'documents')}
+    bundle['company'] = report.company.model_dump(mode='json')
+    bundle['company']['legal_name'] = 'Synthetic Peer'
+    report.generation_metadata['peer_benchmark'] = {'status': 'inconclusive', 'comparisons': [], 'sources': [bundle]}
+    html = report_html(report)
+    soup = BeautifulSoup(html, 'html.parser')
+    assert soup.select('#peer-evidence blockquote')
+    assert 'Synthetic Peer' in soup.select_one('#peer-evidence').text
+    assert str(report.facts[0].id) in soup.select_one('#peer-evidence').text
+    assert 'button[data-open]{display:inline' in html
+    assert "querySelectorAll('main details:not([open])')" in html

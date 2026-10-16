@@ -17,9 +17,9 @@ from signal_research.worker.machine import ResearchMachine
 DEFAULT_COMPANIES = ['HDFCBANK', 'ICICIBANK', 'SBIN', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'BAJAJFINSV', 'SBILIFE']
 
 
-def run_one(symbol, seconds=300):
+def run_one(symbol, seconds=300, artifact_root=Path('data/exports/cold-regression')):
     started = time.monotonic()
-    output = Path('data/exports/cold-regression') / f'{symbol}-{time.time_ns()}'
+    output = artifact_root / f'{symbol}-{time.time_ns()}'
     output.mkdir(parents=True)
     settings = Settings(cold_start=True, max_run_seconds=seconds, data_dir=output,
                         database_url=f'sqlite:///{output / "validation.db"}')
@@ -43,6 +43,10 @@ def run_one(symbol, seconds=300):
         'failures': [*report.limitations, *(report.abstention.next_evidence_needed if report.abstention else [])] if report else summary.limitations,
         'peers_verified': report.generation_metadata.get('peer_benchmark', {}).get('status') == 'verified' if report else False,
         'cache_reused': 0, 'output': str(output)}
+    result['routing'] = 'nvidia planning; configured final review' if settings.nvidia_planning else 'configured provider with authorized fallbacks'
+    result['models'] = {'planning': settings.nvidia_model_research if settings.nvidia_planning else settings.model_for_role('research'),
+                        'extraction': settings.nvidia_model_extract if settings.nvidia_planning else settings.model_for_role('extract'),
+                        'final_review': settings.model_for_role('research')}
     (output / 'summary.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
     engine.dispose()
     return result
@@ -57,6 +61,7 @@ def write_report(results, path):
         lines.append(f'| {r["symbol"]} | {r["seconds"]} | {r["facts"]} | {r["strength"]} | {r.get("peers_verified", False)} | {r["outcome"]} |')
     for r in results:
         lines.extend(['', f'## {r["symbol"]}', '', r.get('headline') or 'No headline passed publication gates.', '',
+                      'Routing: ' + r.get('routing', 'See recorded provider receipts.'), '',
                       f'Runtime target: {"met" if r["seconds"] <= 300 else "exceeded"}. Cache facts reused: 0.', '',
                       *['- ' + str(f).replace('\n', ' ') for f in r.get('failures', [])]])
     path.write_text('\n'.join(lines) + '\n', encoding='utf-8')
@@ -68,6 +73,8 @@ def main():
     parser.add_argument('--seconds', type=int, default=300)
     parser.add_argument('--workers', type=int, choices=(1, 2, 3), default=3)
     parser.add_argument('--summarize', type=Path, help='Regenerate the Markdown from recorded run artifacts without provider requests.')
+    parser.add_argument('--output', type=Path, default=Path('reports/regression.md'))
+    parser.add_argument('--artifact-root', type=Path, default=Path('data/exports/cold-regression'))
     args = parser.parse_args()
     results = []
     if args.summarize:
@@ -78,17 +85,17 @@ def main():
                 r = json.loads(report_path.read_text(encoding='utf-8'))
                 result['failures'] = list(dict.fromkeys([*result['failures'], *(r.get('abstention') or {}).get('next_evidence_needed', [])]))
             results.append(result)
-        write_report(sorted(results, key=lambda r: r['symbol']), Path('reports/regression.md'))
+        write_report(sorted(results, key=lambda r: r['symbol']), args.output)
         return
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        futures = {pool.submit(run_one, s, args.seconds): s for s in args.companies}
+        futures = {pool.submit(run_one, s, args.seconds, args.artifact_root): s for s in args.companies}
         for future in as_completed(futures):
             try:
                 result = future.result()
             except Exception as exc:
                 result = {'symbol': futures[future], 'seconds': 0, 'facts': 0, 'strength': 'Not established', 'outcome': 'failed', 'failures': [type(exc).__name__ + ': ' + str(exc)]}
             results.append(result)
-            write_report(results, Path('reports/regression.md'))
+            write_report(results, args.output)
             print(json.dumps({k: result[k] for k in ('symbol', 'seconds', 'facts', 'strength', 'outcome')}), flush=True)
 
 

@@ -26,6 +26,7 @@ def validate_headline(text, entity, facts, calculations):
     allowed = {f.value_decimal for f in facts if f.value_decimal is not None}
     allowed.update(c.output_value for c in calculations if c.available and c.output_value is not None)
     allowed.update(Decimal(d.year) for f in facts for d in (f.period_start, f.period_end) if d)
+    allowed.update(number_tokens(entity))  # Digits in a verified legal name are identity, not a financial metric.
     rounded = {x.quantize(Decimal('1')) for x in allowed} | {x.quantize(Decimal('.01')) for x in allowed}
     if any(n not in allowed | rounded for n in number_tokens(text)):
         errors.append('A headline number has no verified fact or registered calculation.')
@@ -39,7 +40,8 @@ def validate_headline(text, entity, facts, calculations):
     years = {str(f.period_end.year) for f in facts if f.period_end}
     if not any(y in text for y in years) or not re.search(r'%|\b(?:percent|percentage points?|crore|lakh|times)\b', text, re.I):
         errors.append('Include the verified time span and measurement units.')
-    measured = re.sub(r'\b(?:19|20)\d{2}\b', '', text)
+    measured = re.sub(re.escape(entity), '', text, count=1, flags=re.I)
+    measured = re.sub(r'\b(?:19|20)\d{2}\b', '', measured)
     if not 1 <= len(number_tokens(measured)) <= 2:
         errors.append('Use one or two key numbers, excluding calendar years.')
     return errors

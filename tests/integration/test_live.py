@@ -128,7 +128,8 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert summary.budget["model_calls"] == calls["model"]
 
 
-def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_the_median(store, tmp_path, monkeypatch):
+@pytest.mark.parametrize('primary_only', [False, True])
+def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_the_median(store, tmp_path, monkeypatch, primary_only):
     from signal_research.research.peer_selector import select_peers
     settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
     settings.max_output_tokens = 120000  # Allow concurrent reservations, not just sequential actual receipts.
@@ -145,7 +146,8 @@ def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_
         for url, (company, _) in pages.items():
             if query.startswith(f'"{company.legal_name}" financial results'):
                 return [SearchHit(url, company.legal_name + ' Results', '', 1, 'test', date(2026, 5, 15))]
-        return search(self, query, domains, as_of, max_results)
+        hits = search(self, query, domains, as_of, max_results)
+        return [h for h in hits if not primary_only or 'independent.example' not in h.url]
     def peer_fetch(self, url):
         if url not in pages:
             return fetch(self, url)
@@ -156,6 +158,24 @@ def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_
         return FetchResult(url, url, 200, 'text/html', digest, str(path))
     monkeypatch.setattr(TavilySearchProvider, 'search', peer_search)
     monkeypatch.setattr(PublicFetcher, 'fetch', peer_fetch)
+    if primary_only:
+        from uuid import UUID
+
+        from signal_research.domain.enums import ClaimKind
+        generate = OpenAIProvider.generate
+        def observed_draft(self, schema, messages, model_role, deadline, max_output_tokens):
+            output, usage = generate(self, schema, messages, model_role, deadline, max_output_tokens)
+            if schema.__name__ == 'Challenge':
+                output.unresolved = False
+                output.reason = 'Verified peer arithmetic addresses the sector comparison for this non-causal observation.'
+            if schema.__name__ == 'DiscoveryDraft':
+                p = json.loads(messages[1]['content'])
+                calc = next(c for c in p['calculations'] if c['formula_id'] == 'yoy_growth' and c['input_bindings'][0]['metric'] == 'deposits')
+                output.why_it_matters[2] = output.why_it_matters[0].model_copy(update={
+                    'text': 'Deposits grew 10% on the same consolidated reporting basis.', 'kind': ClaimKind.DERIVED,
+                    'passage_ids': [], 'calculation_ids': [UUID(calc['id'])]})
+            return output, usage
+        monkeypatch.setattr(OpenAIProvider, 'generate', observed_draft)
     ResearchMachine(store, settings).process(run_id)
     report = verify_report(store.get_report(run_id))
     benchmark = report.generation_metadata['peer_benchmark']
@@ -165,6 +185,65 @@ def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_
     assert row['classification'] == 'sector-wide'
     assert report.generation_metadata['strength_trace']['rules']['peer_comparison_verified']
     assert all(f.entity_id == target.id for f in report.facts)
+    if primary_only:
+        assert len(report.generation_metadata['strength_trace']['origin_families']) == 1
+        assert report.discoveries[0].evidence_strength.value == 'Moderate'
+
+
+def test_provider_timeout_before_first_verified_fact_still_saves_not_established_candidate(store, tmp_path, monkeypatch):
+    from signal_research.providers.llm.codecraft_provider import CodeCraftTimeout
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    def unavailable(*args, **kwargs):
+        raise CodeCraftTimeout('Provider request did not complete; uncertain request will not be replayed.')
+    monkeypatch.setattr(OpenAIProvider, 'generate', unavailable)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert report.outcome.value == 'partial' and not report.facts and not report.discoveries
+    assert report.generation_metadata['best_candidate']['label'] == 'Not established'
+    assert report.generation_metadata['best_candidate']['missing']
+
+
+def test_source_only_prose_cannot_replace_the_required_verified_fact_anchor(store, tmp_path, monkeypatch):
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    generate = OpenAIProvider.generate
+    def source_only(self, schema, messages, model_role, deadline, max_output_tokens):
+        output, usage = generate(self, schema, messages, model_role, deadline, max_output_tokens)
+        if schema.__name__ == 'DiscoveryDraft':
+            output.why_it_matters[0].fact_ids = []
+            output.why_it_matters[0].calculation_ids = []
+            output.why_it_matters[0].passage_ids = output.why_it_matters[2].passage_ids
+        return output, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', source_only)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert not report.discoveries
+    assert any('fact or calculation anchor' in limitation for limitation in report.limitations)
+
+
+def test_primary_origin_arithmetic_can_publish_only_a_non_causal_weak_observation(store, tmp_path, monkeypatch):
+    from uuid import UUID
+
+    from signal_research.domain.enums import ClaimKind
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    original_search, original_generate = TavilySearchProvider.search, OpenAIProvider.generate
+    def primary_only(self, query, domains, as_of, max_results):
+        return [hit for hit in original_search(self, query, domains, as_of, max_results) if 'independent.example' not in hit.url]
+    def observed_draft(self, schema, messages, model_role, deadline, max_output_tokens):
+        output, usage = original_generate(self, schema, messages, model_role, deadline, max_output_tokens)
+        if schema.__name__ == 'DiscoveryDraft':
+            p = json.loads(messages[1]['content'])
+            calc = next(c for c in p['calculations'] if c['formula_id'] == 'yoy_growth' and c['input_bindings'][0]['metric'] == 'deposits')
+            output.why_it_matters[2] = output.why_it_matters[0].model_copy(update={
+                'text': 'Deposits grew 10% on the same consolidated reporting basis.', 'kind': ClaimKind.DERIVED,
+                'passage_ids': [], 'calculation_ids': [UUID(calc['id'])]})
+        return output, usage
+    monkeypatch.setattr(TavilySearchProvider, 'search', primary_only)
+    monkeypatch.setattr(OpenAIProvider, 'generate', observed_draft)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert report.discoveries and report.discoveries[0].evidence_strength.value == 'Weak'
+    assert report.generation_metadata['tiered_publication']
+    assert len(report.generation_metadata['strength_trace']['origin_families']) == 1
 
 
 def test_live_credit_failover_uses_nvidia_and_reports_actual_models(store, tmp_path, monkeypatch):

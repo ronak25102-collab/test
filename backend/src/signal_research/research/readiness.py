@@ -12,7 +12,7 @@ def live_readiness(settings) -> dict:
     if not settings.llm_configured:
         issues.append(f"Configure {settings.llm_provider} credentials and both model roles.")
     nvidia_fallback = settings.llm_provider == "codecraft" and settings.codecraft_nvidia_fallback
-    if nvidia_fallback and not (settings.nvidia_api_key and settings.nvidia_model_extract and settings.nvidia_model_research):
+    if (nvidia_fallback or settings.nvidia_planning) and not (settings.nvidia_api_key and settings.nvidia_model_extract and settings.nvidia_model_research):
         issues.append("NVIDIA fallback requires NVIDIA_API_KEY and both NVIDIA model roles.")
     if not settings.tavily_api_key:
         issues.append("Configure TAVILY_API_KEY.")
@@ -24,7 +24,7 @@ def live_readiness(settings) -> dict:
             if card.get("provider", settings.llm_provider) != settings.llm_provider:
                 raise ValueError("The rate card provider does not match LLM_PROVIDER.")
             required_models = {settings.model_for_role("research"), settings.model_for_role("extract")}
-            if nvidia_fallback:
+            if nvidia_fallback or settings.nvidia_planning:
                 required_models.update({settings.nvidia_model_research, settings.nvidia_model_extract})
             for name in required_models:
                 model = next((item for item in card["models"] if item.get("model_id") == name), None)
@@ -46,5 +46,6 @@ def live_readiness(settings) -> dict:
             "model_request_timeout_seconds": settings.model_request_timeout_seconds,
             "codecraft_backup_keys": max(0, len([slot for slot, _ in settings.model_routes() if slot.startswith("codecraft:")]) - 1),
             "nvidia_fallback_enabled": nvidia_fallback,
+            "nvidia_planning_enabled": settings.nvidia_planning,
             "cost_policy": "unknown prices; hard limits only" if settings.allow_unknown_cost else "account rate card",
             "demo_time_warning": False}
