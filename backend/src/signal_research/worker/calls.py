@@ -47,8 +47,11 @@ class DurableCalls:
         self.budget.check()
         if self.store.is_cancelled(self.run_id):
             raise RuntimeError("run cancelled")
-        reserve()
-        self.store.artifact(self.run_id, f"reserved:{identifier}", {"request_hash": digest, "stage": stage})
+        with self.budget.lock:
+            if self.store.artifacts(self.run_id, f'reserved:{identifier}'):
+                raise UncertainCall('An identical request is already reserved; it will not be sent twice.')
+            reserve()
+            self.store.artifact(self.run_id, f"reserved:{identifier}", {"request_hash": digest, "stage": stage})
         started = monotonic()
         try:
             result, usage = request()

@@ -52,6 +52,7 @@ from signal_research.extraction.models import ExtractedFactBatch, source_fact_ba
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
+from signal_research.research.angles import route_angles
 from signal_research.research.brief import (
     compatible_candidate,
     observation_timeline,
@@ -903,6 +904,8 @@ class LiveResearch:
             self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
 
     def load_historical_cache(self):
+        if self.settings.cold_start:
+            return
         for report in self.store.historical_reports(self.company.id, self.cutoff):
             facts, passages, documents = historical_observations(report, self.company.id, self.cutoff)
             if not facts:
@@ -1021,6 +1024,30 @@ class LiveResearch:
             self.now_check = review.model_dump(mode='json')
         self.now_check['searched_queries'] = list(self.opposing_queries)
         self.store.artifact(self.run_id, 'current_falsification_check', self.now_check)
+
+    def angle_hypotheses(self, payload):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        angles = route_angles(self.company, self.facts, self.calculations, [p.text for p in self.passages])
+        self.store.artifact(self.run_id, 'angle_router', {'angles': angles, 'parallel_limit': 3})
+        selected = [a for a in angles if a['coverage_groups'] == a['required_groups']]
+        def investigate(angle):
+            scoped = payload | {'research_angle': angle}
+            return self.calls.model(cited_hypothesis_schema(scoped), scoped, stage='hypothesizing',
+                instruction='Research only research_angle. Return at most one candidate with an additional quantified cross-metric or cross-source relationship, not a restatement of management narrative or headline results. Use one compatible reporting lane, supplied verified numbers and registered calculations only. Exclude growth-gap comparisons crossing structural_breaks; prefer post-break recovery. Read peer_benchmark and test whether this is only a sector story. Provide short supporting/opposing search fragments and an observable falsification test. No unsupported causal claims or invented numbers. Empty candidates are allowed when evidence is insufficient.')
+        candidates, missing = [], []
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futures = {pool.submit(investigate, a): a for a in selected[:3]}
+            for future in as_completed(futures):
+                try:
+                    batch = future.result()
+                    candidates.extend(batch.candidates[:1])
+                    missing.extend(batch.missing_evidence)
+                except Exception as exc:
+                    missing.append(f'Angle {futures[future]["key"]} did not complete: {type(exc).__name__}')
+        unique = {(h.statement, tuple(h.calculation_ids)): h for h in candidates}
+        if not selected:
+            missing.append('At least two profile-native metric groups with source-bound facts for a routed Track A angle.')
+        return HypothesisBatch(candidates=sorted(unique.values(), key=lambda h: h.significance + h.novelty, reverse=True)[:3], missing_evidence=[m[:200] for m in list(dict.fromkeys(missing))[:6]])
 
     def collect_quarters(self):
         targets = quarter_ends(self.cutoff)
@@ -1164,7 +1191,7 @@ class LiveResearch:
             return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms within comparable reporting boundaries")
         payload = self.payload(compact=True)
-        batch = self.calls.model(cited_hypothesis_schema(payload), payload, stage="hypothesizing", instruction="Propose up to three non-obvious relationships grounded in the calculations. Use compatible_research_lanes: never combine standalone and consolidated scope, different entities or segments into a relationship without verified reconciliation. Separate observation from mechanism. Mechanisms are hypotheses to test: do not introduce ANY unverified numbers, industry averages, interest rates, margins or maturity amounts in them. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_display; retain their signs and ordered input roles. Read growth_gap as first metric YoY growth minus second metric YoY growth, not the change in that gap over time. Do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
+        batch = self.angle_hypotheses(payload)
         self.store.artifact(self.run_id, "hypotheses", batch.model_dump(mode="json"))
         report = self.investigate_candidates(batch)
         if report:

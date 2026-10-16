@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     tavily_api_key: str = Field(default="", repr=False)
     tavily_search_depth: Literal["basic", "advanced"] = "basic"
     research_mode: str = "live"
+    cold_start: bool = False
     max_run_seconds: int = 420
     max_search_calls: int = 30
     max_fetch_documents: int = 30

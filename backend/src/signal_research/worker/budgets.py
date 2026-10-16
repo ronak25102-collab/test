@@ -3,8 +3,18 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import wraps
+from threading import RLock
 
 from signal_research.domain.errors import BudgetExceeded
+
+
+def synchronized(method):
+    @wraps(method)
+    def locked(self, *args, **kwargs):
+        with self.lock:
+            return method(self, *args, **kwargs)
+    return locked
 
 
 @dataclass
@@ -25,6 +35,7 @@ class Budget:
     reserved_cost_usd: float = 0.0
     deadline: datetime | None = None
     persist: Callable | None = field(default=None, repr=False)
+    lock: object = field(default_factory=RLock, repr=False, compare=False)
 
     def check(self) -> None:
         if self.deadline and datetime.now(UTC) >= self.deadline:
@@ -34,6 +45,7 @@ class Budget:
         self.check()
         return max(0.1, (self.deadline - datetime.now(UTC)).total_seconds()) if self.deadline else 420.0
 
+    @synchronized
     def reserve(self, kind: str, amount: int = 1) -> None:
         self.check()
         current = getattr(self, kind)
@@ -43,6 +55,7 @@ class Budget:
         setattr(self, kind, current + amount)
         self._persist()
 
+    @synchronized
     def reserve_model(self, input_tokens: int, output_tokens: int, cost: float):
         self.check()
         for kind, amount in (("model_calls", 1), ("input_tokens", input_tokens), ("output_tokens", output_tokens)):
@@ -56,6 +69,7 @@ class Budget:
         self.reserved_cost_usd += cost
         self._persist()
 
+    @synchronized
     def reserve_search(self, cost: float):
         self.check()
         if self.reserved_cost_usd + cost > self.max_cost_usd:
@@ -64,6 +78,7 @@ class Budget:
         self.reserved_cost_usd += cost
         self._persist()
 
+    @synchronized
     def release_rejected_model(self, reserved_input, reserved_output, reserved_cost):
         """Release tokens/cost only for an explicit pre-inference credit rejection.
 
@@ -75,6 +90,7 @@ class Budget:
         self.reserved_cost_usd -= reserved_cost
         self._persist()
 
+    @synchronized
     def settle_model(self, reserved_input, reserved_output, actual_input, actual_output, reserved_cost, actual_cost):
         if actual_input > 0 and actual_output > 0:
             self.input_tokens += actual_input - reserved_input
@@ -88,6 +104,7 @@ class Budget:
         if self.persist:
             self.persist(self.snapshot())
 
+    @synchronized
     def snapshot(self) -> dict:
         limits = {key: getattr(self, key) for key in ("max_search_calls", "max_fetch_documents", "max_model_calls", "max_ocr_pages", "max_input_tokens", "max_output_tokens", "max_cost_usd")}
         return {key: getattr(self, key) for key in ("search_calls", "fetch_documents", "model_calls", "ocr_pages", "input_tokens", "output_tokens", "reserved_cost_usd")} | {"deadline": self.deadline.isoformat() if self.deadline else None, "limits": limits, "cost_accounting": "conservative reservations; uncertain calls remain charged"}
