@@ -92,3 +92,37 @@ test('mobile results and evidence dialogs fit the viewport with reduced motion',
   await page.keyboard.press('Escape')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
 })
+
+test('withheld reports expose all eight requirements and retain the actual adversarial trail', async ({ page }) => {
+  const challenged = { ...result, generation_metadata: { ...result.generation_metadata,
+    opposing_queries: ['issuer acquisition reclassification alternative'],
+    challenge_reviews: [{ candidate: 'Unconfirmed funding relationship', strongest_alternative: 'A reporting-boundary change could explain the comparison.',
+      reason: 'The boundary change remains unresolved.', refuted: false, unresolved: true,
+      relevant_passage_ids: [result.passages[0].id], proposed_falsification: 'A reversal in two future comparable quarters.',
+      opposing_query: 'issuer acquisition reclassification alternative', novelty_status: 'novelty_unknown', novelty_rationale: 'Further independent evidence is required.' }] } }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: challenged }))
+  await page.goto(`/?run=${report.run_id}`)
+  const brief = page.getByRole('region', { name: 'Required discovery output', exact: true })
+  await expect(brief.locator('li')).toHaveCount(8)
+  await expect(brief.getByText('Discovery requirements not met', { exact: true })).toBeVisible()
+  const trail = page.getByRole('region', { name: 'Adversarial research trail', exact: true })
+  await expect(trail).toContainText('1 adversarial reviews recorded · 1 opposing searches recorded')
+  await expect(trail.getByText('A reporting-boundary change could explain the comparison.', { exact: true })).toBeVisible()
+  await expect(trail.getByRole('heading', { name: 'Proposed falsification condition · unverified', exact: true })).toBeVisible()
+  await expect(trail.getByRole('link').first()).toHaveAttribute('href', result.documents[0].canonical_url)
+  await expect(page.getByText('Finding withheld', { exact: true })).toBeVisible()
+})
+
+test('published reports expose the eight-part brief and preserve an explicit temporal caveat', async ({ page }) => {
+  const published = { ...report, generation_metadata: { temporal_reasoning: {
+    text: 'Two observed reporting dates do not establish when the relationship began.',
+    claim_id: report.claims[0].id, onset_status: 'unknown' } } }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: published }))
+  await page.goto(`/?run=${report.run_id}`)
+  const brief = page.getByRole('region', { name: 'Required discovery output', exact: true })
+  await expect(brief.locator('li')).toHaveCount(8)
+  await expect(page.getByRole('heading', { name: 'Why it matters', exact: true })).toBeVisible()
+  await expect(page.getByText(published.generation_metadata.temporal_reasoning.text, { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Inspect timeline evidence/ })).toBeVisible()
+  await expect(page.getByText('Synthetic replay', { exact: true })).toBeVisible()
+})

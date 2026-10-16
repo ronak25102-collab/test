@@ -81,7 +81,7 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
                 return {"text": text, "kind": kind, "fact_ids": ids, "passage_ids": context_ids if contextual else [], "calculation_ids": [] if contextual else [gap]}
             headline = statement("HDFC Bank advances grew faster than deposits on comparable consolidated year-end balances; funding stress is not established.")
             headline["passage_ids"] = context_ids
-            output = schema(headline=headline, why_it_matters=[statement("Advances grew 20%, while deposits grew 10%."), statement("The reproducible growth gap is 10 percentage points."), statement("Independent context requires funding-composition evidence before inferring stress.", "inferred", True)], counterargument=statement("Expansion can create a growth gap without funding stress.", "inferred", True), falsification="Reconsider if later comparable disclosures reverse the advances/deposit growth gap.", falsification_window="Next two comparable quarterly disclosures", falsification_source="Dated issuer financial results")
+            output = schema(headline=headline, why_it_matters=[statement("Advances grew 20%, while deposits grew 10%."), statement("The reproducible growth gap is 10 percentage points."), statement("Independent context requires funding-composition evidence before inferring stress.", "inferred", True)], counterargument=statement("Expansion can create a growth gap without funding stress.", "inferred", True), timeline_analysis=statement("The relationship is observed between March 2025 and March 2026; these two snapshots do not establish its onset."), onset_status="unknown", falsification="Reconsider if later comparable disclosures reverse the advances/deposit growth gap.", falsification_window="Next two comparable quarterly disclosures", falsification_source="Dated issuer financial results")
         elif schema.__name__ == "SemanticReview":
             output = schema(verdicts=[{"claim_id": c["id"], "supported": not reject_claim, "reason": "All linked source spans, inputs and qualifications reviewed"} for c in p["claims"]], falsification_is_observable=True, contains_investment_recommendation=False, non_obvious_synthesis_supported=True)
         else:
@@ -105,7 +105,14 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.source_coverage["synthetic"] is False
     assert report.discoveries[0].counterargument.unresolved
     assert report.discoveries[0].evidence_strength.value == "Weak"
-    assert calls["search"] == 7 and calls["fetch"] == 2
+    # Three historical windows, original regulator and peer searches, plus the
+    # candidate-specific supporting/opposing pair. Duplicate URLs are not fetched.
+    assert calls["search"] == 12 and calls["fetch"] == 2
+    assert len(report.generation_metadata['submission_checklist']['items']) == 8
+    # A qualified observation can publish Weak without pretending its onset is known.
+    assert not report.generation_metadata['submission_checklist']['discovery_ready']
+    assert report.generation_metadata['submission_checklist']['items'][3]['status'] == 'limited'
+    assert summary.progress['counterevidence_checks'] == 1
     assert summary.budget["model_calls"] == calls["model"]
 
 
@@ -158,6 +165,63 @@ def test_duplicate_semantic_verdicts_cannot_publish(store, tmp_path, monkeypatch
     report = store.get_report(run_id)
     assert report.outcome.value == "insufficient_evidence"
     assert any("semantic review rejected" in limitation for limitation in report.limitations)
+
+
+def test_invalid_top_ranked_candidates_do_not_hide_a_valid_lower_ranked_candidate(store, tmp_path, monkeypatch):
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    generated = OpenAIProvider.generate
+    def three_candidates(self, schema, *args, **kwargs):
+        result, usage = generated(self, schema, *args, **kwargs)
+        if schema.__name__ == 'HypothesisBatch':
+            valid = result.candidates[0].model_copy(update={'significance': 2, 'novelty': 2})
+            invalid = valid.model_copy(update={'statement': 'An unsupported 99% funding shift', 'significance': 5, 'novelty': 5})
+            result.candidates = [invalid, invalid.model_copy(update={'statement': 'An unsupported 98% margin shift'}), valid]
+        return result, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', three_candidates)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert report.discoveries
+    assert len(report.generation_metadata['research_decisions']) == 2
+    assert len(report.generation_metadata['challenge_reviews']) == 1
+
+
+def test_refuted_candidate_retains_actual_challenge_and_test_without_becoming_a_discovery(store, tmp_path, monkeypatch):
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch, refuted=True)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert not report.discoveries
+    review = report.generation_metadata['challenge_reviews'][0]
+    assert review['refuted'] and review['strongest_alternative']
+    assert review['proposed_falsification'] and review['relevant_passage_ids']
+    assert report.generation_metadata['opposing_queries']
+    assert report.timeline_events and report.calculations
+    assert store.get_summary(run_id).progress['counterevidence_checks'] == 1
+    assert not report.generation_metadata['submission_checklist']['discovery_ready']
+
+
+def test_optional_extraction_timeout_preserves_facts_for_distinct_research_requests(store, tmp_path, monkeypatch):
+    from signal_research.providers.llm.codecraft_provider import CodeCraftTimeout
+    from signal_research.research.live import LiveResearch, fact_review_schema
+
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    generated = OpenAIProvider.generate
+    failures = []
+    def optional_timeout(self, schema, messages, *args, **kwargs):
+        if json.loads(messages[1]['content']).get('optional_timeout'):
+            failures.append(1)
+            raise CodeCraftTimeout('Uncertain test request; not retried')
+        return generated(self, schema, messages, *args, **kwargs)
+    def historical_timeout(self):
+        self.extraction_model(self.passages[0], fact_review_schema(1), {'optional_timeout': True},
+                              'extract', 'normalizing', 'Check the optional earlier statement')
+    monkeypatch.setattr(OpenAIProvider, 'generate', optional_timeout)
+    monkeypatch.setattr(LiveResearch, 'collect_history', historical_timeout)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert failures == [1]
+    assert report.discoveries and report.facts
+    assert len(report.generation_metadata['challenge_reviews']) == 1
+    assert store.artifacts(run_id, 'extraction_failure')[0]['payload']['action'].startswith('optional extraction paused')
 
 
 @pytest.mark.parametrize('stage', ['Challenge', 'SemanticReview'])
@@ -237,7 +301,7 @@ def test_reconciled_candidate_cannot_be_challenged_with_withdrawn_arithmetic(sto
         nonlocal extraction_count
         extract(self, *args, **kwargs)
         extraction_count += 1
-        if extraction_count == 3:  # Initial, history, then targeted follow-up.
+        if self.store.artifacts(self.run_id, 'hypotheses'):  # Targeted follow-up after candidates were bound.
             self.facts = self.facts[1:]
             self.calculations = derive_calculations(self.facts)
     def no_stale_review(self, schema, *args, **kwargs):
@@ -357,7 +421,7 @@ def test_live_recovers_a_dated_annual_disclosure_when_initial_sources_are_undate
     summary = store.get_summary(run_id)
     assert summary.status.value == "completed", summary.limitations
     assert annual_queries[0][1] == store.search_companies("HDFCBANK")[0].verified_ir_domains
-    assert any("2024 2025" in query for query, _ in annual_queries)
+    assert any("2025 2026" in query for query, _ in annual_queries)
     assert any(artifact["payload"]["accepted"] for artifact in store.artifacts(run_id, "fact_extraction"))
     assert calls["model"] > 0
 

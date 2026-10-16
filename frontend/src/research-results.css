@@ -267,3 +267,25 @@ html:has(dialog[open]) { overflow: hidden; }
  .report-dashboard .report-partial { padding: 17px 20px; }
 }
 @media print { .history-point { display: none; } .history-line { animation: none; } .history-inspected > button { display: none; } }
+
+.submission-brief { margin-bottom: 36px; padding: 26px; border: 1px solid #dbe2d1; border-radius: 16px; background: #f7f8f0; }
+.submission-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.submission-heading h3 { margin: 8px 0; }
+.submission-status { border: 1px solid #decaba; border-radius: 30px; padding: 8px 12px; font-size: 11px; color: #854a2e; }
+.submission-status.is-ready { border-color: #bbd0a6; color: #315b3e; }
+.submission-brief > p, .submission-checklist p, .challenge-trail p { font-size: 12px; line-height: 1.8; color: #65735e; }
+.submission-checklist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; margin: 22px 0; list-style: none; gap: 10px; }
+.submission-checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 16px 12px; background: #fffffb; border: 1px solid #e4e7db; border-radius: 9px; }
+.requirement-index { color: #889b72; font-size: 10px; padding-top: 2px; }
+.submission-checklist strong { font-size: 12px; }
+.submission-checklist p { margin: 6px 0 0; font-size: 10px; }
+.requirement-status { margin-left: auto; flex-shrink: 0; font-size: 9px; color: #8a6046; }
+.submission-checklist [data-status="complete"] .requirement-status { color: #315b3e; }
+.challenge-trail { margin-top: 32px; padding: 25px; border: 1px solid #dbe2d1; border-radius: 12px; }
+.challenge-trail > details, .candidate-tests details { border-top: 1px solid #dbe2d1; padding: 16px 0; }
+.challenge-trail summary { cursor: pointer; font-size: 12px; line-height: 1.8; }
+.challenge-trail summary > span { display: block; color: #8a6046; font-size: 10px; text-transform: uppercase; }
+.challenge-trail-body { padding: 12px; }
+.challenge-trail-body h4 { margin: 18px 0 5px; font-size: 12px; }
+.challenge-trail blockquote { white-space: pre-wrap; max-height: 280px; overflow: auto; font-size: 11px; line-height: 1.8; }
+@media (max-width: 760px) { .submission-checklist { grid-template-columns: 1fr; } .submission-heading { align-items: flex-start; flex-direction: column; } .submission-brief, .challenge-trail { padding: 18px; } }

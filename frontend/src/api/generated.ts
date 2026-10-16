@@ -34,7 +34,16 @@ export type Report = {
   documents: Document[]
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
-  generation_metadata?: { novelty_rationale?: string; research_decisions?: { candidate: string; disposition: string; reason: string; published: boolean }[] }
+  generation_metadata?: {
+    novelty_rationale?: string
+    temporal_reasoning?: { text: string; claim_id: string; onset_status: string }
+    research_decisions?: { candidate: string; disposition: string; reason: string; published: boolean; proposed_falsification?: string; mechanism?: string; opposing_query?: string }[]
+    opposing_queries?: string[]
+    challenge_reviews?: { candidate: string; strongest_alternative: string; reason: string; refuted: boolean; unresolved: boolean; relevant_passage_ids: string[]; proposed_falsification: string; opposing_query: string; novelty_status: string; novelty_rationale: string }[]
+    context_searches?: { kind: string; query: string; new_document_ids: string[]; note: string }[]
+    historical_cache?: { source_run_id: string; fact_ids: string[]; policy: string }[]
+    submission_checklist?: { discovery_ready: boolean; items: { key: string; label: string; status: string; reason: string }[]; historical_coverage: { target: string; longest_comparable_series: number; observed_dates: string[] } }
+  }
 }
 
 export type Discovery = {

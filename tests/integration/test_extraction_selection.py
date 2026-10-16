@@ -107,7 +107,11 @@ def test_actual_financial_values_precede_auditor_commentary_with_more_complete_m
         return schema(facts=[], missing_metrics=[metric], notes=['Scope and scale still require source verification.'])
     monkeypatch.setattr(research.calls, 'model', extract)
     research.extract(limit=1)
-    assert selected == [table.id]
+    # The table lacks scope and scale; auditor prose contains no numeric metric
+    # measurement. Neither page can meet the existing acceptance rules, so avoid
+    # spending a provider call that could only return incomplete facts.
+    assert selected == []
+    assert any('explicit date, scope, unit and numeric metric bindings' in note for note in research.limitations)
     assert not research.facts  # Ranking cannot supply the missing accounting scope.
 
 
@@ -222,7 +226,9 @@ def test_sbi_own_balance_precedes_rrbs_and_requires_independent_review(store, tm
     research.extract()
     assert len(reviews) == 1 and "SBI SOLO" in reviews[0]["source_text"]
     assert len(research.facts) == (4 if review_supported else 0)
-    assert len(research.calculations) == (3 if review_supported else 0)
+    assert len(research.calculations) == (6 if review_supported else 0)
+    if review_supported:
+        assert {c.formula_id for c in research.calculations} >= {'deposit_borrowing_mix', 'deposit_borrowing_mix_change'}
     assert not any(c.formula_id in {'loan_to_deposit', 'ldr_change'} for c in research.calculations)
     assert all(f.passage_id == balance.id and f.scope.value == "standalone" for f in research.facts)
     if review_supported:

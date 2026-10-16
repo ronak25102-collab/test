@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from signal_research.extraction.ocr import ocr_page
+from signal_research.extraction.ocr import LowNumericConfidence, ocr_page
 from signal_research.retrieval.metadata import source_publication
 
 
@@ -21,8 +21,10 @@ def test_packaged_renderer_preserves_ocr_rows_and_withholds_uncertain_numbers(tm
         return subprocess.CompletedProcess(command, 0, stdout=tsv.encode())
     monkeypatch.setattr(subprocess, "run", run)
     if confidence == 80:
-        with pytest.raises(RuntimeError, match="numeric confidence"):
+        with pytest.raises(LowNumericConfidence, match="numeric confidence") as failure:
             ocr_page(Path("scan.pdf"), 0, tmp_path, 10)
+        assert failure.value.identity_text == 'Deposits\nAdvances'
+        assert not any(c.isdigit() for c in failure.value.identity_text)
     else:
         assert ocr_page(Path("scan.pdf"), 0, tmp_path, 10) == "Deposits 100000\nAdvances 80000"
     assert "signal_research.extraction.render_worker" in commands[0]

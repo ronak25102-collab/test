@@ -102,7 +102,10 @@ class ResearchMachine:
             self._set_stage(run_id, RunStatus.COMPOSING, "report_composed", "Composed the validated report from verified artifacts")
             if report.outcome != ResearchOutcome.PARTIAL:
                 budget.check()
-            self.store.update_run(run_id, progress={"sources_found": len(report.documents), "documents_parsed": len(report.documents), "calculations_completed": len(report.calculations), "counterevidence_checks": 1 if report.discoveries else 0}, budget=budget.snapshot())
+            checks = len(report.generation_metadata.get('challenge_reviews', []))
+            if report.source_coverage.get('synthetic'):
+                checks = 1 if report.discoveries else 0
+            self.store.update_run(run_id, progress={"sources_found": len(report.documents), "documents_parsed": len(report.documents), "calculations_completed": len(report.calculations), "counterevidence_checks": checks}, budget=budget.snapshot())
             self.store.save_report(report)
         except Exception as exc:
             if getattr(exc, "code", None):

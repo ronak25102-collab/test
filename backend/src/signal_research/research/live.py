@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Literal
 from urllib.parse import unquote, urlparse
@@ -45,11 +45,18 @@ from signal_research.extraction.dates import (
     explicit_duration_ranges,
     source_dates,
 )
+from signal_research.extraction.eligibility import minimum_source_bindings
 from signal_research.extraction.financial_tables import financial_table_batch
 from signal_research.extraction.models import ExtractedFactBatch, source_fact_batch_schema
 from signal_research.extraction.validate import validate_candidate
 from signal_research.finance.calculations import calculate, numeric_fact
 from signal_research.finance.registry import metrics_for_profile
+from signal_research.research.brief import (
+    compatible_candidate,
+    observation_timeline,
+    research_lanes,
+    submission_checklist,
+)
 from signal_research.research.calculation_context import calculation_context
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
 from signal_research.research.history import (
@@ -57,6 +64,7 @@ from signal_research.research.history import (
     has_relationship_evidence,
     needs_history,
 )
+from signal_research.research.history_cache import historical_observations
 from signal_research.research.identity import (
     foreign_cover_identity,
     identity_aliases,
@@ -167,6 +175,8 @@ class DiscoveryDraft(StrictModel):
     headline: Statement
     why_it_matters: list[Statement] = Field(min_length=3, max_length=5)
     counterargument: Statement
+    timeline_analysis: Statement
+    onset_status: Literal['identified', 'bounded', 'unknown']
     falsification: str = Field(max_length=500)
     falsification_window: str = Field(min_length=5, max_length=300)
     falsification_source: str = Field(min_length=5, max_length=300)
@@ -180,7 +190,8 @@ def cited_draft_schema(payload):
         for name, source in (("fact_ids", "facts"), ("passage_ids", "passages"), ("calculation_ids", "calculations"))}
     statement = create_model("CitedStatement", __base__=Statement, **fields)
     return create_model("DiscoveryDraft", __base__=DiscoveryDraft, headline=(statement, ...),
-        counterargument=(statement, ...), why_it_matters=(list[statement], Field(min_length=3, max_length=5)))
+        counterargument=(statement, ...), timeline_analysis=(statement, ...),
+        why_it_matters=(list[statement], Field(min_length=3, max_length=5)))
 
 
 class ClaimVerdict(StrictModel):
@@ -216,7 +227,8 @@ def derive_calculations(facts):
             results.append(Calculation(id=result.id, formula_id=formula, formula_version=result.formula_version,
                                        input_fact_ids=result.input_fact_ids, output_value=result.output_value, unit=result.unit,
                                        period=" / ".join(str(f.period_end) for f in inputs), scope=inputs[0].scope,
-                                       comparability_checks=result.comparability_checks))
+                                       comparability_checks=result.comparability_checks,
+                                       limitations=(['Denominator includes deposits and borrowings only, not all liabilities or all funding. Reporting-boundary changes may affect comparisons; this calculation does not prove a causal mechanism.'] if formula.startswith('deposit_borrowing_mix') else [])))
     pairs = []
     for values in groups.values():
         values = sorted(values, key=lambda f: f.period_end)
@@ -245,6 +257,7 @@ def derive_calculations(facts):
                     add("loan_to_deposit", [a, c])
                     add("loan_to_deposit", [b, d])
     for numerator, denominator, formula in (
+        ('deposits', 'borrowings', 'deposit_borrowing_mix'),
         ("vnb", "ape", "vnb_to_ape"), ("fee_revenue", "average_aum", "fee_yield"),
         ("bank_borrowings", "borrowings", "funding_share"),
         ("bond_borrowings", "borrowings", "funding_share"),
@@ -256,6 +269,22 @@ def derive_calculations(facts):
                 for b in facts:
                     if b.metric_key == denominator:
                         add(formula, [a, b])
+    mix_groups = {}
+    for fact in facts:
+        if fact.metric_key in {'deposits', 'borrowings'}:
+            key = (fact.scope, fact.segment, fact.currency, fact.unit_normalized, fact.period_type)
+            mix_groups.setdefault(key, {}).setdefault(fact.period_end, {})[fact.metric_key] = fact
+    for periods in mix_groups.values():
+        complete = sorted((end, measures) for end, measures in periods.items()
+                          if end and {'deposits', 'borrowings'} <= measures.keys())
+        for index, (_, current) in enumerate(complete):
+            if index == 0:
+                continue
+            prior = complete[index - 1][1]
+            add('deposit_borrowing_mix_change', [current['deposits'], current['borrowings'], prior['deposits'], prior['borrowings']])
+        if len(complete) > 2:
+            prior, current = complete[0][1], complete[-1][1]
+            add('deposit_borrowing_mix_change', [current['deposits'], current['borrowings'], prior['deposits'], prior['borrowings']])
     return results
 
 
@@ -269,10 +298,22 @@ class LiveResearch:
         self.source_titles = []
         self.evidence_iteration = 0
         self.decisions = []
+        self.challenge_reviews = []
+        self.opposing_queries = []
+        self.context_searches = []
+        self.draft_feedback = None
+        self.extraction_paused = False
+        self.history_cache = []
+        self.plan_questions = []
+        self.revalidated_documents = set()
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
         return min(seconds, self.settings.max_run_seconds * seconds / 900)
+
+    def analysis_reserve(self):
+        """Reserve a real reasoning window, not just one last provider response."""
+        return min(240, self.settings.max_run_seconds * .45)
 
     def stage(self, status, summary):
         from signal_research.domain.enums import RunStatus
@@ -280,6 +321,8 @@ class LiveResearch:
 
     def search(self, query, domains=None, opposing=False, *, search_depth=None):
         self.queries.append(query)
+        if opposing and query not in self.opposing_queries:
+            self.opposing_queries.append(query)
         options = {'search_depth': search_depth} if search_depth else {}
         hits = self.calls.search(query, domains, self.cutoff, "challenging" if opposing else "discovering", **options)
         self.source_titles.extend(hit.title for hit in hits if hit.title)
@@ -323,7 +366,9 @@ class LiveResearch:
             if not fetched.local_path or not fetched.body_hash:
                 self.limitations.append(f"Source unavailable: {hit.url}: {fetched.error}")
                 continue
-            if fetched.body_hash in {d.content_hash for d in self.documents}:
+            known = next((d for d in self.documents if d.content_hash == fetched.body_hash), None)
+            if known:
+                self.revalidated_documents.add(known.id)
                 continue
             document_id = UUID(bytes=bytes.fromhex(fetched.body_hash[:32]))
             raw = Path(fetched.local_path).read_bytes()
@@ -343,7 +388,14 @@ class LiveResearch:
                 ocr_pages = prioritized_ocr_pages(parsed)
                 if foreign_cover_identity(native_cover, self.company):
                     ocr_pages = []  # Do not OCR another issuer's annual report.
-                for page_index in ocr_pages[:self.settings.max_ocr_pages]:
+                # Native financial tables already provide original source spans.
+                # OCR unrelated blank artwork must not consume the demo window.
+                if any(self.financial_passage(p) for p in parsed.passages):
+                    ocr_pages = [page for page in ocr_pages if page == 0]
+                per_document_ocr = min(3, self.settings.max_ocr_pages)
+                if len(ocr_pages) > per_document_ocr:
+                    self.limitations.append('Additional scanned pages deferred after the bounded cover/financial-page pass; source coverage is incomplete.')
+                for page_index in ocr_pages[:per_document_ocr]:
                     if self.budget.ocr_pages >= self.budget.max_ocr_pages:
                         self.limitations.append("OCR page cap reached; remaining scanned pages were withheld.")
                         break
@@ -357,6 +409,11 @@ class LiveResearch:
                         if ocr_text.strip():
                             parsed.passages.append(Passage(id=uuid5(document_id, f"ocr:{page_index}:{ocr_text}"), document_id=document_id, page_index=page_index, printed_page_label=str(page_index + 1), text=ocr_text, extraction_method="ocr", extraction_quality="numeric_confidence_at_least_95"))
                     except Exception as exc:
+                        identity_text = getattr(exc, 'identity_text', '') if page_index == 0 else ''
+                        if identity_text and issuer_cover_identity(identity_text, self.company):
+                            parsed.passages.append(Passage(id=uuid5(document_id, f'ocr_identity:{page_index}:{identity_text}'),
+                                document_id=document_id, page_index=page_index, text=identity_text,
+                                extraction_method='ocr_identity', extraction_quality='identity_only; numeric evidence prohibited'))
                         self.limitations.append(f"OCR page {page_index + 1} withheld: {exc}")
             except Exception as exc:
                 self.limitations.append(f"Source parse failed: {hit.url}: {exc}")
@@ -378,9 +435,10 @@ class LiveResearch:
                     self.company.verified_ir_domains = list(dict.fromkeys([*domains, *self.company.verified_ir_domains]))
                     queue.extend((lead, 0) for lead in verified_disclosure_indexes(self.company) if lead.url not in self.seen_urls)
             publisher, origin, kind = source_origin(fetched.final_url or hit.url, self.company, hit.title, text)
-            identified = (issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
+            cover_text = '\n'.join(p.text for p in parsed.passages if p.page_index in {0, 1})
+            identified = (issuer_cover_identity(cover_text, self.company) or issuer_cover_identity(text[:3000], self.company) or issuer_named(text[:3000], self.company)
                           or issuer_symbol_reference(text, self.company))
-            if raw.startswith(b"%PDF") and foreign_cover_identity(text, self.company):
+            if raw.startswith(b"%PDF") and foreign_cover_identity(cover_text or text, self.company):
                 identified = False
             portal_host = urlparse(fetched.final_url or hit.url).hostname or ''
             shared_portal = any(other.id != self.company.id and
@@ -425,8 +483,8 @@ class LiveResearch:
                     break
         self.progress()
 
-    def progress(self, checks=0):
-        self.store.update_run(self.run_id, progress={"sources_found": len(self.seen_urls), "documents_parsed": len(self.documents), "calculations_completed": len(self.calculations), "counterevidence_checks": checks})
+    def progress(self, checks=None):
+        self.store.update_run(self.run_id, progress={"sources_found": len(self.seen_urls), "documents_parsed": len(self.documents), "calculations_completed": len(self.calculations), "counterevidence_checks": len(self.challenge_reviews)})
 
     def financial_passage(self, passage):
         aliases = [alias for metric in metrics_for_profile(self.company.business_profiles[0])
@@ -439,11 +497,29 @@ class LiveResearch:
         return any(p.document_id in eligible and self.financial_passage(p) for p in self.passages)
 
     def extraction_model(self, passage, schema, payload, *args):
-        from signal_research.providers.llm.codecraft_provider import CodeCraftStructuredOutputError
-        from signal_research.providers.llm.nvidia_provider import NvidiaStructuredOutputError
+        from signal_research.providers.llm.codecraft_provider import (
+            CodeCraftStructuredOutputError,
+            CodeCraftTimeout,
+        )
+        from signal_research.providers.llm.nvidia_provider import (
+            NvidiaStructuredOutputError,
+            NvidiaTimeout,
+        )
 
         try:
             return self.calls.model(schema, payload, *args)
+        except (CodeCraftTimeout, NvidiaTimeout) as exc:
+            if not self.facts:
+                raise
+            # Do not repeat an uncertain request. Existing approved facts can
+            # still support distinct hypothesis/challenge requests while optional
+            # extraction is paused for the rest of this run.
+            self.extraction_paused = True
+            self.store.artifact(self.run_id, 'extraction_failure', {
+                'passage_id': passage.id, 'schema': schema.__name__, 'error_code': exc.code,
+                'reason': str(exc), 'action': 'optional extraction paused; uncertain request not retried'})
+            self.limitations.append(f'Optional extraction paused after an uncertain provider response: {exc}. Previously verified evidence remains available for investigation.')
+            return None
         except (NvidiaStructuredOutputError, CodeCraftStructuredOutputError) as exc:
             # Another source may be usable. No result from this response can be
             # approved, and duplicate PDF views must not repeat the failed page.
@@ -456,9 +532,13 @@ class LiveResearch:
             self.limitations.append(f"Extraction response withheld: {exc}; this source request was not retried.")
             return None
 
-    def extract(self, limit=4, *, preferred_document_ids=()):
+    def extract(self, limit=4, *, preferred_document_ids=None, historical=False, focus_metrics=()):
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
+        focus = [metric for metric in metrics if metric.key in focus_metrics]
+        def focus_score(passage):
+            return sum(bool(re.search(r'\b' + re.escape(alias) + r'\b', passage.text, re.I))
+                       for metric in focus for alias in (*metric.aliases, metric.key.replace('_', ' ')))
         eligible = {d.id for d in self.documents if d.cutoff_eligibility == "eligible" and d.document_type.startswith("issuer")}
         ambiguous = {p.id for p in self.passages if p.document_id in eligible and
                      multiple_issuer_headings(p.text, self.company.legal_name)}
@@ -487,9 +567,16 @@ class LiveResearch:
             periods = [period for period in source_dates(p.text) if period <= self.cutoff]
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
-            return (p.document_id in preferred_document_ids, numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
-        ranked = sorted([p for p in self.passages if p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
-                         not subsidiary_only(p.text) and self.financial_passage(p)], key=score, reverse=True)
+            return (p.document_id in (preferred_document_ids or ()), numeric_measures > 0, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
+        ranked = sorted([p for p in self.passages if p.extraction_method != 'ocr_identity' and p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
+                         (preferred_document_ids is None or p.document_id in preferred_document_ids) and
+                         not subsidiary_only(p.text) and self.financial_passage(p) and minimum_source_bindings(p, profile)
+                         and score(p)[1] and (not focus or focus_score(p))],
+                        key=lambda p: (focus_score(p), *score(p)), reverse=True)
+        if not ranked and eligible:
+            note = 'No unreviewed financial page had the explicit date, scope, unit and numeric metric bindings required for model extraction.'
+            if note not in self.limitations:
+                self.limitations.append(note)
         passages, pages = [], set()
         for passage in ranked:
             location = (passage.document_id, passage.page_index)
@@ -500,7 +587,13 @@ class LiveResearch:
             passages.append(passage)
             if len(passages) == limit:
                 break
+        starting_periods = {(f.scope, f.metric_key, f.period_end) for f in self.facts}
         for passage in passages:
+            if self.extraction_paused:
+                break
+            if (historical or focus_metrics) and self.budget.remaining_seconds() <= self.analysis_reserve():
+                self.limitations.append('Additional extraction deferred to preserve the discovery, challenge and final-review window.')
+                break
             self.extracted.add(passage.id)
             identity_passages = [p for p in self.passages if p.document_id == passage.document_id and p.page_index in {None, 0, 1}][:4]
             identity_passages = [p for p in identity_passages if issuer_cover_identity(p.text, self.company)
@@ -519,9 +612,10 @@ class LiveResearch:
                                       "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text)],
                                       "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages if issuer_named(p.text, self.company)],
                                       "allowed_metric_keys": [m.key for m in metrics],
+                                      "research_focus_metrics": list(focus_metrics),
                                       "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in metrics],
                                       "passage_text": passage.text}, "extract", "extracting",
-                                      extraction_instruction(profile) + " Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
+                                      extraction_instruction(profile) + " Prefer research_focus_metrics where supplied, including their comparative periods, before unrelated balance rows. Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
                 if batch is None:
                     batch = ExtractedFactBatch(notes=['Incomplete extraction response; no candidates accepted.'])
             accepted, candidates, rejected = [], [], []
@@ -559,7 +653,12 @@ class LiveResearch:
                     explanation = f"Extraction gap: {note}"
                     if explanation not in self.limitations:
                         self.limitations.append(explanation)
-            elif len({fact.metric_key for fact in self.facts}) >= 2 and len(derive_calculations(self.facts)) >= 2:
+            elif historical and any((f.scope, f.metric_key, f.period_end) not in starting_periods for f in accepted):
+                # One useful earlier comparative statement is enough for this
+                # window. Reading unrelated cash-flow/related-party pages after
+                # it was starving the discovery stages of their entire allowance.
+                break
+            elif not historical and len({fact.metric_key for fact in self.facts}) >= 2 and len(derive_calculations(self.facts)) >= 2:
                 # Comparable verified measures are enough to investigate an angle.
                 # Preserve the remaining call/time allowance for counterevidence
                 # and semantic review instead of extracting unrelated report pages.
@@ -587,14 +686,20 @@ class LiveResearch:
         self.store.checkpoint(self.run_id, "evidence_collected", self.evidence_iteration, snapshot.model_dump(mode="json"))
         self.evidence_iteration += 1
 
-    def payload(self, hypothesis=None, required_passage_ids=()):
+    def payload(self, hypothesis=None, required_passage_ids=(), *, compact=False):
         documents = {d.id: d for d in self.documents if d.cutoff_eligibility == "eligible"}
-        used = {fact.passage_id for fact in self.facts}
+        selected_facts = self.facts
+        selected_calculations = self.calculations
+        if hypothesis:
+            identifiers = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
+            selected_facts = [f for f in self.facts if f.id in identifiers]
+            selected_calculations = [c for c in self.calculations if set(c.input_fact_ids) <= identifiers]
+        used = {fact.passage_id for fact in selected_facts}
         supporting = [p for p in self.passages if p.id in used and p.document_id in documents]
         context = [p for p in self.passages if p.document_id in documents and
                    not documents[p.document_id].document_type.startswith("issuer")]
         identities = [*identity_aliases(self.company.legal_name), *self.company.aliases, *self.company.symbols]
-        question = (hypothesis.statement + ' ' + hypothesis.mechanism if hypothesis else
+        question = (getattr(hypothesis, 'statement', getattr(hypothesis, 'text', '')) + ' ' + getattr(hypothesis, 'mechanism', '') if hypothesis else
                     CONTEXT_TERMS[self.company.business_profiles[0]])
         def context_score(passage):
             return relevance(passage.text, identities, question)
@@ -605,27 +710,41 @@ class LiveResearch:
         qualifiers = [p for p in self.passages if p.document_id in used_documents and p.id not in used and
             (p.extraction_method == 'exchange_notes' or re.search(r'\bmerger|amalgamation|acquisition|acquired|restatement|reclassif|regrouped|scope\s+of\s+consolidation|change\s+in\s+accounting', p.text, re.I))]
         qualifiers.sort(key=context_score, reverse=True)
+        # Management explanations and operating notes are research evidence too.
+        # Restricting issuer input to extracted balance cells hid the narrative
+        # that an investigator needs to test against those numbers.
+        narrative = [p for p in self.passages if p.document_id in documents and
+                     documents[p.document_id].document_type.startswith('issuer') and p.id not in used and
+                     re.search(r'cost of (?:funds|deposits)|repric|maturit|sell.down|securiti[sz]|co.lend|slippage|write.off|funding mix|liability mix|management|strategy|persistency|distribution mix|underwriting|fee yield|product mix', p.text, re.I)]
+        narrative = diverse_context(narrative, documents, identities, question, limit=3)
         required = [p for p in self.passages if p.id in required_passage_ids and p.document_id in documents]
-        selected = list({p.id: p for p in [*supporting, *qualifiers[:2], *bounded_context, *required]}.values())
+        selected = list({p.id: p for p in [*([] if compact else supporting), *qualifiers[:2], *narrative, *bounded_context, *required]}.values())
         source_spans = []
         for passage in selected:
-            anchors = [f.value_raw for f in self.facts if f.passage_id == passage.id]
+            anchors = [f.value_raw for f in selected_facts if f.passage_id == passage.id] if not compact else []
             excerpt = exact_excerpt(passage.text, anchors, question,
-                                    limit=max(2000, len(passage.text)) if anchors else 2000)
+                                    limit=max(2000, len(passage.text)) if anchors else 1200 if compact else 2000)
             source_spans.append({"id": passage.id, "document_id": passage.document_id,
+                                 'source_role': 'verified_figure_span' if anchors else 'issuer_explanation' if documents[passage.document_id].document_type.startswith('issuer') else 'independent_context',
                                  **excerpt})
-        selected_documents = {p.document_id for p in selected}
+        selected_documents = {p.document_id for p in selected} | used_documents
+        required_calculations = set(hypothesis.calculation_ids) if hypothesis else set()
+        model_calculations = sorted(selected_calculations, key=lambda c: (
+            c.id in required_calculations,
+            c.formula_id in {'deposit_borrowing_mix_change', 'growth_gap', 'ldr_change', 'funding_share'},
+            c.period or ''), reverse=True)[:24]
         return {"company": self.company.model_dump(mode="json"), "cutoff": self.cutoff,
                 "facts": [{key: value for key, value in f.model_dump(mode="json").items() if key in {
                     "id", "entity_id", "metric_key", "value_raw", "value_decimal", "unit_normalized", "currency",
-                    "period_start", "period_end", "period_type", "scope", "segment", "definition_id", "passage_id"}} for f in self.facts],
-                "calculations": [calculation_context(c, self.facts) for c in self.calculations],
+                    "period_start", "period_end", "period_type", "scope", "segment", "definition_id", "passage_id"}} for f in selected_facts],
+                "calculations": [calculation_context(c, self.facts) for c in model_calculations],
                 "documents": [{"id": d.id, "title": d.title, "publisher": d.publisher,
                                "published_at": d.published_at, "origin_family_id": d.origin_family_id,
                                "document_type": d.document_type} for d in documents.values() if d.id in selected_documents],
                 "passages": source_spans,
-                "historical_series": comparable_series(self.facts),
-                "coverage_note": "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
+                "historical_series": comparable_series(selected_facts),
+                "compatible_research_lanes": research_lanes(selected_facts, model_calculations),
+                "coverage_note": ("Planning context uses previously verified structured facts; original numeric spans are omitted here to reduce latency. Exact linked spans are supplied for challenge and final claim review. " if compact else '') + "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
     def model_metadata(self):
         # Include actual routing before attestation; changing a sealed report
@@ -643,6 +762,10 @@ class LiveResearch:
         report.limitations += self.limitations
         report.generation_metadata["search_queries"] = self.queries
         report.generation_metadata["research_decisions"] = self.decisions
+        report.generation_metadata['challenge_reviews'] = self.challenge_reviews
+        report.generation_metadata['opposing_queries'] = self.opposing_queries
+        report.generation_metadata['context_searches'] = self.context_searches
+        report.generation_metadata['historical_cache'] = self.history_cache
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         fact_passages = {f.passage_id for f in self.facts}
@@ -651,6 +774,14 @@ class LiveResearch:
         report.source_coverage['blocked_sources'] = sum(note.startswith('Source unavailable:') for note in self.limitations)
         # A withheld hypothesis must not discard independently verified arithmetic.
         report.calculations = self.calculations
+        report.timeline_events = observation_timeline(self.run_id, self.facts, self.passages, self.documents)
+        report.generation_metadata['submission_checklist'] = submission_checklist(report)
+        if self.decisions:
+            report.abstention.attempted_angles = list(dict.fromkeys(d['candidate'] for d in self.decisions))
+            report.abstention.strongest_unconfirmed_lead = next((review['candidate'] for review in self.challenge_reviews if not review['refuted']), None)
+        elif self.plan_questions:
+            report.abstention.attempted_angles = self.plan_questions
+        report.abstention.next_evidence_needed = list(dict.fromkeys(reasons))
         return report
 
     def focused_query(self, query):
@@ -665,7 +796,11 @@ class LiveResearch:
         decision = {'candidate': hypothesis.statement, 'disposition': disposition,
                     'reason': reason, 'fact_ids': hypothesis.fact_ids,
                     'calculation_ids': hypothesis.calculation_ids,
-                    'passage_ids': list(passage_ids), 'published': False}
+                    'passage_ids': list(passage_ids), 'published': False,
+                    'mechanism': hypothesis.mechanism,
+                    'proposed_falsification': hypothesis.falsification,
+                    'opposing_query': hypothesis.opposing_query,
+                    'label': 'Unverified research candidate; not a discovery'}
         self.decisions.append(decision)
         self.store.artifact(self.run_id, 'research_decision', decision)
 
@@ -682,41 +817,103 @@ class LiveResearch:
         return False
 
     def collect_history(self):
-        if not self.calculations or not needs_history(self.facts):
+        if not self.calculations or self.extraction_paused:
             return
-        if (self.budget.search_calls >= self.budget.max_search_calls - 4
-                or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
-                or self.budget.model_calls >= self.budget.max_model_calls - 6
-                or self.budget.remaining_seconds() <= self.time_reserve(210)):
-            self.limitations.append('Historical coverage remains two snapshots or less; further collection would consume final verification allowance.')
+        years = {fact.period_end.year for fact in self.facts if fact.period_end}
+        current_fact_passages = {f.passage_id for f in self.facts if f.period_end and f.period_end.year == self.cutoff.year}
+        fact_documents = {p.document_id for p in self.passages if p.id in current_fact_passages}
+        current_annual = any(d.id in fact_documents and d.published_at and d.published_at.year == self.cutoff.year
+                             and re.search(r'annual|integrated report', d.title, re.I) for d in self.documents)
+        if len(years) >= 5 and not needs_history(self.facts) and current_annual:
             return
-        oldest = min(f.period_end.year for f in self.facts if f.period_end)
-        self.stage('discovering', 'Seeking earlier comparable disclosures and changes in reporting boundaries')
+        self.stage('discovering', 'Seeking original disclosures across five years; checking reporting boundaries and earlier periods')
         structured = any(p.extraction_method == 'exchange_table' for p in self.passages)
-        if structured:
-            for year in (oldest - 1, oldest - 2):
-                if (self.budget.search_calls >= self.budget.max_search_calls - 4
-                        or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
-                        or self.budget.model_calls >= self.budget.max_model_calls - 6
-                        or self.budget.remaining_seconds() <= self.time_reserve(180)):
-                    break
-                hits = self.search(f'"{self.company.legal_name}" "INTEGRATED FILING" {year}',
-                                   ['nsearchives.nseindia.com'], search_depth='advanced')
-                before = {d.id for d in self.documents}
-                self.ingest(hits[:2], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
-                fresh = {d.id for d in self.documents} - before
-                if fresh:
-                    self.extract(limit=3, preferred_document_ids=fresh)
-                if not needs_history(self.facts):
-                    break
-        else:
-            hits = self.search(f'"{self.company.legal_name}" "annual report" {oldest - 1} {oldest}',
-                               self.company.verified_ir_domains or None)
-            self.ingest(hits[:1], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=3)
-            self.extract(limit=1)
+        # Comparative annual filings usually contain two endpoints. Three bounded
+        # searches cover a five-year window without demanding twenty PDFs up front.
+        for offset in (0, 2, 4):
+            if (self.budget.search_calls >= self.budget.max_search_calls - 5
+                    or self.budget.fetch_documents >= self.budget.max_fetch_documents - 4
+                    or self.budget.model_calls >= self.budget.max_model_calls - 8
+                    or self.budget.remaining_seconds() <= self.analysis_reserve() + 45):
+                self.limitations.append('Historical expansion stopped to preserve opposing-search and final-review allowances; five-year coverage is not assumed.')
+                break
+            year = self.cutoff.year - offset
+            query = (f'"{self.company.legal_name}" "INTEGRATED FILING" {year}' if structured else
+                     f'"{self.company.legal_name}" "annual report" {year - 1} {year} filetype:pdf')
+            hits = self.search(query, ['nsearchives.nseindia.com'] if structured else self.company.verified_ir_domains or None,
+                               search_depth='advanced')
+            before = {d.id for d in self.documents}
+            previously_revalidated = set(self.revalidated_documents)
+            self.ingest(hits[:2], time_reserve=self.analysis_reserve() + 30, parse_limit=25, document_reserve=4)
+            fresh = ({d.id for d in self.documents} - before) | (self.revalidated_documents - previously_revalidated)
+            if fresh:
+                self.extract(limit=4, preferred_document_ids=fresh, historical=True)
+            if any(s['comparable_periods'] >= 5 for s in comparable_series(self.facts)):
+                break
         self.store.artifact(self.run_id, 'historical_coverage', {'series': comparable_series(self.facts)})
         if needs_history(self.facts):
             self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
+
+    def load_historical_cache(self):
+        for report in self.store.historical_reports(self.company.id, self.cutoff):
+            facts, passages, documents = historical_observations(report, self.company.id, self.cutoff)
+            if not facts:
+                continue
+            self.facts = list({f.id: f for f in [*self.facts, *facts]}.values())
+            self.passages = list({p.id: p for p in [*self.passages, *passages]}.values())
+            self.documents = list({d.id: d for d in [*self.documents, *documents]}.values())
+            self.source_titles.extend(d.title for d in documents if d.title)
+            self.history_cache.append({'source_run_id': str(report.run_id), 'fact_ids': [str(f.id) for f in facts],
+                                       'policy': 'Historical observations at least one year old; local source hashes rechecked. No conclusions reused. Current sources are searched and fetched again.'})
+        if self.history_cache:
+            self.calculations = derive_calculations(self.facts)
+            self.store.artifact(self.run_id, 'historical_cache', {'sources': self.history_cache})
+            self.limitations.append('Historical observations were reused from earlier live runs after source-hash checks. Original retrieval dates are retained; discovery and counterevidence review are performed for this run.')
+
+    def collect_operating_metrics(self):
+        """Go beyond balance growth: seek profile-specific quality, mix and economics."""
+        if self.extraction_paused:
+            return
+        focus = {
+            'bank': ('gnpa', 'nnpa', 'nim', 'casa_ratio', 'funding_cost', 'credit_cost'),
+            'nbfc': ('stage2_ratio', 'stage3_ratio', 'gnpa', 'funding_cost', 'credit_cost', 'bank_borrowings', 'co_lending_aum'),
+            'life_insurer': ('vnb', 'ape', 'vnb_margin', 'persistency_13m', 'persistency_61m'),
+            'general_insurer': ('combined_ratio', 'loss_ratio', 'expense_ratio', 'solvency_ratio'),
+            'exchange': ('transaction_revenue', 'trading_turnover', 'fee_revenue'),
+            'asset_manager': ('fee_revenue', 'average_aum', 'net_flows'),
+            'diversified': ('segment_profit', 'segment_revenue', 'bank_borrowings', 'bond_borrowings'),
+        }[self.company.business_profiles[0].value]
+        if (self.budget.model_calls >= self.budget.max_model_calls - 8
+                or self.budget.remaining_seconds() <= self.analysis_reserve() + 30):
+            return
+        observed = {f.metric_key for f in self.facts if f.metric_key in focus
+                    and f.period_end and f.period_end >= self.cutoff - timedelta(days=400)}
+        if len(observed) >= 3:
+            return
+        self.stage('extracting', 'Seeking asset quality, funding composition and operating economics beyond headline growth')
+        self.extract(limit=2, focus_metrics=focus)
+
+    def collect_sector_context(self, peers):
+        """Retrieve original peer/regulator context, never relabel peer figures as target facts."""
+        profile = self.company.business_profiles[0]
+        regulator = ('RBI', ['rbi.org.in']) if profile.value in {'bank', 'nbfc'} else (
+            ('IRDAI', ['irdai.gov.in']) if 'insurer' in profile.value else ('SEBI', ['sebi.gov.in']))
+        queries = [('regulator', f'{regulator[0]} {CONTEXT_TERMS[profile]} {self.cutoff.year}', regulator[1])]
+        for peer in peers.peers:
+            queries.append(('peer', f'"{peer.legal_name}" "financial results" {CONTEXT_TERMS[profile]} {self.cutoff.year}', peer.verified_ir_domains or None))
+        for kind, query, domains in queries:
+            if (self.budget.search_calls >= self.budget.max_search_calls - 4
+                    or self.budget.fetch_documents >= self.budget.max_fetch_documents - 3
+                    or self.budget.remaining_seconds() <= self.analysis_reserve() + 30):
+                self.limitations.append('Additional regulator/peer retrieval stopped to preserve final verification; comparisons remain limited to retrieved evidence.')
+                break
+            self.stage('discovering', f'Seeking original {kind} context for comparison and alternative explanations')
+            before = {d.id for d in self.documents}
+            hits = self.search(query, domains)
+            self.ingest(hits[:1], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=3)
+            self.context_searches.append({'kind': kind, 'query': query,
+                                         'new_document_ids': list({d.id for d in self.documents} - before),
+                                         'note': 'Retrieved context; numeric peer comparisons require separate verified bindings.'})
 
     def recover_issuer_identity(self):
         """Re-check authoritative website references when existing domains yield no facts."""
@@ -758,9 +955,15 @@ class LiveResearch:
         payload = self.payload(hypothesis) | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
         schema = create_model("Challenge", __base__=Challenge, relevant_passage_ids=(list[UUID], Field(max_length=8, json_schema_extra={"items": {
             "type": "string", "enum": [str(p["id"]) for p in payload['passages']]}})))
-        return self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails. Assess novelty using the supplied original passages: identify the published explanation and describe the additional cross-metric or cross-source synthesis. Different headline wording is not novelty. Mark simple_restatement for ordinary reported results, already_covered if the relationship is already explained by the sources, and novelty_unknown when evidence is insufficient. historical_series describes observed coverage; two snapshots cannot establish onset, a sustained trend or causality.")
+        result = self.calls.model(schema, payload, stage="challenging", instruction="Challenge the proposed mechanism using all evidence. Check every stated percentage against its specific registered calculation, input dates and scope; reject invented numbers and reversed arithmetic. Mark refuted if contradicted. Mark unresolved if scope, acquisitions, seasonality or missing evidence could explain the relationship. Select only directly relevant eligible source passage IDs. relevant_passage_ids must contain full IDs from the passages array only, never fact or calculation IDs. Distinguish a qualified arithmetic observation from an unproven causal mechanism; unresolved mechanism evidence does not refute reproducible arithmetic. Lack of search results does not establish absence of counterevidence. Retain only a qualified observation if the stronger inference fails. Assess novelty using the supplied original passages: identify the published explanation and describe the additional cross-metric or cross-source synthesis. Different headline wording is not novelty. Mark simple_restatement for ordinary reported results, already_covered if the relationship is already explained by the sources, and novelty_unknown when evidence is insufficient. historical_series describes observed coverage; two snapshots cannot establish onset, a sustained trend or causality.")
+        self.challenge_reviews.append({'candidate': hypothesis.statement, 'proposed_falsification': hypothesis.falsification,
+                                       'opposing_query': hypothesis.opposing_query, **result.model_dump(mode='json')})
+        self.progress()
+        return result
 
     def run(self, plan):
+        self.plan_questions = [task.query for task in plan]
+        self.load_historical_cache()
         self.stage("discovering", "Searching issuer disclosures and independent sector, regulatory and peer context")
         initial = []
         # Round-robin domains and independent leads so issuer hits cannot consume the entire cap.
@@ -845,23 +1048,64 @@ class LiveResearch:
                 requirement = "verified issuer facts with complete metric, value, period, unit and scope bindings" if eligible_issuer else "an accessible official financial disclosure with verified issuer identity and reporting periods"
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
+        self.collect_operating_metrics()
         self.collect_history()
+        self.collect_sector_context(peers)
         if not self.calculations:
             return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
-        self.stage("hypothesizing", "Generating and ranking observation-led mechanisms with explicit tests")
-        payload = self.payload()
-        batch = self.calls.model(cited_hypothesis_schema(payload), payload, instruction="Propose up to three non-obvious relationships grounded in the calculations. Separate observation from mechanism. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_display; retain their signs and ordered input roles. Read growth_gap as first metric YoY growth minus second metric YoY growth, not the change in that gap over time. Do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
+        self.stage("hypothesizing", "Generating and ranking observation-led mechanisms within comparable reporting boundaries")
+        payload = self.payload(compact=True)
+        batch = self.calls.model(cited_hypothesis_schema(payload), payload, stage="hypothesizing", instruction="Propose up to three non-obvious relationships grounded in the calculations. Use compatible_research_lanes: never combine standalone and consolidated scope, different entities or segments into a relationship without verified reconciliation. Separate observation from mechanism. Mechanisms are hypotheses to test: do not introduce ANY unverified numbers, industry averages, interest rates, margins or maturity amounts in them. Give concise web-search fragments of at most twelve words, not conditional questions. The opposing query must seek documented reclassification, seasonality, regulation, acquisitions, scope changes or the strongest alternative. Reject pure latest-results summaries; investigate cross-metric or segment relationships with historical development. Use supplied fact/calculation IDs only. Copy numerical changes from output_display; retain their signs and ordered input roles. Read growth_gap as first metric YoY growth minus second metric YoY growth, not the change in that gap over time. Do not invent, estimate or mentally calculate a new percentage, ratio or differential. advances_as_reported is a balance-sheet label, not verified gross loans or an official credit-deposit ratio. Prefer cross-metric relationships over restating headline results. Return no candidates if nothing defensible exists.")
         self.store.artifact(self.run_id, "hypotheses", batch.model_dump(mode="json"))
+        report = self.investigate_candidates(batch)
+        if report:
+            return report
+        # A failed first angle should produce a bounded research revision rather
+        # than an immediate blank discovery. Never retry a stale or refuted thesis
+        # merely to obtain a more agreeable verdict.
+        revisable = any(d['disposition'] in {'simple_restatement', 'already_covered', 'novelty_unknown', 'withheld'}
+                        for d in self.decisions)
+        if (revisable and self.budget.search_calls < self.budget.max_search_calls - 4
+                and self.budget.fetch_documents < self.budget.max_fetch_documents - 3
+                and self.budget.model_calls < self.budget.max_model_calls - 8
+                and self.budget.remaining_seconds() > self.time_reserve(240)):
+            self.stage('discovering', 'Revising the research angle after the first candidates failed; seeking missing disclosures')
+            missing = ' '.join(batch.missing_evidence[:2])[:220]
+            query = self.focused_query(missing or CONTEXT_TERMS[self.company.business_profiles[0]]) + ' annual report notes disclosure'
+            before = {p.id for p in self.passages}
+            hits = self.search(query, self.company.verified_ir_domains or None)
+            self.ingest(hits[:2], time_reserve=self.time_reserve(180), parse_limit=25, document_reserve=2)
+            if {p.id for p in self.passages} - before:
+                self.extract(limit=3, historical=True)
+                if self.calculations:
+                    revised_payload = self.payload(compact=True) | {'rejected_candidates': self.decisions,
+                                                        'challenge_reviews': self.challenge_reviews}
+                    self.stage('hypothesizing', 'Testing a revised angle against the expanded evidence and earlier objections')
+                    revised = self.calls.model(cited_hypothesis_schema(revised_payload), revised_payload, stage="hypothesizing",
+                        instruction='Propose up to three NEW defensible relationships from the expanded verified evidence. Do not repeat rejected candidates or relabel a refuted mechanism. Use one compatible_research_lane, exact registered arithmetic and supplied IDs. Introduce no unverified numbers in the statement or mechanism. Seek a non-obvious cross-metric relationship beyond reported results. Give targeted supporting and opposing search fragments and an observable proposed falsification test. Return no candidates rather than inventing a discovery.')
+                    self.store.artifact(self.run_id, 'revised_hypotheses', revised.model_dump(mode='json'))
+                    report = self.investigate_candidates(revised)
+                    if report:
+                        return report
+        return self.abstain(batch.missing_evidence or ['a discovery that survives counterevidence and semantic verification'])
+
+    def investigate_candidates(self, batch):
         facts = {f.id for f in self.facts}
         calculations = {c.id for c in self.calculations}
         candidates = sorted([h for h in batch.candidates if set(h.fact_ids) <= facts and set(h.calculation_ids) <= calculations], key=lambda h: h.significance + h.novelty, reverse=True)
         candidate_cap = 3 if self.store.get_summary(self.run_id).mode.value == "deep" else 2
-        for iteration, hypothesis in enumerate(candidates[:candidate_cap]):
+        investigated = 0
+        for hypothesis in candidates:
             if not self.current_candidate(hypothesis):
                 continue
             hypothesis = hypothesis.model_copy(update={"calculation_ids": complete_calculation_lineage(
                 hypothesis.statement + ' ' + hypothesis.mechanism, hypothesis.fact_ids,
                 hypothesis.calculation_ids, self.calculations)})
+            compatible, reason = compatible_candidate(hypothesis, self.facts, self.calculations)
+            if not compatible:
+                self.record_decision(hypothesis, 'incomparable', reason)
+                self.limitations.append(reason)
+                continue
             cited_facts = [f for f in self.facts if f.id in hypothesis.fact_ids]
             cited_calcs = [c for c in self.calculations if c.id in hypothesis.calculation_ids]
             if not supported_percentages(hypothesis.statement + ' ' + hypothesis.mechanism, cited_facts, cited_calcs):
@@ -872,12 +1116,20 @@ class LiveResearch:
                 self.record_decision(hypothesis, 'already_covered', 'The candidate repeats a discovered source headline.')
                 self.limitations.append("Candidate repeats an existing source headline; seeking additional synthesis.")
                 continue
+            # Invalid high-ranked candidates must not consume the investigation cap.
+            if investigated >= candidate_cap:
+                self.record_decision(hypothesis, 'not_investigated', 'The bounded investigation allowance was used by other valid candidates.')
+                continue
+            iteration = investigated
+            investigated += 1
             self.stage("investigating", f"Following candidate {iteration + 1} with a targeted evidence query")
             followup = self.search(self.focused_query(hypothesis.next_query))
             opposing = self.search(self.focused_query(hypothesis.opposing_query), opposing=True)
             self.stage("fetching", "Retrieving targeted supporting and opposing sources")
+            previous_documents = {d.id for d in self.documents}
+            previously_revalidated = set(self.revalidated_documents)
             self.ingest([*opposing[:3], *followup[:3]], time_reserve=self.time_reserve(120), parse_limit=25)
-            self.extract(limit=2)
+            self.extract(limit=1, preferred_document_ids=({d.id for d in self.documents} - previous_documents) | (self.revalidated_documents - previously_revalidated))
             if not self.current_candidate(hypothesis):
                 continue
             self.recover_context(hypothesis)
@@ -894,6 +1146,7 @@ class LiveResearch:
             if len(origins) < 2:
                 if self.budget.remaining_seconds() < self.time_reserve(120):
                     self.limitations.append("Independent corroboration remains incomplete; additional retrieval was stopped at the remaining time limit.")
+                    self.record_decision(hypothesis, 'withheld', 'Independent corroboration remains incomplete within the remaining verification time.', challenge.relevant_passage_ids)
                     continue
                 before = len(self.documents)
                 self.recover_context(hypothesis, force=True)
@@ -913,28 +1166,67 @@ class LiveResearch:
                 continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
-            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write a qualified discovery headline, 3–5 significance statements and the strongest counterargument. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
+            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write one clear, qualified discovery sentence (prefer under forty words), 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
+            # Repair a specific unsupported qualification or observable test only
+            # after novelty survived review. Rewording cannot rescue failed novelty.
+            if (self.draft_feedback and self.draft_feedback.get('repairable')
+                    and self.budget.remaining_seconds() > 180
+                    and self.budget.model_calls < self.budget.max_model_calls - 2):
+                self.stage('composing', 'Correcting the rejected draft against its independent review; publication still requires a fresh review')
+                repair_payload = draft_payload | {'rejected_draft': draft.model_dump(mode='json'),
+                                                  'independent_review': self.draft_feedback}
+                revised_draft = self.calls.model(cited_draft_schema(repair_payload), repair_payload, stage='composing',
+                    instruction='Correct ONLY the specifically unsupported claims or falsification details identified by independent_review. Use existing cited verified facts, calculations and source passages. Do not change the approved novelty assessment, invent new facts or claim a historical onset beyond the observations. Keep a qualified one-sentence discovery, 3–5 independently supported significance statements, linked timeline_analysis with honest onset_status, strongest counterargument, and an observable falsification condition with a concrete window and source. Every percentage must link its exact registered calculation or verified ratio fact. The entire result will undergo a new independent review. No investment advice.')
+                report = self.compose(revised_draft, challenge, hypothesis.opposing_query)
+                if report:
+                    return report
             self.record_decision(hypothesis, 'withheld', 'The drafted conclusion failed independent final verification.', challenge.relevant_passage_ids)
-        return self.abstain(batch.missing_evidence or ["a discovery that survives counterevidence and semantic verification"])
+        return None
 
     def compose(self, draft, challenge, opposing_query):
+        self.draft_feedback = None
         facts, passages, calculations = {f.id: f for f in self.facts}, {p.id: p for p in self.passages}, {c.id: c for c in self.calculations}
-        statements = [draft.headline, *draft.why_it_matters, draft.counterargument]
+        statements = [draft.headline, *draft.why_it_matters, draft.timeline_analysis, draft.counterargument]
+        finding_boundary = draft.headline.model_copy(update={
+            'fact_ids': list({identifier for statement in statements for identifier in statement.fact_ids}),
+            'calculation_ids': list({identifier for statement in statements for identifier in statement.calculation_ids}),
+        })
+        compatible, reason = compatible_candidate(finding_boundary, self.facts, self.calculations)
+        if not compatible:
+            self.limitations.append('The discovery and its timeline/significance use incompatible reporting boundaries. ' + reason)
+            return None
         claims = []
         for statement in statements:
+            statement = statement.model_copy(update={'calculation_ids': complete_calculation_lineage(
+                statement.text, statement.fact_ids, statement.calculation_ids, self.calculations)})
             if not set(statement.fact_ids) <= facts.keys() or not set(statement.passage_ids) <= passages.keys() or not set(statement.calculation_ids) <= calculations.keys() or not (statement.fact_ids or statement.passage_ids):
                 self.limitations.append("Draft referenced missing evidence and was withheld.")
+                return None
+            bound_facts = [facts[i] for i in statement.fact_ids]
+            bound_calcs = [calculations[i] for i in statement.calculation_ids]
+            if not supported_percentages(statement.text, bound_facts, bound_calcs):
+                self.limitations.append('Draft introduced a percentage without its own linked verified inputs; publication withheld.')
+                return None
+            compatible, reason = compatible_candidate(statement, self.facts, self.calculations)
+            if not compatible:
+                self.limitations.append(reason)
                 return None
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
-        review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
+        review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(finding_boundary.model_copy(update={"calculation_ids": list({i for c in claims for i in c.calculation_ids})}), required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
+        complete_review = len(review.verdicts) == len(claims) and set(verdicts) == {c.id for c in claims}
+        self.store.artifact(self.run_id, 'semantic_review', {'claims': [c.model_dump(mode='json') for c in claims],
+                                                         'review': review.model_dump(mode='json')})
         if len(review.verdicts) != len(claims) or set(verdicts) != {c.id for c in claims} or review.contains_investment_recommendation or not review.non_obvious_synthesis_supported or not review.falsification_is_observable or any(c.id not in verdicts or not verdicts[c.id].supported for c in claims):
-            self.limitations.append("Independent semantic review rejected a material statement; candidate withheld.")
+            self.draft_feedback = {'repairable': complete_review and review.non_obvious_synthesis_supported,
+                                   **review.model_dump(mode='json')}
+            reasons = '; '.join(v.reason for v in review.verdicts if not v.supported)[:600]
+            self.limitations.append('Independent semantic review rejected a material statement; candidate withheld.' + (f' Reasons: {reasons}' if reasons else ''))
             return None
         for claim in claims:
             claim.verification_status = VerificationStatus.SUPPORTED
@@ -970,15 +1262,22 @@ class LiveResearch:
         if unknown_publication and strength == EvidenceStrength.STRONG:
             strength = EvidenceStrength.MODERATE
         discovery = Discovery(id=uuid4(), discovery_sentence=claims[0].text,
-                              why_it_matters=[WhyItMatters(text=c.text, claim_id=c.id) for c in claims[1:-1]], evidence_claim_ids=[c.id for c in claims],
+                              why_it_matters=[WhyItMatters(text=c.text, claim_id=c.id) for c in claims[1:1 + len(draft.why_it_matters)]], evidence_claim_ids=[c.id for c in claims],
                               timeline_event_ids=[e.id for e in timeline], calculation_ids=list(used_calcs),
                               counterargument=Counterargument(statement=claims[-1].text, evidence_claim_ids=[claims[-1].id], search_attempted=True, search_summary=f"Searched: {opposing_query}. {challenge.reason}", unresolved=challenge.unresolved),
                               falsification_rules=[rule], evidence_strength=strength,
                               strength_rationale=f"{len(origins)} relevant origin families; registered calculations independently reproduced; " + ("the strongest alternative remains unresolved." if challenge.unresolved else "the tested alternative did not refute the qualified relationship.") +
                               (f" Original publication dates are unknown for {unknown_publication} sources; their current availability is verified by retrieval receipts." if unknown_publication else ""))
-        return attest_report(ResearchReport(run_id=self.run_id, company=self.company, cutoff=self.cutoff,
+        report = ResearchReport(run_id=self.run_id, company=self.company, cutoff=self.cutoff,
                             historical_coverage=" / ".join(sorted({str(f.period_end) for f in self.facts if f.id in used_facts})),
                             source_coverage={"mode": "live", "synthetic": False, "documents_found": len(self.documents), "documents_used": len(documents), "eligible_origin_families": len(origins), "primary_source": True},
                             outcome=ResearchOutcome.DISCOVERY, publication_status=PublicationStatus.PUBLISHED, discoveries=[discovery], limitations=self.limitations,
-                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review-v2", **self.model_metadata(), "search_queries": self.queries, "research_decisions": self.decisions, "novelty_status": challenge.novelty_status, "novelty_rationale": challenge.novelty_rationale, "published_explanation": challenge.published_explanation, "non_obvious_synthesis_reviewed": review.non_obvious_synthesis_supported},
-                            claims=claims, timeline_events=timeline, calculations=[c for c in self.calculations if c.id in used_calcs], facts=[f for f in self.facts if f.id in used_facts], passages=[p for p in self.passages if p.id in used_passages], documents=documents))
+                            generation_metadata={"pipeline": "extract-bind-calculate-hypothesize-investigate-challenge-review-v2", **self.model_metadata(), "search_queries": self.queries, "research_decisions": self.decisions, "challenge_reviews": self.challenge_reviews, "opposing_queries": self.opposing_queries, "context_searches": self.context_searches, "novelty_status": challenge.novelty_status, "novelty_rationale": challenge.novelty_rationale, "published_explanation": challenge.published_explanation, "non_obvious_synthesis_reviewed": review.non_obvious_synthesis_supported},
+                            claims=claims, timeline_events=sorted(timeline, key=lambda e: (str(e.event_date), e.description)), calculations=self.calculations, facts=self.facts, passages=self.passages, documents=self.documents)
+        report.source_coverage['historical_series'] = comparable_series(self.facts)
+        report.generation_metadata['temporal_reasoning'] = {'text': draft.timeline_analysis.text,
+                                                          'claim_id': claims[-2].id,
+                                                          'onset_status': draft.onset_status}
+        report.generation_metadata['historical_cache'] = self.history_cache
+        report.generation_metadata['submission_checklist'] = submission_checklist(report)
+        return attest_report(report)

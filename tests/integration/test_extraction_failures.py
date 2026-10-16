@@ -78,7 +78,7 @@ def test_incomplete_response_withholds_entire_page_then_checks_another_source(st
 def test_access_and_uncertain_transport_errors_stop_provider_work(store, settings, monkeypatch, error):
     research, document = research_fixture(store, settings)
     research.passages = [Passage(id=uuid4(), document_id=document.id,
-        text=research.company.legal_name + ' standalone deposits INR 100 at 31 March 2026.')]
+        text=research.company.legal_name + ' standalone deposits INR 100 crore at 31 March 2026.')]
     def fail(*args):
         raise error
     monkeypatch.setattr(research.calls, 'model', fail)

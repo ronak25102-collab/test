@@ -7,6 +7,8 @@ def calculation_context(calculation, facts):
     formula = calculation.formula_id
     roles = (['first_current', 'first_prior', 'second_current', 'second_prior']
              if formula in {'growth_gap', 'ldr_change'} else
+             ['deposits_current', 'borrowings_current', 'deposits_prior', 'borrowings_prior']
+             if formula == 'deposit_borrowing_mix_change' else
              ['start', 'end'] if formula == 'cagr' else
              ['current', 'prior'] if formula in {'yoy_growth', 'change_pp', 'change_bps'} else
              ['numerator', 'denominator'])
@@ -29,4 +31,7 @@ def calculation_context(calculation, facts):
         result['reading'] = f'YoY percentage change in {inputs[0].metric_key}; negative means decline.'
     elif formula in {'change_pp', 'change_bps'}:
         result['reading'] = f'Current minus prior {inputs[0].metric_key}; negative means decline.'
+    elif formula.startswith('deposit_borrowing_mix'):
+        result['reading'] = ('Deposits as a share of deposits plus borrowings; excludes capital and other liabilities. '
+                             + ('Current share minus prior share in percentage points.' if formula.endswith('_change') else 'Not a share of all funding.'))
     return result

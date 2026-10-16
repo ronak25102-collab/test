@@ -21,6 +21,10 @@ class CodeCraftStructuredOutputError(CodeCraftError):
     code = "CODECRAFT_INVALID_STRUCTURED_OUTPUT"
 
 
+class CodeCraftTimeout(CodeCraftError):
+    code = 'CODECRAFT_TIMEOUT'
+
+
 class CodeCraftCreditsExhausted(CodeCraftError):
     """Explicit HTTP 402 rejection, distinct from throttling or uncertain work."""
     code = "CODECRAFT_CREDITS_EXHAUSTED"
@@ -110,7 +114,7 @@ class CodeCraftProvider(LLMProvider):
                         raise CodeCraftError(f"CodeCraft {detail} (HTTP {response.status_code})")
                     return response.json()
         except (TimeoutError, httpx.TimeoutException):
-            raise CodeCraftError(
+            raise CodeCraftTimeout(
                 f"CodeCraft did not complete within {seconds:g} seconds; the request may have "
                 "been processed and will not be retried automatically"
             ) from None

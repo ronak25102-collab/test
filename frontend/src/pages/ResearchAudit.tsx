@@ -13,6 +13,7 @@ export function ResearchAudit({ report, onFact }: { report: Report; onFact?: (fa
     <h3>Research coverage</h3>
     <p>{report.facts.length} verified {report.facts.length === 1 ? 'fact' : 'facts'} · {report.calculations.length} reproducible {report.calculations.length === 1 ? 'calculation' : 'calculations'} · {issuer.length} official issuer {issuer.length === 1 ? 'filing' : 'filings'}</p>
     <p className="muted">{eligible.length} documents available by the cutoff · {origins} retrieved source families · {supporting} documents supporting verified facts.</p>
+    {!!report.generation_metadata?.historical_cache?.length && <details className="history-cache-note"><summary>Historical source cache was used</summary><p>Historical observations came from earlier live runs after source-hash checks. Original retrieval dates remain visible. Conclusions were not reused; searches and discovery review belong to this run.</p>{report.generation_metadata.historical_cache.map((cache, index) => <p key={index}>{cache.fact_ids.length} historical facts · source run {cache.source_run_id}</p>)}</details>}
     {!report.facts.length && <p>Retrieved documents have not established verified financial figures. Availability alone does not establish issuer identity, relevance or support for a finding.</p>}
     <FactHistory report={report} onFact={onFact} />
     {report.generation_metadata?.novelty_rationale && <div><h3>Why this adds insight</h3><p>{report.generation_metadata.novelty_rationale}</p></div>}
@@ -37,10 +38,19 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
       fact.definition_id, fact.period_type, fact.period_start?.slice(5), fact.period_end.slice(5)].join('|')
     groups.set(key, [...(groups.get(key) || []), fact])
   }
+  const recorded = report.source_coverage.historical_series
+  if (Array.isArray(recorded)) {
+    for (const [index, value] of recorded.entries()) {
+      if (!value || value.cadence !== 'quarterly' || !Array.isArray(value.observations)) continue
+      const ids = new Set(value.observations.map((o: { fact_id?: string }) => o.fact_id))
+      const observations = report.facts.filter(f => ids.has(f.id))
+      if (observations.length >= 3) groups.set(`quarterly-${index}`, observations)
+    }
+  }
   const series = [...groups.entries()].filter(([, facts]) => new Set(facts.map(f => f.period_end)).size >= 2)
   if (!series.length) return <div className="history-empty"><span aria-hidden="true">↳</span><p>No comparable multi-period series was verified.</p><small>The comparison view appears when compatible reporting dates are available.</small></div>
   const active = series.find(([key]) => key === selected) || series[0]
-  const facts = [...active[1]].sort((a, b) => a.period_end!.localeCompare(b.period_end!)).slice(-5)
+  const facts = [...active[1]].sort((a, b) => a.period_end!.localeCompare(b.period_end!)).slice(-20)
   const values = facts.map(f => Number(f.value_decimal))
   const lo = Math.min(...values), hi = Math.max(...values)
   const pad = Math.max((hi - lo) * .15, Math.abs(hi) * .01, .01)
@@ -51,7 +61,7 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
   return <div className="fact-history">
     <div className="history-heading"><div><span className="section-kicker">COMPARE THE VERIFIED FIGURES</span><h4>How the numbers moved.</h4></div><span>{facts.length} comparable dates</span></div>
     <label>Comparable metric <select aria-label="Comparable metric" value={active[0]} onChange={event => setSelected(event.target.value)}>
-      {series.map(([key, observations]) => <option key={key} value={key}>{observations[0].metric_key.replaceAll('_', ' ')} · {observations[0].scope} · {observations[0].segment || 'all'}</option>)}
+      {series.map(([key, observations]) => <option key={key} value={key}>{observations[0].metric_key.replaceAll('_', ' ')} · {observations[0].scope} · {observations[0].segment || 'all'}{key.startsWith('quarterly-') ? ' · consecutive quarters' : ' · annual comparison'}</option>)}
     </select></label>
     <div className="history-chart-frame"><svg viewBox="0 0 460 185" role="img" aria-label={`${facts[0].metric_key.replaceAll('_', ' ')} across ${facts.length} comparable dates`} key={active[0]}>
       <defs><linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1"><stop stopColor="#7c9e61" stopOpacity=".18" /><stop offset="1" stopColor="#7c9e61" stopOpacity="0" /></linearGradient></defs>
@@ -61,8 +71,8 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
       <polyline className="history-line" pathLength="1" fill="none" stroke="#315b3e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
       {facts.map((fact, index) => <g key={fact.id}>
         <circle cx={x(index)} cy={y(values[index])} r="4" fill="#1e4b51" />
-        <text x={x(index)} y={y(values[index]) - 10} textAnchor="middle" fontSize="11">{displayNumber(fact.value_decimal)}</text>
-        <text x={x(index)} y="165" textAnchor="middle" fontSize="10">{fact.period_end}</text>
+        {(facts.length <= 6 || index === 0 || index === facts.length - 1) && <text x={x(index)} y={y(values[index]) - 10} textAnchor="middle" fontSize="11">{displayNumber(fact.value_decimal)}</text>}
+        {(facts.length <= 6 || index % 4 === 0 || index === facts.length - 1) && <text x={x(index)} y="165" textAnchor="middle" fontSize="10">{fact.period_end}</text>}
       </g>)}
     </svg>{facts.map((fact, index) => <button className={`history-point ${inspected.id === fact.id ? 'point-selected' : ''}`} key={fact.id} style={{ left: `${x(index) / 460 * 100}%`, top: `${y(values[index]) / 185 * 100}%` }} aria-label={`${displayMetric(fact.metric_key)} on ${fact.period_end}: ${displayNumber(fact.value_decimal)} ${displayUnit(fact.unit_normalized)}`} aria-pressed={inspected.id === fact.id} onClick={() => setPointId(fact.id)} onFocus={() => setPointId(fact.id)} onPointerEnter={() => setPointId(fact.id)} onKeyDown={event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return

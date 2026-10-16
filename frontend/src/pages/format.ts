@@ -14,6 +14,8 @@ export function displayMetric(value: string) {
 }
 
 export const calculationFormulas: Record<string, string> = {
+  deposit_borrowing_mix: 'deposits / (deposits + borrowings) × 100; excludes other liabilities',
+  deposit_borrowing_mix_change: 'current deposit share − prior deposit share (percentage points)',
   yoy_growth: '(current / prior − 1) × 100', change_pp: 'current − prior', change_bps: '(current − prior) × 100',
   growth_gap: 'growth of A − growth of B', ldr_change: 'current advances / deposits × 100 − prior advances / deposits × 100',
   funding_share: 'borrowing component / total borrowings × 100', profit_margin: 'net profit / revenue × 100', transaction_revenue_share: 'transaction revenue / total revenue × 100',

@@ -6,6 +6,48 @@ generates hypotheses, searches supporting and opposing evidence, and independent
 reviews every material statement before publishing the eight required fields.
 It abstains when the evidence is inadequate.
 
+The [16 October completeness audit](docs/RESEARCH-COMPLETENESS-2026-10-16.md)
+records the required output checks and measured acceptance status. A saved report
+with verified figures and no published discovery is not a successful hackathon
+discovery. The dashboard now makes that distinction explicit.
+
+## Discovery completeness and historical research
+
+Live research separates standalone, consolidated and segment evidence before
+candidate selection. Numerically invalid high-ranked candidates no longer hide
+valid lower-ranked candidates. Historical collection seeks the current annual
+report and earlier windows across five years, plus profile-specific operating
+metrics and original regulator/peer context. Funding calculations include the
+deposit share of deposits plus borrowings and its period-to-period change; this
+explicitly excludes other liabilities. Peer retrieval is context, not automatic
+verification of peer figures.
+
+New reports retain the eight-part requirements checklist, verified temporal
+analysis, actual opposing searches and challenge reviews. A published qualified
+observation can still have limited temporal coverage; the checklist does not
+declare its onset established. Withheld hypotheses and proposed tests remain
+labelled unverified. Discovery calculations appear first, with other research
+arithmetic available separately.
+
+Historical facts from previous completed live runs may be reused when they are
+at least one year old, belong to the same issuer, satisfy the cutoff and retain
+matching original document hashes. No discoveries or conclusions are reused.
+New source searches, hypothesis generation, opposing searches and final review
+remain required. Reports disclose the cache and original retrieval dates.
+
+For an **opt-in check that consumes API credits**, use the isolated validator:
+
+```bash
+uv run python scripts/validate_discovery.py HDFCBANK --seconds 480 --cutoff 2026-10-15
+```
+
+It uses existing private provider configuration, creates a separate database,
+and saves the report and provider-reported token usage under
+`data/exports/live-validation/`. `--reuse-database PATH` measures the same generic
+historical-cache path against a prior validation database. Token reservations
+and unknown usage from uncertain requests remain distinct from provider receipts.
+This validator does not alter the website queue or private `.env` limits.
+
 ## Current Windows demo setup
 
 Start with [Windows transfer and demo instructions](docs/DEMO.md),

@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from signal_research.domain.enums import PeriodType, Scope
 from signal_research.domain.schemas import Fact
 from signal_research.research.history import (
     comparable_series,
@@ -44,3 +45,24 @@ def test_one_growth_metric_does_not_stop_financial_statement_recovery():
     c = make_fact(entity, '2026-03-31').model_copy(update={'metric_key': 'borrowings'})
     relationship = SimpleNamespace(input_fact_ids=[a.id, c.id])
     assert has_relationship_evidence([a, b, c], [single, relationship])
+
+
+def test_consecutive_quarters_are_visible_without_mixing_them_into_annual_comparisons():
+    entity = uuid4()
+    facts = [make_fact(entity, end) for end in ['2025-12-31', '2026-03-31', '2026-06-30']]
+    quarterly = [s for s in comparable_series(facts) if s['cadence'] == 'quarterly']
+    assert len(quarterly) == 1 and quarterly[0]['comparable_periods'] == 3
+    assert quarterly[0]['limitations']
+    assert not needs_history(facts)
+    facts[1].scope = Scope.CONSOLIDATED
+    assert not any(s['cadence'] == 'quarterly' for s in comparable_series(facts))
+
+
+def test_quarterly_series_excludes_cumulative_ytd_duration_windows():
+    from datetime import date
+    entity = uuid4()
+    facts = [make_fact(entity, end).model_copy(update={'period_type': PeriodType.DURATION, 'period_start': date(2026, 1, 1)})
+             for end in ['2026-03-31', '2026-06-30', '2026-09-30']]
+    # Construct validated enums after the deliberate source-window changes.
+    facts = [Fact.model_validate(f.model_dump()) for f in facts]
+    assert not any(s['cadence'] == 'quarterly' for s in comparable_series(facts))

@@ -381,6 +381,23 @@ class Store:
             row = session.get(ResearchRunModel, str(run_id))
             return ResearchReport.model_validate(row.report_json) if row and row.report_json else None
 
+    def historical_reports(self, company_id: UUID, cutoff: date, limit: int = 3) -> list[ResearchReport]:
+        """Prior completed live observations; never select synthetic replay work."""
+        with self.session_factory() as session:
+            rows = session.scalars(select(ResearchRunModel).where(
+                ResearchRunModel.company_id == str(company_id), ResearchRunModel.as_of <= cutoff,
+                ResearchRunModel.mode.in_(['live', 'deep']),
+                ResearchRunModel.status == RunStatus.COMPLETED.value,
+                ResearchRunModel.report_json.is_not(None),
+            ).order_by(ResearchRunModel.ended_at.desc()).limit(limit)).all()
+            reports = []
+            for row in rows:
+                try:
+                    reports.append(ResearchReport.model_validate(row.report_json))
+                except ValueError:
+                    continue
+            return reports
+
     def get_summary(self, run_id: UUID | str) -> RunSummary | None:
         with self.session_factory() as session:
             row = session.get(ResearchRunModel, str(run_id))

@@ -88,6 +88,17 @@ def _ldr_change(values: list[Decimal], parameters: dict) -> Decimal:
     return _loan_to_deposit([values[0], values[2]], parameters) - _loan_to_deposit([values[1], values[3]], parameters)
 
 
+def _deposit_borrowing_mix(values: list[Decimal], _: dict) -> Decimal:
+    deposits, borrowings = values
+    if deposits < 0 or borrowings < 0 or deposits + borrowings <= 0:
+        raise ValueError('deposit/borrowing mix requires non-negative components and a positive total')
+    return deposits / (deposits + borrowings) * Decimal('100')
+
+
+def _deposit_borrowing_mix_change(values: list[Decimal], parameters: dict) -> Decimal:
+    return _deposit_borrowing_mix(values[:2], parameters) - _deposit_borrowing_mix(values[2:], parameters)
+
+
 FORMULAS: dict[str, tuple[str, Formula, str]] = {
     "yoy_growth": ("1.0", _positive_growth, "percent"),
     "share_pct": ("1.0", _share, "percent"),
@@ -97,6 +108,8 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
     "loan_to_deposit": ("1.0", _loan_to_deposit, "percent"),
     "growth_gap": ("1.0", _growth_gap, "percentage_points"),
     "ldr_change": ("1.0", _ldr_change, "percentage_points"),
+    'deposit_borrowing_mix': ('1.0', _deposit_borrowing_mix, 'percent'),
+    'deposit_borrowing_mix_change': ('1.0', _deposit_borrowing_mix_change, 'percentage_points'),
     "vnb_to_ape": ("1.0", _share, "percent"),
     "fee_yield": ("1.0", _share, "percent"),
     "funding_share": ("1.0", _share, "percent"),
@@ -106,7 +119,7 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
 
 
 def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
-    expected = 4 if formula_id in {"growth_gap", "ldr_change"} else 2
+    expected = 4 if formula_id in {"growth_gap", "ldr_change", 'deposit_borrowing_mix_change'} else 2
     if len(facts) != expected:
         raise ValueError(f"{formula_id} requires {expected} facts")
     for field_name in ("entity_id", "unit", "scope", "segment", "currency", "period_type"):
@@ -114,7 +127,14 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError(f"incomparable {field_name}")
     if any(not isinstance(f.value, Decimal) or not f.value.is_finite() for f in facts):
         raise ValueError("non-finite input")
-    if formula_id in {"growth_gap", "ldr_change"}:
+    if formula_id == 'deposit_borrowing_mix_change':
+        comparable('deposit_borrowing_mix', facts[:2])
+        comparable('deposit_borrowing_mix', facts[2:])
+        if date.fromisoformat(facts[0].period) <= date.fromisoformat(facts[2].period):
+            raise ValueError('current mix must follow the prior mix')
+        if facts[0].definition_id != facts[2].definition_id or facts[1].definition_id != facts[3].definition_id:
+            raise ValueError('mix component definitions differ')
+    elif formula_id in {"growth_gap", "ldr_change"}:
         comparable("yoy_growth", facts[:2])
         comparable("yoy_growth", facts[2:])
         if facts[0].period != facts[2].period or facts[1].period != facts[3].period:
@@ -146,6 +166,9 @@ def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
             raise ValueError("ratio periods differ")
         if formula_id == "loan_to_deposit" and [f.metric_key for f in facts] != ["gross_advances", "deposits"]:
             raise ValueError("LDR requires advances and deposits")
+        if formula_id == 'deposit_borrowing_mix' and ([f.metric_key for f in facts] != ['deposits', 'borrowings']
+                                                     or facts[0].period_type != 'instant' or facts[0].unit != 'INR_crore'):
+            raise ValueError('deposit/borrowing mix requires disclosed comparable deposit and borrowing stocks')
         expected_keys = {"vnb_to_ape": ["vnb", "ape"], "fee_yield": ["fee_revenue", "average_aum"],
                          "profit_margin": ["net_profit", "revenue"],
                          "transaction_revenue_share": ["transaction_revenue", "revenue"]}

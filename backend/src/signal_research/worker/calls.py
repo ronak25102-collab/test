@@ -154,7 +154,7 @@ class DurableCalls:
                    min(settings.max_model_output_tokens_per_call, self.budget.max_output_tokens - self.budget.output_tokens))
         # Exploration must leave room for counterevidence review, composition and
         # independent verification. Cached results below remain reusable at the cap.
-        exploration = stage not in {"challenging", "composing", "verifying"}
+        exploration = stage not in {"hypothesizing", "challenging", "composing", "verifying"}
         input_reserve = self.budget.max_input_tokens // 5 if exploration else 0
         output_reserve = self.budget.max_output_tokens * 2 // 5 if exploration and self.budget.max_output_tokens >= 1024 else 0
         call_reserve = min(3, self.budget.max_model_calls // 5) if exploration else 0

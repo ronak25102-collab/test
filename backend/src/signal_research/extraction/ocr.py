@@ -16,6 +16,13 @@ def ocr_required(text: str | None, table_count: int = 0) -> bool:
     return not text or len(text.strip()) < 40
 
 
+class LowNumericConfidence(RuntimeError):
+    """Financial numbers remain withheld; clear cover lettering may identify the issuer."""
+    def __init__(self, identity_text):
+        super().__init__('OCR numeric confidence is too low; the page was withheld')
+        self.identity_text = identity_text
+
+
 def ocr_page(path, page_index, data_dir, timeout, pdftoppm_path="pdftoppm", tesseract_path="tesseract"):
     import csv
     import importlib.util
@@ -45,7 +52,15 @@ def ocr_page(path, page_index, data_dir, timeout, pdftoppm_path="pdftoppm", tess
         rows = list(csv.DictReader(io.StringIO(result.stdout.decode("utf-8", errors="replace")), delimiter="\t"))
         tokens = [r for r in rows if r.get("text", "").strip()]
         if any(any(c.isdigit() for c in r["text"]) and float(r.get("conf", "-1")) < 95 for r in tokens):
-            raise RuntimeError("OCR numeric confidence is too low; the page was withheld")
+            identity_lines = {}
+            for row in tokens:
+                # Never rescue a damaged number, currency, publication date or
+                # financial measurement through the identity-only path.
+                if any(c.isdigit() for c in row['text']) or float(row.get('conf', '-1')) < 90:
+                    continue
+                key = tuple(row.get(field) for field in ('block_num', 'par_num', 'line_num'))
+                identity_lines.setdefault(key, []).append(row['text'])
+            raise LowNumericConfidence('\n'.join(' '.join(words) for words in identity_lines.values()))
         # Preserve row boundaries; flattening the page destroys table bindings.
         lines = {}
         for row in tokens:
