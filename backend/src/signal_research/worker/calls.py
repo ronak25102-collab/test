@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict
 from datetime import timedelta
 from random import uniform
+from threading import Condition
 from time import monotonic, sleep
 
 from signal_research.providers.llm.base import ProviderNotConfigured
@@ -28,6 +29,14 @@ class DurableCalls:
     def __init__(self, store, settings, run_id, budget):
         self.store, self.settings, self.run_id, self.budget = store, settings, run_id, budget
         self.deadline_reserve_seconds = 0
+        # Child research agents share the run budget, so their credential leases
+        # must share it too. A per-adapter pool would multiply the configured cap.
+        with budget.lock:
+            if not hasattr(budget, '_credential_pool'):
+                budget._credential_pool = {'condition': Condition(), 'active': {}, 'cursor': 0}
+            self._credential_pool = budget._credential_pool
+        self._credential_condition = self._credential_pool['condition']
+        self._active_credentials = self._credential_pool['active']
         self.rates = {}
         if settings.model_rate_card_path.exists():
             self.rates = {r["model_id"]: r for r in json.loads(settings.model_rate_card_path.read_text(encoding="utf-8-sig"))["models"]}
@@ -92,6 +101,8 @@ class DurableCalls:
 
     def model(self, schema, payload, role="research", stage="investigating", instruction=""):
         routes = self.settings.routes_for_stage(role, stage)
+        if self.settings.codecraft_key_routing == 'balanced' and len(routes) > 1:
+            return self._balanced_model(schema, payload, role, stage, instruction, routes)
         if len(routes) <= 1:
             settings = routes[0][1] if routes else self.settings
             if self.settings.nvidia_planning and not settings.llm_configured:
@@ -135,6 +146,90 @@ class DurableCalls:
                     self.store.append_event(self.run_id, stage, "provider_fallback",
                         f"CodeCraft reported exhausted credits; continuing with {label} ({next_settings.model_for_role(role)}).")
         raise CodeCraftCreditsExhausted("All configured CodeCraft credentials reported exhausted credits")
+
+    def _acquire_credential(self, routes, signature, operation=None, preferred=None):
+        """Lease one slot, persisting its operation plan before any network request.
+
+        A key has at most one in-flight call. Extra credentials increase the
+        number of independent calls, never the attempts of an uncertain call.
+        """
+        with self._credential_condition:
+            while True:
+                self.budget.check()
+                if self.store.is_cancelled(self.run_id):
+                    raise RuntimeError('run cancelled')
+                plans = self.store.artifacts(self.run_id, operation) if operation else []
+                plan = plans[0]['payload'] if plans else None
+                pinned = plan['start'] if plan else preferred
+                if pinned is not None:
+                    eligible = [pinned]
+                else:
+                    eligible = [i for i, (slot, settings) in enumerate(routes)
+                                if settings.llm_provider == 'codecraft' and not
+                                self.store.artifacts(self.run_id, f'exhausted:{signature}:{slot}')]
+                    if not eligible:
+                        eligible = [i for i, (_, settings) in enumerate(routes)
+                                    if settings.llm_provider == 'nvidia']
+                    if not eligible:
+                        raise CodeCraftCreditsExhausted('All configured CodeCraft credentials reported exhausted credits')
+                available = [i for i in eligible if not self._active_credentials.get(routes[i][0], 0)]
+                if available and sum(self._active_credentials.values()) < self.settings.max_model_concurrency:
+                    index = min(available, key=lambda i: (i - self._credential_pool['cursor']) % len(routes))
+                    self._credential_pool['cursor'] = (index + 1) % len(routes)
+                    if plan is None:
+                        # Start with the chosen key, then try other keys only
+                        # after explicit 402. NVIDIA is always the final route.
+                        codecraft = [i for i, (_, settings) in enumerate(routes)
+                                     if settings.llm_provider == 'codecraft']
+                        ordered = ([i for i in codecraft if i >= index] +
+                                   [i for i in codecraft if i < index] +
+                                   [i for i, (_, settings) in enumerate(routes)
+                                    if settings.llm_provider != 'codecraft'])
+                        if index not in codecraft:
+                            ordered = [index]
+                        plan = {'start': index, 'order': ordered}
+                        if operation:
+                            self.store.artifact(self.run_id, operation, plan)
+                    self._active_credentials[routes[index][0]] = 1
+                    return index, plan
+                self._credential_condition.wait(timeout=min(.1, self.budget.remaining_seconds()))
+
+    def _release_credential(self, slot):
+        with self._credential_condition:
+            self._active_credentials.pop(slot, None)
+            self._credential_condition.notify_all()
+
+    def _balanced_model(self, schema, payload, role, stage, instruction, routes):
+        signature = cache_key([(slot, settings.llm_provider, settings.model_for_role('research'),
+                               settings.model_for_role('extract')) for slot, settings in routes])
+        operation = f'modelroute:{cache_key([signature, schema.model_json_schema(), payload, role, stage, instruction])}'
+        first, plan = self._acquire_credential(routes, signature, operation)
+        order = plan.get('order', list(range(first, len(routes))))
+        for position, index in enumerate(order):
+            slot, settings = routes[index]
+            if position:
+                if self.store.artifacts(self.run_id, f'exhausted:{signature}:{slot}'):
+                    continue
+                self._acquire_credential(routes, signature, preferred=index)
+            try:
+                if settings.llm_provider == 'nvidia':
+                    if not settings.llm_configured:
+                        raise ProviderNotConfigured('NVIDIA fallback requires a key and both model roles')
+                    if not settings.allow_unknown_cost and settings.model_for_role(role) not in self.rates:
+                        raise ProviderNotConfigured('NVIDIA fallback model is missing from the account rate card')
+                # Keep primary identities compatible with sequential routing.
+                return self._model(schema, payload, role, stage, instruction, settings,
+                                   credential_slot=slot if index else None)
+            except CodeCraftCreditsExhausted:
+                exhausted = f'exhausted:{signature}:{slot}'
+                if not self.store.artifacts(self.run_id, exhausted):
+                    self.store.artifact(self.run_id, exhausted, {'slot': slot, 'reason': 'HTTP 402'})
+                    if position + 1 < len(order):
+                        self.store.append_event(self.run_id, stage, 'provider_fallback',
+                            'CodeCraft reported exhausted credits; continuing with the next configured route.')
+            finally:
+                self._release_credential(slot)
+        raise CodeCraftCreditsExhausted('All configured CodeCraft credentials reported exhausted credits')
 
     def _model(self, schema, payload, role, stage, instruction, settings, credential_slot=None):
         model = settings.model_for_role(role)

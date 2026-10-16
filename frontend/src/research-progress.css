@@ -100,3 +100,10 @@
  .journey-counters strong { font-size: 22px; }
  .journey-counters span { font-size: 8px; }
 }
+.research-agents { margin: 24px 0; }
+.research-agents h3 { margin-bottom: 12px; font-size: 1rem; }
+.research-agents ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; list-style: none; padding: 0; }
+.research-agents li { display: grid; gap: 8px; padding: 16px; border: 1px solid #d9dece; border-radius: 12px; background: #f3f4e9; color: #203d30; }
+.research-agents li strong { font-size: .8rem; color: #386047; }
+.research-agents li[data-agent-status="incomplete"] strong { color: #8c4e28; }
+.research-agents li small, .research-agents > p { font-size: .75rem; line-height: 1.5; }

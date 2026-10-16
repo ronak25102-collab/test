@@ -663,7 +663,7 @@ class LiveResearch:
                     return True
         return False
 
-    def extract(self, limit=4, *, preferred_document_ids=None, historical=False, focus_metrics=()):
+    def extract(self, limit=4, *, preferred_document_ids=None, historical=False, focus_metrics=(), only_passage_ids=None):
         self.extraction_deadline_reserve = self.analysis_reserve() if historical or focus_metrics else 0
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
@@ -703,6 +703,7 @@ class LiveResearch:
             numeric_lead = numeric_measures > 0 or column_metric_lead(p, profile)
             return (p.document_id in (preferred_document_ids or ()), numeric_lead, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
         ranked = sorted([p for p in self.passages if p.extraction_method != 'ocr_identity' and p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
+                         (only_passage_ids is None or p.id in only_passage_ids) and
                          (preferred_document_ids is None or p.document_id in preferred_document_ids) and
                          not subsidiary_only(p.text) and self.financial_passage(p) and minimum_source_bindings(p, profile)
                          and score(p)[1] and (not focus or focus_score(p))],
@@ -722,6 +723,9 @@ class LiveResearch:
             if len(passages) == limit:
                 break
         starting_periods = {(f.scope, f.metric_key, f.period_end) for f in self.facts}
+        if not self.peer_mode and self.settings.max_research_agents > 1 and len(passages) > 1:
+            self.extract_with_agents(passages, historical=historical, focus_metrics=focus_metrics)
+            passages = []  # Workers have already used the identical extraction/review path.
         for passage in passages:
             if self.extraction_paused:
                 break
@@ -843,6 +847,67 @@ class LiveResearch:
         verify_report(snapshot)
         self.store.checkpoint(self.run_id, "evidence_collected", self.evidence_iteration, snapshot.model_dump(mode="json"))
         self.evidence_iteration += 1
+
+    def extract_with_agents(self, passages, *, historical=False, focus_metrics=()):
+        from signal_research.research.agents import run_research_agents
+
+        def emit(name, status, elapsed, error):
+            self.agent_event(name, status, elapsed, error, stage='extracting')
+
+        def verify(passage):
+            # Only store/settings/budget are shared. Facts, documents, extraction
+            # state and deadlines belong to this agent, not the parent thread.
+            worker = LiveResearch(self.machine, self.run_id, self.company.model_copy(deep=True),
+                                  self.cutoff, self.budget, settings=self.settings)
+            worker.peer_mode = True
+            worker.documents = [d.model_copy(deep=True) for d in self.documents]
+            worker.passages = [p.model_copy(deep=True) for p in self.passages]
+            worker.extracted = set(self.extracted)
+            worker.preferred_scope = getattr(self, 'preferred_scope', None)
+            worker.extract(limit=1, historical=historical, focus_metrics=focus_metrics, only_passage_ids={passage.id})
+            return worker
+
+        width = self.settings.max_research_agents
+        for offset in range(0, len(passages), width):
+            if self.extraction_paused:
+                break
+            if (historical or focus_metrics) and self.budget.remaining_seconds() <= self.analysis_reserve():
+                self.limitations.append('Additional research agents deferred to preserve final review.')
+                break
+            wave = passages[offset:offset + width]
+            results = run_research_agents([(f'Page verifier {offset + index + 1}', lambda p=p: verify(p))
+                                           for index, p in enumerate(wave)], max_workers=width, emit=emit)
+            for passage, result in zip(wave, results, strict=True):
+                self.extracted.add(passage.id)
+                if result.error:
+                    self.limitations.append(f'Research agent incomplete: {result.name} ({getattr(result.error, "code", type(result.error).__name__)}); no unreviewed figures accepted.')
+                    # An uncertain provider request is never repeated on another key.
+                    continue
+                worker = result.value
+                self.facts.extend(worker.facts)
+                self.extracted.update(worker.extracted)
+                self.limitations.extend(note for note in worker.limitations if note not in self.limitations)
+                changed = next(d for d in worker.documents if d.id == passage.document_id)
+                original = next(d for d in self.documents if d.id == passage.document_id)
+                if changed.published_at != original.published_at and changed.published_at is None:
+                    original.published_at = None
+                    original.cutoff_eligibility = changed.cutoff_eligibility
+                    original.cutoff_eligibility_basis = changed.cutoff_eligibility_basis
+            # A publication correction applies to all facts from that document,
+            # including facts returned by another agent in the same wave.
+            eligible = {d.id for d in self.documents if d.cutoff_eligibility == 'eligible'}
+            allowed_passages = {p.id for p in self.passages if p.document_id in eligible}
+            self.facts = [f for f in self.facts if f.passage_id in allowed_passages]
+            if not historical and self.angle_evidence_ready(derive_calculations(self.facts)):
+                break
+
+    def agent_event(self, name, status, elapsed, error, *, stage):
+        # Event sequence allocation must not race between runtime agents.
+        with self.budget.lock:
+            self.store.artifact(self.run_id, 'research_agent', {'name': name, 'status': status,
+                'stage': stage, 'elapsed_seconds': elapsed, 'error_code': error})
+            self.store.append_event(self.run_id, stage, 'research_agent_' + status,
+                f'{name}: {status}' + (f' after {elapsed:.1f}s' if elapsed else ''))
 
     def payload(self, hypothesis=None, required_passage_ids=(), *, compact=False):
         documents = {d.id: d for d in self.documents if d.cutoff_eligibility == "eligible"}
@@ -1161,21 +1226,30 @@ class LiveResearch:
 
     def angle_hypotheses(self, payload):
         from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        from signal_research.research.planning import angle_planning_payload
         angles = route_angles(self.company, self.facts, self.calculations, [p.text for p in self.passages])
         self.store.artifact(self.run_id, 'angle_router', {'angles': angles, 'parallel_limit': 3})
         selected = [a for a in angles if a['coverage_groups'] == a['required_groups']]
         def investigate(angle):
-            scoped = payload | {'research_angle': angle}
+            scoped = angle_planning_payload(payload, angle)
             batch = self.calls.model(cited_hypothesis_schema(scoped), scoped, stage='hypothesizing',
                 instruction='Research only research_angle. Return at most one candidate with an additional quantified cross-metric or cross-source relationship, not a restatement of management narrative or headline results. Use one compatible reporting lane, supplied verified numbers and registered calculations only. Exclude growth-gap comparisons crossing structural_breaks; prefer post-break recovery. Read peer_benchmark and test whether this is only a sector story. Provide short supporting/opposing search fragments and an observable falsification test. No unsupported causal claims or invented numbers. Empty candidates are allowed when evidence is insufficient.')
             invalid = [h for h in batch.candidates if not supported_percentages(h.statement + ' ' + h.mechanism,
                 [f for f in self.facts if f.id in h.fact_ids],
                 [c for c in self.calculations if c.id in h.calculation_ids])]
-            if invalid and self.budget.remaining_seconds() > 30:
+            # A speculative second planning response cannot spend the time
+            # needed to challenge, compose and independently verify a finding.
+            final_reserve = min(self.settings.stage_request_seconds.get('challenging', 35) +
+                self.settings.stage_request_seconds.get('composing', 40) +
+                self.settings.stage_request_seconds.get('verifying', 40),
+                (self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)) * .35)
+            repair_allowance = self.settings.stage_request_seconds.get('hypothesizing', 35)
+            if invalid and self.budget.remaining_seconds() > final_reserve + repair_allowance:
                 feedback = scoped | {'numerical_repair': {
                     'previous_candidates': [h.model_dump(mode='json') for h in invalid],
-                    'allowed_percentages': [{'calculation_id': str(c.id), 'value': str(c.output_value), 'unit': c.unit}
-                        for c in self.calculations if c.available and c.unit in {'percent', 'percentage_points'}],
+                    'allowed_percentages': [{'calculation_id': str(c['id']), 'value': str(c['output_value']), 'unit': c['unit']}
+                        for c in scoped['calculations'] if c.get('available', True) and c['unit'] in {'percent', 'percentage_points'}],
                     'reason': 'One or more percentages lack an exact linked verified fact or registered calculation.'}}
                 self.store.artifact(self.run_id, 'hypothesis_numeric_repair', {'angle': angle['key'], 'attempt': 1})
                 batch = self.calls.model(cited_hypothesis_schema(scoped), feedback, stage='hypothesizing',
@@ -1214,7 +1288,7 @@ class LiveResearch:
         selected = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
         facts = [f for f in self.facts if f.id in selected]
         peers = select_peers(self.company, self.store.search_companies(''), self.company.business_profiles[0])
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from signal_research.research.agents import run_research_agents
         observations, bundles, errors = [], [], []
         def collect(peer):
             research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget, settings=self.settings)
@@ -1229,19 +1303,20 @@ class LiveResearch:
             research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
             return research
         if self.budget.remaining_seconds() > self.time_reserve(180):
-            with ThreadPoolExecutor(max_workers=3) as pool:
-                futures = [pool.submit(collect, peer) for peer in peers.peers]
-                for future in as_completed(futures):
-                    try:
-                        research = future.result()
-                        observations.extend(research.facts)
-                        bundles.append({'company': research.company.model_dump(mode='json'),
-                            'facts': [f.model_dump(mode='json') for f in research.facts],
-                            'passages': [p.model_dump(mode='json') for p in research.passages],
-                            'documents': [d.model_dump(mode='json') for d in research.documents]})
-                        errors.extend(research.limitations)
-                    except Exception as exc:
-                        errors.append('Peer evidence incomplete: ' + type(exc).__name__)
+            results = run_research_agents([(f'Peer researcher · {peer.legal_name}', lambda peer=peer: collect(peer))
+                for peer in peers.peers], max_workers=self.settings.max_research_agents,
+                emit=lambda *args: self.agent_event(*args, stage='investigating'))
+            for result in results:
+                if result.error:
+                    errors.append('Peer evidence incomplete: ' + type(result.error).__name__)
+                    continue
+                research = result.value
+                observations.extend(research.facts)
+                bundles.append({'company': research.company.model_dump(mode='json'),
+                    'facts': [f.model_dump(mode='json') for f in research.facts],
+                    'passages': [p.model_dump(mode='json') for p in research.passages],
+                    'documents': [d.model_dump(mode='json') for d in research.documents]})
+                errors.extend(research.limitations)
         else:
             errors.append('Peer collection deferred to preserve final review allowance.')
         self.peer_benchmark = compare_peers(facts, observations) | {'sources': bundles, 'limitations': errors}
@@ -1423,8 +1498,16 @@ class LiveResearch:
             investigated += 1
             self.collect_peer_benchmark(hypothesis)
             self.stage("investigating", f"Following candidate {iteration + 1} with a targeted evidence query")
-            followup = self.search(self.focused_query(hypothesis.next_query))
-            opposing = self.search(self.focused_query(hypothesis.opposing_query), opposing=True)
+            from signal_research.research.agents import run_research_agents
+            scouts = run_research_agents([
+                ('Supporting-source researcher', lambda: self.search(self.focused_query(hypothesis.next_query))),
+                ('Counter-evidence researcher', lambda: self.search(self.focused_query(hypothesis.opposing_query), opposing=True))],
+                max_workers=min(2, self.settings.max_research_agents),
+                emit=lambda *args: self.agent_event(*args, stage='investigating'))
+            for scout in scouts:
+                if scout.error:
+                    self.limitations.append(f'{scout.name} incomplete ({type(scout.error).__name__}); missing evidence is not proof of absence.')
+            followup, opposing = [scout.value or [] for scout in scouts]
             self.stage("fetching", "Retrieving targeted supporting and opposing sources")
             previous_documents = {d.id for d in self.documents}
             previously_revalidated = set(self.revalidated_documents)

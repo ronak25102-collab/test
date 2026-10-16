@@ -1,6 +1,35 @@
 import { expect, test } from '@playwright/test'
 import report from './fixtures/replay.json' with { type: 'json' }
 
+test('project research agents show actual worker events and unfinished work stays incomplete', async ({ page }) => {
+  let status = 'normalizing'
+  let posts = 0
+  await page.route('**/api/v1/**', route => {
+    const path = new URL(route.request().url()).pathname
+    if (route.request().method() === 'POST') posts++
+    if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [] } })
+    if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
+    if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
+    if (path.endsWith('/history')) return route.fulfill({ json: { items: [] } })
+    if (path.endsWith('/events')) return route.fulfill({ json: { items: [
+      { sequence: 1, stage: 'extracting', event_type: 'research_agent_started', public_summary: 'Page verifier 1: started' },
+      { sequence: 2, stage: 'extracting', event_type: 'research_agent_started', public_summary: 'Page verifier 2: started' },
+      { sequence: 3, stage: 'extracting', event_type: 'research_agent_completed', public_summary: 'Page verifier 1: completed after 1.2s' },
+    ] } })
+    if (path.endsWith('/report')) return route.fulfill({ json: report })
+    return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff,
+      mode: 'replay', status, stage: status, progress: { facts_verified: 6 }, limitations: [] } })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  const agents = page.getByRole('list', { name: 'Research agents' })
+  await expect(agents.getByText('Complete', { exact: true })).toBeVisible()
+  await expect(agents.getByText('Working', { exact: true })).toBeVisible()
+  status = 'failed'
+  await expect(agents.getByText('Incomplete', { exact: true })).toBeVisible({ timeout: 8000 })
+  await expect(agents.getByText('Working', { exact: true })).toHaveCount(0)
+  expect(posts).toBe(0)
+})
+
 test('starting research reveals a financial journey driven by actual stage updates', async ({ page }) => {
   let stage = 'queued'
   const visited = ['queued']

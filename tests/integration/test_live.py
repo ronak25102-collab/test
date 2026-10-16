@@ -852,3 +852,24 @@ def test_hypothesis_numeric_repair_is_bounded_and_never_bypasses_publication_gat
     assert all('999%' not in claim.text for claim in report.claims)
     if not corrected:
         assert not report.discoveries and not seen['challenge']
+
+
+def test_late_hypothesis_repair_preserves_final_review_window(store, tmp_path, monkeypatch):
+    from signal_research.worker.budgets import Budget
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    original = OpenAIProvider.generate
+    count = []
+    def generated(self, schema, messages, *args):
+        output, usage = original(self, schema, messages, *args)
+        if schema.__name__ == 'HypothesisBatch':
+            count.append(1)
+            output.candidates[0].mechanism += ' Unverified 999%.'
+            # It exceeds the old >30s condition but cannot afford a repair and
+            # the downstream review stages. Existing numerical gates must hold.
+            monkeypatch.setattr(Budget, 'remaining_seconds', lambda self: 80)
+        return output, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', generated)
+    ResearchMachine(store, settings).process(rid)
+    report = store.get_report(rid)
+    assert len(count) == 1 and not store.artifacts(rid, 'hypothesis_numeric_repair')
+    assert report and not report.discoveries

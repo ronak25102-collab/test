@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
 import type { RunSummary } from '../api/generated'
 
-type RunEvent = { sequence: number; stage: string; public_summary: string }
+type RunEvent = { sequence: number; stage: string; public_summary: string; event_type?: string }
 
 const stages = ['resolving', 'planning', 'discovering', 'fetching', 'extracting', 'normalizing', 'hypothesizing', 'investigating', 'challenging', 'verifying', 'composing']
 const phases = [
@@ -97,9 +97,19 @@ export function ResearchProgress({ run, events, onCancel, onResume, onRestart }:
   const stopped = ['failed', 'cancelled'].includes(run.status)
   const expired = stopped && run.limitations.some(item => item.includes('run deadline exceeded'))
   const heading = run.status === 'failed' ? 'Investigation failed' : run.status === 'cancelled' ? 'Investigation cancelled' : run.status === 'cancel_requested' ? 'Cancellation requested' : run.status === 'completed' ? 'Research complete' : 'Investigation in progress'
+  const agents = new Map<string, { status: string; detail: string }>()
+  for (const event of events) {
+    if (!event.event_type?.startsWith('research_agent_')) continue
+    const match = event.public_summary.match(/^(.+): (started|completed|failed)(.*)$/)
+    if (match) agents.set(match[1], { status: match[2], detail: match[3].trim() })
+  }
   return <section className="progress-card" id="investigation-progress" aria-labelledby="progress-heading" tabIndex={-1}>
     <div className="section-head"><div><span className="eyebrow">{run.mode === 'replay' ? 'REPLAY' : 'LIVE'} RESEARCH</span><h2 id="progress-heading">{heading}</h2></div>{run.status !== 'completed' && <button className="quiet" disabled={run.status === 'cancel_requested'} onClick={expired ? onRestart : stopped ? onResume : onCancel}>{expired ? 'Start a new run' : stopped ? 'Resume from saved work' : 'Cancel run'}</button>}</div>
     <MoneyJourney run={run} events={events} key={run.id} />
+    {agents.size > 0 && <div className="research-agents"><h3>Research team</h3><ul aria-label="Research agents">{[...agents].map(([name, agent]) => {
+      const status = agent.status === 'started' ? stopped || run.status === 'completed' ? 'Incomplete' : 'Working' : agent.status === 'completed' ? 'Complete' : 'Incomplete'
+      return <li key={name} data-agent-status={status.toLowerCase()}><span>{name}</span><strong>{status}</strong>{agent.detail && <small>{agent.detail}</small>}</li>
+    })}</ul><p>Parallel workers share one research budget. Every figure still passes source and calculation checks.</p></div>}
     <div className="progress-meta"><span>Stage <strong>{run.stage}</strong></span><span>Sources found <strong>{run.progress.sources_found || 0}</strong></span><span>Cutoff <strong>{run.as_of}</strong></span></div>
     <p role={stopped ? 'alert' : undefined}>{expired ? 'This run reached its total time limit. Start a new run to continue research.' : run.limitations.join(' ')}</p>
     <details className="run-activity" open={stopped || undefined}><summary>Activity log <span>{events.length} {events.length === 1 ? 'update' : 'updates'}</span></summary><ol className="event-list">{events.map(event => <li key={event.sequence} className="event"><span className="dot" /><div><strong>{event.stage}</strong><p>{event.public_summary}</p></div></li>)}</ol></details>

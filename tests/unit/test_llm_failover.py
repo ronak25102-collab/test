@@ -22,6 +22,84 @@ class Result(BaseModel):
     value: int
 
 
+def test_balanced_keys_are_shared_by_independent_runtime_agents(pipeline, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+
+    pipeline.settings.codecraft_key_routing = 'balanced'
+    barrier = Barrier(3)
+    def handler(key):
+        barrier.wait(timeout=3)
+        return codecraft_success()
+    sent = install_http(monkeypatch, handler)
+    children = [DurableCalls(pipeline.store, pipeline.settings, pipeline.run_id, pipeline.budget) for _ in range(3)]
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        results = list(pool.map(lambda pair: pair[1].model(Result, {'agent': pair[0]}).value, enumerate(children)))
+    assert results == [42, 42, 42]
+    assert set(sent) == {'primary-test', 'backup-one-test', 'backup-two-test'}
+    assert not pipeline._active_credentials
+    # Every logical operation keeps its selected slot and cached response.
+    for index, child in enumerate(children):
+        assert child.model(Result, {'agent': index}).value == 42
+    assert len(sent) == 3
+
+
+def test_balanced_uncertain_request_never_moves_to_a_different_key(pipeline, monkeypatch):
+    pipeline.settings.codecraft_key_routing = 'balanced'
+    def timeout(key):
+        raise httpx.ReadTimeout('uncertain provider result')
+    sent = install_http(monkeypatch, timeout)
+    with pytest.raises(CodeCraftError):
+        pipeline.model(Result, {'agent': 'uncertain'})
+    resumed = DurableCalls(pipeline.store, pipeline.settings, pipeline.run_id, pipeline.budget)
+    with pytest.raises(UncertainCall):
+        resumed.model(Result, {'agent': 'uncertain'})
+    assert sent == ['primary-test']
+    assert not resumed._active_credentials
+
+
+def test_balanced_mode_exhausts_keys_then_uses_authorized_nvidia(pipeline, monkeypatch):
+    pipeline.settings.codecraft_key_routing = 'balanced'
+    sent = install_http(monkeypatch, lambda key: httpx.Response(402))
+    monkeypatch.setattr(NvidiaProvider, 'generate', lambda self, schema, *args:
+                        (schema(value=42), ProviderUsage(input_tokens=120, output_tokens=80)))
+    assert pipeline.model(Result, {'agent': 'first'}).value == 42
+    assert pipeline.model(Result, {'agent': 'second'}).value == 42
+    assert sent == ['primary-test', 'backup-one-test', 'backup-two-test']
+    assert not pipeline._active_credentials
+
+
+def test_balanced_concurrency_limit_applies_across_child_adapters(pipeline, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event, Lock
+
+    pipeline.settings.codecraft_key_routing = 'balanced'
+    pipeline.settings.max_model_concurrency = 2
+    entered, release, lock = Event(), Event(), Lock()
+    state = {'active': 0, 'peak': 0}
+    def handler(key):
+        with lock:
+            state['active'] += 1
+            state['peak'] = max(state['peak'], state['active'])
+            if state['active'] == 2:
+                entered.set()
+        assert release.wait(timeout=4)
+        with lock:
+            state['active'] -= 1
+        return codecraft_success()
+    install_http(monkeypatch, handler)
+    children = [DurableCalls(pipeline.store, pipeline.settings, pipeline.run_id, pipeline.budget) for _ in range(3)]
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        futures = [pool.submit(child.model, Result, {'agent': i}) for i, child in enumerate(children)]
+        try:
+            assert entered.wait(timeout=3)
+            assert state['active'] == 2
+        finally:
+            release.set()
+        assert [future.result().value for future in futures] == [42] * 3
+    assert state['peak'] == 2 and not pipeline._active_credentials
+
+
 @pytest.fixture
 def pipeline(store, tmp_path):
     settings = Settings(llm_provider='codecraft', codecraft_api_key='primary-test',
