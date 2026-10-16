@@ -1,11 +1,11 @@
-# Beyond release acceptance — 16 October 2026
+# Beyond release acceptance — 17 October 2026 (IST)
 
 This record separates implemented behavior, automated verification and actual
 real-provider financial results. A working interface is not a verified discovery.
 
 ## Software verification
 
-- Full backend suite: **624 passed, 1 skipped**. The skipped test requires Windows
+- Final full backend suite: **627 passed, 1 skipped**. The skipped test requires Windows
   symlink-creation permission; symlink exclusion remains implemented. One existing
   Starlette/httpx deprecation warning remains.
 - Frontend: **38 Edge browser tests passed**, TypeScript and production build passed.
@@ -53,10 +53,26 @@ an accepted discovery or a cold five-minute success.
 
 ## Final integrated live checks
 
-The final HDFC Bank and Bajaj Finance cold Deep validation outcomes are recorded
-below after their bounded runs finish. Deep mode has a 900-second allowance and
-is explicitly outside the five-minute Live target. No synthetic or cached result
-may substitute for either run.
+These real-provider cold Deep runs used the integrated source/scope/angle and
+adaptive reasoning reserves. Deep mode has a 900-second allowance and is explicitly
+outside the five-minute Live target. No synthetic or cached result substituted.
+
+| Company | Seconds | Verified facts | Calculations | Outcome |
+| --- | ---: | ---: | ---: | --- |
+| HDFC Bank | 504.3 | 6 | 8 | insufficient_evidence |
+| Bajaj Finance | 532.3 | 0 | 0 | insufficient_evidence |
+
+HDFC completed its counterargument/current-reconciliation checks. Its first draft
+included unverified percentages from commentary in significance bullets, so the
+numerical gates correctly withheld it before semantic publication. A subsequent
+code change adds one bounded correction attempt followed by a fresh independent
+review; dedicated tests cover both corrected and still-invalid drafts. The subsequent cold run was interrupted by a local process/host stop between sessions. Its six reviewed facts were recovered from the expired checkpoint with zero new provider requests, as Partial. It did not finish composition or prove a successful cold repair. The earlier report above is not relabelled.
+
+Bajaj Finance did not verify a complete binding: proposed AUM values lacked a source
+scale, and ratio candidates failed independent scope checks. One earlier response
+also exceeded the old diagnostic-note length bound; diagnostic notes now have a
+larger bounded allowance, while all financial gates remain unchanged. Generality
+across NBFCs is therefore still not demonstrated by a successful real discovery.
 
 ## Acceptance limits
 
@@ -73,3 +89,25 @@ without verified inputs. Unknown filing dates stay unknown. Provider latency,
 quota, malformed output, access restrictions and missing same-definition sources
 remain risks. Retained partial reports and legacy cached reports keep their actual
 mode, cutoff and outcome. Beyond is a research tool, not an investment recommendation.
+
+
+## GitHub verification
+
+[Checkpoint f6e17a9](https://github.com/shaurya927/Beyond/actions/runs/38942521165)
+passed both jobs, including PostgreSQL integration/publication checks and migrations,
+the Linux backend suite, frontend production build and browser suite. The final draft-repair and public peer-query changes passed the complete local suite and use the same workflow on push.
+
+
+## Final retrieval correction
+
+Peer discovery queries now use registered public metric labels and a month/year,
+with a broader issuer-result search when the first query returns no leads. Exact
+scope, period, unit and metric matching remains mandatory after retrieval. This
+corrects an observed zero-result query built from internal metric keys and ISO
+endpoints. Unit and full-pipeline fixture checks cover the change; the interrupted
+real run is not evidence of a successful post-correction numeric peer benchmark.
+
+The saved HDFC Deep report is available in the local dashboard with its original
+run ID, cutoff, timestamps, provider receipts and insufficient-evidence outcome.
+Its six facts and eight calculations were imported without changing conclusions
+or making any provider calls. The portable Partial HTML retains those same results.
