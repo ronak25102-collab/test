@@ -18,6 +18,15 @@ router = APIRouter(prefix="/runs", tags=["exports"])
 safe_csv = spreadsheet_safe
 
 
+@router.get('/{run_id}/exports/report.html')
+def portable_html(run_id: UUID, store=Depends(get_store)):
+    from signal_research.exports.html_report import report_html
+    report = store.get_report(run_id)
+    if not report:
+        raise HTTPException(status_code=409, detail={'code': 'REPORT_NOT_READY', 'message': 'report is not available yet'})
+    return Response(report_html(report), media_type='text/html', headers={'Content-Disposition': f'attachment; filename=Beyond-{run_id}.html'})
+
+
 @router.get("/{run_id}/exports/report.json")
 def report_json(run_id: UUID, store=Depends(get_store)):
     report = store.get_report(run_id)

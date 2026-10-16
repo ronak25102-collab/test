@@ -38,6 +38,7 @@ export type Report = {
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
   generation_metadata?: {
+    peer_benchmark?: { status: string; missing?: string[]; comparisons: { id: string; metric: string; period_end: string; scope: string; comparison: string; company_value: string; peer_median: string; gap: string; classification: string; peers: Record<string, { value: string; fact_ids: string[] }> }[]; sources?: { company: Company; facts: Fact[]; passages: Passage[]; documents: Document[] }[] }
     cache_usage?: { cold_start: boolean; reused: number; fresh: number }
     strength_trace?: { rating: string; rules: Record<string, boolean>; caps: string[]; origin_families: string[]; note: string }
     best_candidate?: { label: string; text: string; fact_ids: string[]; calculation_ids: string[]; missing: string[]; reason: string }

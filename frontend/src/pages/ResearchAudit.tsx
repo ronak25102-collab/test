@@ -51,7 +51,7 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
   const series = [...groups.entries()].filter(([, facts]) => new Set(facts.map(f => f.period_end)).size >= 2)
   if (!series.length) return <div className="history-empty"><span aria-hidden="true">↳</span><p>No comparable multi-period series was verified.</p><small>The comparison view appears when compatible reporting dates are available.</small></div>
   const active = series.find(([key]) => key === selected) || series[0]
-  const facts = [...active[1]].sort((a, b) => a.period_end!.localeCompare(b.period_end!)).slice(-20)
+  const facts = [...active[1]].sort((a, b) => a.period_end!.localeCompare(b.period_end!))
   const values = facts.map(f => Number(f.value_decimal))
   const lo = Math.min(...values), hi = Math.max(...values)
   const pad = Math.max((hi - lo) * .15, Math.abs(hi) * .01, .01)
@@ -70,6 +70,7 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
       <line x1="45" x2="415" y1="145" y2="145" stroke="#ccd7d4" />
       <polygon points={`45,145 ${points} 415,145`} fill={`url(#${gradient})`} />
       <polyline className="history-line" pathLength="1" fill="none" stroke="#315b3e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" points={points} />
+      {(report.generation_metadata?.structural_breaks || []).filter(b => b.metric === facts[0].metric_key && b.scope === facts[0].scope).map(b => { const index = facts.findIndex(f => f.period_end === b.end); return index < 0 ? null : <g key={b.id}><line x1={x(index)} x2={x(index)} y1="20" y2="145" stroke="#a77a43" strokeDasharray="4 4"/><text x={x(index)} y="15" fontSize="10">Structural break</text></g> })}
       {facts.map((fact, index) => <g key={fact.id}>
         <circle cx={x(index)} cy={y(values[index])} r="4" fill="#1e4b51" />
         {(facts.length <= 6 || index === 0 || index === facts.length - 1) && <text x={x(index)} y={y(values[index]) - 10} textAnchor="middle" fontSize="11">{displayNumber(fact.value_decimal)}</text>}
