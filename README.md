@@ -6,8 +6,8 @@ generates hypotheses, searches supporting and opposing evidence, and independent
 reviews every material statement before publishing the eight required fields.
 It abstains when the evidence is inadequate.
 
-The [16 October completeness audit](docs/RESEARCH-COMPLETENESS-2026-10-16.md)
-records the required output checks and measured acceptance status. A saved report
+The [current task and acceptance audit](docs/TRACK-A-ACCEPTANCE-2026-10-16.md)
+records the ten changes, tests, real cold-run results and unmet acceptance criteria. A saved report
 with verified figures and no published discovery is not a successful hackathon
 discovery. The dashboard now makes that distinction explicit.
 
@@ -19,8 +19,10 @@ valid lower-ranked candidates. Historical collection seeks the current annual
 report and earlier windows across five years, plus profile-specific operating
 metrics and original regulator/peer context. Funding calculations include the
 deposit share of deposits plus borrowings and its period-to-period change; this
-explicitly excludes other liabilities. Peer retrieval is context, not automatic
-verification of peer figures.
+explicitly excludes other liabilities. Hypothesis-led peer retrieval independently
+verifies each peer's figures, requires matching metric, definition, scope, unit and
+period ends, and computes a median only with at least two verified peers. Unmatched
+peer passages remain context; they do not increase evidence strength.
 
 New reports retain the eight-part requirements checklist, verified temporal
 analysis, actual opposing searches and challenge reviews. A published qualified
@@ -38,7 +40,7 @@ remain required. Reports disclose the cache and original retrieval dates.
 For an **opt-in check that consumes API credits**, use the isolated validator:
 
 ```bash
-uv run python scripts/validate_discovery.py HDFCBANK --seconds 480 --cutoff 2026-10-15
+uv run python scripts/validate_discovery.py HDFCBANK --cold-start --seconds 300
 ```
 
 It uses existing private provider configuration, creates a separate database,
@@ -47,6 +49,45 @@ and saves the report and provider-reported token usage under
 historical-cache path against a prior validation database. Token reservations
 and unknown usage from uncertain requests remain distinct from provider receipts.
 This validator does not alter the website queue or private `.env` limits.
+
+## Cold rehearsal, hybrid routing and portable reports
+
+The workspace toggle **Cold start** disables historical fact reuse for that run.
+The result shows reused/fresh fact counts. Earlier verified dates remain available
+in the story; annual and quarterly observations are kept separate. Structural
+jumps are flagged and excluded from lead growth comparisons until reconciled.
+Evidence strength shows its rule trace, and an unavailable peer comparison caps
+strength at Weak. A candidate that fails numerical gates is labelled **Not
+established**, never presented as a verified discovery.
+
+For the configured NVIDIA extraction/planning plus CodeCraft review setup, set
+`NVIDIA_PLANNING=true` in private `.env`. Configure both NVIDIA model roles and
+keep `LLM_PROVIDER=codecraft` with the desired review model. Extraction and
+hypothesis planning use NVIDIA; composition, challenge and final verification
+retain the configured provider. In this hybrid mode, exhausted CodeCraft keys
+do not silently substitute NVIDIA for final review. All participating models
+must appear in the private rate card. Provider receipts record actual models.
+
+Run the unattended eight-company rehearsal (this consumes search/model quota):
+
+```bash
+uv run python scripts/regression.py --seconds 300 --workers 3
+```
+
+Each company starts with an isolated empty database and the same pipeline. The
+script writes `reports/regression.md`, including failures and actual runtimes.
+`--artifact-root PATH` and `--output PATH` keep different experiments separate.
+`--summarize PATH` rebuilds the report from recorded artifacts without API calls.
+The [previous provider batch](reports/regression-opus-only.md) is retained for
+comparison. The report does not treat an early provider failure as a successful
+demo even when it finishes within five minutes.
+
+**Export report** downloads one offline HTML file with inline styles/scripts,
+embedded source passages, public source links and claim-to-input navigation.
+Its **Print / Save as PDF** action produces the print view without a running
+server. Peer passages and checked reconciliation passages are embedded too.
+Source quotes remain verbatim; generated financial prose uses grouped, rounded
+values. Synthetic replay is prominently identified in the export.
 
 ## Current Windows demo setup
 
@@ -65,8 +106,10 @@ services were enabled during validation.
 ```
 
 The current `.env.example` uses free NVIDIA Nemotron Super for both roles and
-Tavily advanced search within its included allowance. The eight-minute research
-cap does not guarantee a successful discovery. SYNTHBANK remains synthetic.
+Tavily advanced search within its included allowance. Live mode targets a maximum
+of 300 seconds, including a reserved analysis window. A completed partial report
+is not a successful discovery. Deep mode can use a longer configured deadline
+and is explicitly outside the five-minute demo budget. SYNTHBANK remains synthetic.
 
 ## Local setup / WSL
 
@@ -145,7 +188,7 @@ runs use the new allowance, while existing durable request plans stay unchanged.
 The extended `.env.example` profile allows 65536 tokens per response, 5000000
 input and 5000000 output tokens per run, 200 model calls, 100 searches, 100
 document downloads and 50 OCR pages. It allows 900 seconds per model request
-within a 7200-second run. The template retains `FREE_SERVICES_ONLY=true` and
+within the configured run deadline; Live mode still caps its target at 300 seconds. The template retains `FREE_SERVICES_ONLY=true` and
 `MAX_RUN_COST_USD=0`; for CodeCraft, set `FREE_SERVICES_ONLY=false` and
 `MAX_RUN_COST_USD=100` in your private `.env`. These are maximum allowances,
 not promised usage or provider entitlements. CodeCraft's
@@ -193,10 +236,10 @@ the server keeps sending heartbeat chunks. A timeout remains an uncertain call
 and is not resubmitted automatically. The error message identifies this limit.
 Independent fact reviews have an exact verdict count and short explanations to
 prevent runaway generation; duplicate or missing candidate indices are rejected.
-The current free-only configuration targets `MAX_RUN_SECONDS=480` (eight minutes),
-with a separate 90-second model timeout. A completed abstention is not a successful
+The example targets `MAX_RUN_SECONDS=300`, with separate per-stage request budgets
+and a model-request ceiling. A completed abstention is not a successful
 discovery; see docs/LIVE-RESULTS.md and docs/READINESS.md. Longer research can be
-configured explicitly but does not meet the provisional live-demo target.
+configured explicitly in Deep mode but does not meet the five-minute live-demo target.
 Run `scripts/configure_free.py` to verify access and generate the private card
 when using the [free NVIDIA Developer Program prototype API](https://docs.api.nvidia.com/nim/docs/run-anywhere).
 The example card is illustrative; it does not establish your account entitlement.

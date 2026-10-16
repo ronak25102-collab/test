@@ -1,5 +1,7 @@
 # Research completeness audit — 16 October 2026
 
+This is the earlier checkpoint audit. The [current ten-task acceptance audit](TRACK-A-ACCEPTANCE-2026-10-16.md) supersedes its implementation and live-readiness status; the historical run evidence below remains unchanged.
+
 Checkpoint before changes: `66e0442`, pushed to `main`. Baseline: 519 backend tests, 33 browser tests, frontend build and offline evaluation passed.
 
 ## What the critique establishes
