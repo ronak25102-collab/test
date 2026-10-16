@@ -44,5 +44,7 @@ def indian_number(value):
 def format_prose(text):
     # Source quotations and stored evidence are never rewritten. Apply only to
     # generated presentation text before its final entailment review.
+    text = re.sub(r'(?<![\w.])(-?\d[\d,]*(?:\.\d+)?)(?=\s*(?:crores?|lakh\s+crore)\b)',
+                  lambda m: indian_number(m[1].replace(',', '')), text, flags=re.I)
     return re.sub(r'(?<![\w.])(-?\d[\d,]*\.\d{3,})(?![\w.])',
                   lambda m: indian_number(m[1].replace(',', '')), text)

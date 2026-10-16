@@ -19,6 +19,7 @@ def test_export_embeds_evidence_without_network_assets_or_local_links(store):
     assert public_url('http://localhost/') is None
     assert public_url('http://localhost./') is None
     assert public_url('javascript:alert(1)') is None
+    assert soup.select('svg text[text-anchor="end"]')
 
 
 def test_export_keeps_peer_lineage_and_prints_significance_and_checked_passages(store):

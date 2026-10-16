@@ -10,3 +10,5 @@ def test_impossible_annual_publication_is_unknown_not_a_balance_date():
 
 def test_prose_preserves_years_but_formats_raw_precision():
     assert format_prose('Borrowings were 206765.5655 crore in 2023.') == 'Borrowings were 2,06,765.57 crore in 2023.'
+    assert format_prose('INR 100000 crore at 2026-03-31.') == 'INR 1,00,000.00 crore at 2026-03-31.'
+    assert format_prose('INR -206765.5 crore in 2023–24.') == 'INR -2,06,765.50 crore in 2023–24.'

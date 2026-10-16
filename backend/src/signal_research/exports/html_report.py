@@ -72,14 +72,15 @@ def report_html(report):
     if series:
         selected_series = max(series, key=lambda s: s['comparable_periods'])
         observations = selected_series['observations']
-        body.append('<p>' + text(selected_series['metric'].replace('_', ' ')) + ' · ' + text(selected_series['scope']) + ' · ' + text(selected_series['unit']) + ' · verified observations</p>')
+        body.append('<p>' + text(selected_series['metric'].replace('_', ' ')) + ' · ' + text(selected_series['scope']) + ' · ' + text(selected_series['unit'].replace('_', ' ')) + ' · verified observations</p>')
         values = [float(o['value']) for o in observations]
         low, high = min(values), max(values)
         points = ' '.join(f'{35 + i * 730 / max(1, len(values) - 1):.2f},{180 - (v - low) / (high - low or 1) * 130:.2f}' for i, v in enumerate(values))
         body.append(f'<svg viewBox="0 0 800 240" role="img" aria-label="Verified historical series"><polyline fill="none" stroke="#315b3e" stroke-width="3" points="{points}"/>')
         for index, o in enumerate(observations):
             x = 35 + index * 730 / max(1, len(values) - 1)
-            body.append(f'<text x="{x:.2f}" y="220" font-size="10">{text(o["period_end"])}</text>')
+            anchor = 'start' if index == 0 else 'end' if index == len(observations) - 1 else 'middle'
+            body.append(f'<text x="{x:.2f}" y="220" text-anchor="{anchor}" font-size="10">{text(o["period_end"])}</text>')
             if any(b['end'] == str(o['period_end']) for b in meta.get('structural_breaks', [])):
                 body.append(f'<line x1="{x}" x2="{x}" y1="30" y2="190" stroke="#ae7645" stroke-dasharray="4 4"/><text x="{x}" y="22" font-size="12">Break flagged</text>')
         body.append('</svg>')
@@ -100,7 +101,9 @@ def report_html(report):
             points = [(40 + i * 700 / max(1, len(rows) - 1), 170 - (float(r[key]) - low) / (high - low or 1) * 130) for i, r in enumerate(rows)]
             body.append('<polyline fill="none" stroke="' + color + '" stroke-width="3" points="' + ' '.join(f'{x:.2f},{y:.2f}' for x, y in points) + '"/>')
             body.extend(f'<circle cx="{x:.2f}" cy="{y:.2f}" r="4" fill="{color}"/>' for x, y in points)
-        body.extend(f'<text x="{40 + i * 700 / max(1, len(rows) - 1):.2f}" y="205" font-size="12">{r["period_end"]}</text>' for i, r in enumerate(rows))
+        for i, row in enumerate(rows):
+            anchor = 'start' if i == 0 else 'end' if i == len(rows) - 1 else 'middle'
+            body.append(f'<text x="{40 + i * 700 / max(1, len(rows) - 1):.2f}" y="205" text-anchor="{anchor}" font-size="12">{row["period_end"]}</text>')
         body.append('</svg><p>Green: company · Gold: verified peer median · ' + text(first['metric']) + ' (%) · ' + text(first['scope']) + '</p>')
     body.append('<details id="peer-evidence"><summary>Peer inputs and exact source passages</summary>')
     for bundle in peers.get('sources', []):
