@@ -798,3 +798,28 @@ def test_latest_empty_evidence_checkpoint_does_not_resurrect_withheld_figures(st
     store.checkpoint(run_id, 'evidence_collected', 1, {'facts': []})
     assert store.load_checkpoint(run_id, 'evidence_collected', iteration=None) == {'facts': []}
     assert store.load_checkpoint(run_id, 'evidence_collected') == {'facts': ['old']}
+
+
+@pytest.mark.parametrize('corrected', [True, False])
+def test_local_numerical_failure_gets_one_repair_then_fresh_review(store, tmp_path, monkeypatch, corrected):
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    original = OpenAIProvider.generate
+    seen = {'drafts': 0, 'semantic_reviews': 0}
+    def generated(self, schema, messages, *args, **kwargs):
+        output, usage = original(self, schema, messages, *args, **kwargs)
+        if schema.__name__ == 'DiscoveryDraft':
+            seen['drafts'] += 1
+            if seen['drafts'] == 1 or not corrected:
+                output.why_it_matters[0].text += ' Commentary adds an unverified 999%.'
+        if schema.__name__ == 'SemanticReview':
+            seen['semantic_reviews'] += 1
+        return output, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', generated)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert seen['drafts'] == 2
+    assert seen['semantic_reviews'] == int(corrected)
+    assert (report.outcome.value == 'discovery') is corrected
+    assert all('999%' not in claim.text for claim in report.claims)
+    if not corrected:
+        assert not report.discoveries

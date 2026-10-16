@@ -1464,7 +1464,7 @@ class LiveResearch:
                 repair_payload = draft_payload | {'rejected_draft': draft.model_dump(mode='json'),
                                                   'independent_review': self.draft_feedback}
                 revised_draft = self.calls.model(cited_draft_schema(repair_payload), repair_payload, stage='composing',
-                    instruction='Correct ONLY the specifically unsupported claims or falsification details identified by independent_review. Use existing cited verified facts, calculations and source passages. Do not change the approved novelty assessment, invent new facts or claim a historical onset beyond the observations. Keep a qualified one-sentence discovery, 3–5 independently supported significance statements, linked timeline_analysis with honest onset_status, strongest counterargument, and an observable falsification condition with a concrete window and source. Every percentage must link its exact registered calculation or verified ratio fact. The entire result will undergo a new independent review. No investment advice.')
+                    instruction='Correct ONLY the specifically unsupported claims or falsification details identified by independent_review (which identifies whether feedback comes from local numerical gates or independent semantic review). Use existing cited verified facts, calculations and source passages. Do not change the approved novelty assessment, invent new facts or claim a historical onset beyond the observations. Keep a qualified one-sentence discovery, 3–5 independently supported significance statements, linked timeline_analysis with honest onset_status, strongest counterargument, and an observable falsification condition with a concrete window and source. Every percentage must link its exact registered calculation or verified ratio fact. The entire result will undergo a new independent review. No investment advice.')
                 report = self.compose(revised_draft, challenge, hypothesis.opposing_query)
                 if report:
                     return report
@@ -1512,7 +1512,12 @@ class LiveResearch:
             bound_facts = [facts[i] for i in statement.fact_ids]
             bound_calcs = [calculations[i] for i in statement.calculation_ids]
             if not supported_percentages(statement.text, bound_facts, bound_calcs) or not supported_numbers(statement.text, bound_facts, bound_calcs):
-                self.limitations.append('Draft introduced numerical detail without its own linked verified inputs; publication withheld.')
+                self.draft_feedback = {'repairable': True, 'validation_stage': 'local_numerical_gates',
+                    'rejected_statement': statement.text,
+                    'reason': 'Remove every financial number absent from this statement’s linked verified facts/calculations. A number quoted in context is not a verified fact. Preserve the supported relationship and all material qualifications; do not replace missing figures with estimates.',
+                    'allowed_fact_ids': [str(f.id) for f in bound_facts],
+                    'allowed_calculation_ids': [str(c.id) for c in bound_calcs]}
+                self.limitations.append('Draft introduced numerical detail without its own linked verified inputs; publication withheld pending a fresh corrected draft and independent review.')
                 return None
             compatible, reason = compatible_candidate(statement, self.facts, self.calculations)
             if not compatible:
