@@ -35,6 +35,7 @@ export type Report = {
   passages: Passage[]
   abstention?: { attempted_angles: string[]; missing_requirements: string[]; next_evidence_needed: string[] }
   generation_metadata?: {
+    falsification_tests?: { cadence: { expected_disclosure_date?: string; confidence: string; note: string; missing: string[] }; conditions: { kind: string; metric: string; operator: string; threshold: string; unit: string; window?: string; expected_disclosure_date?: string; source_type: string; checkable_now: boolean; status: string; reason?: string; passage_ids?: string[]; interpretation?: string }[] }
     structural_breaks?: { id: string; metric: string; scope: string; start: string; end: string; growth: string; passage_ids: string[]; source_url: string; reason: string }[]
     timeline_story?: {
       events: { date: string; metric: string; scope: string; fact_id: string; passage_id: string; source_url: string; value: string; unit: string; calculation_id?: string; change?: string; change_unit?: string; what_changed: string; why_it_matters: string }[]

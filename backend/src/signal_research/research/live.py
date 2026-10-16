@@ -59,6 +59,7 @@ from signal_research.research.brief import (
 )
 from signal_research.research.calculation_context import calculation_context
 from signal_research.research.context import diverse_context, exact_excerpt, relevance
+from signal_research.research.falsification import observable_tests
 from signal_research.research.headline import template_headline, validate_headline
 from signal_research.research.history import (
     comparable_series,
@@ -194,6 +195,12 @@ class PlainHeadline(StrictModel):
     sentence: str = Field(max_length=500)
 
 
+class CurrentReconciliation(StrictModel):
+    status: Literal['supported', 'contradicted', 'not_found']
+    passage_ids: list[UUID] = Field(max_length=6)
+    reason: str = Field(max_length=400)
+
+
 def cited_draft_schema(payload):
     """Give the provider an explicit choice of existing evidence identifiers."""
     limits = {'fact_ids': 8, 'passage_ids': 6, 'calculation_ids': 6}
@@ -326,6 +333,7 @@ class LiveResearch:
         self.revalidated_documents = set()
         self.structural_breaks = []
         self.peer_mode = False
+        self.now_check = {'status': 'not_checked', 'passage_ids': [], 'reason': 'Current reconciliation review has not completed.'}
         self.peer_benchmark = {'status': 'inconclusive', 'comparisons': [], 'missing': ['Peer collection not completed.']}
 
     def time_reserve(self, seconds):
@@ -992,6 +1000,19 @@ class LiveResearch:
         self.progress()
         return result
 
+    def check_current_reconciliation(self, hypothesis):
+        payload = self.payload(hypothesis)
+        payload['question'] = 'Do original notes disclose acquired-balance run-off, merger bases or reclassification that explains the observed relationship?'
+        review = self.calls.model(CurrentReconciliation, payload, stage='challenging',
+            instruction='Check the question now against the retrieved source passages, including opposing search results. supported means a directly relevant structural reconciliation is actually disclosed; contradicted requires an explicit relevant denial/reconciliation ruling it out; not_found means neither is established. Absence of a keyword is not contradicted. Cite exact supplied original passage IDs; do not infer causality or invent a reconciliation.')
+        allowed = {p['id'] for p in payload['passages']}
+        if not set(review.passage_ids) <= allowed or (review.status != 'not_found' and not review.passage_ids):
+            self.now_check = {'status': 'not_found', 'passage_ids': [], 'reason': 'Review could not bind a current reconciliation to exact original passages.'}
+        else:
+            self.now_check = review.model_dump(mode='json')
+        self.now_check['searched_queries'] = list(self.opposing_queries)
+        self.store.artifact(self.run_id, 'current_falsification_check', self.now_check)
+
     def collect_quarters(self):
         targets = quarter_ends(self.cutoff)
         for year in sorted({d.year for d in targets}, reverse=True):
@@ -1213,6 +1234,7 @@ class LiveResearch:
             if not self.current_candidate(hypothesis):
                 continue
             self.recover_context(hypothesis)
+            self.check_current_reconciliation(hypothesis)
             self.stage("challenging", "Testing the strongest alternative and revising or rejecting the mechanism")
             challenge = self.challenge(hypothesis)
             self.store.artifact(self.run_id, "challenge", challenge.model_dump(mode="json"))
@@ -1366,6 +1388,7 @@ class LiveResearch:
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
         self.write_plain_headline(report)
+        report.generation_metadata['falsification_tests'] = observable_tests(self.facts, [c for c in self.calculations if c.id in used_calcs], self.passages, self.documents, self.cutoff, self.now_check)
         report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         return attest_report(report)
 
