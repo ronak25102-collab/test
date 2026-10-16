@@ -50,6 +50,15 @@ historical-cache path against a prior validation database. Token reservations
 and unknown usage from uncertain requests remain distinct from provider receipts.
 This validator does not alter the website queue or private `.env` limits.
 
+## Submission handoff
+
+See [the submission runbook](docs/SUBMISSION-RUNBOOK.md) for Windows/WSL startup,
+private provider configuration, a live-first demo, saved investigations and portable exports.
+`.env.submission.example` contains no credentials. Create the source handoff with
+`uv run python scripts/package_submission.py`; the ZIP excludes private configuration,
+runtime data and downloaded filings. Automated tests and synthetic interface demonstrations
+are separate from the measured real-company results in `reports/regression-final.md`.
+
 ## Cold rehearsal, hybrid routing and portable reports
 
 The workspace toggle **Cold start** disables historical fact reuse for that run.
@@ -64,8 +73,7 @@ For the configured NVIDIA extraction/planning plus CodeCraft review setup, set
 `NVIDIA_PLANNING=true` in private `.env`. Configure both NVIDIA model roles and
 keep `LLM_PROVIDER=codecraft` with the desired review model. Extraction and
 hypothesis planning use NVIDIA; composition, challenge and final verification
-retain the configured provider. In this hybrid mode, exhausted CodeCraft keys
-do not silently substitute NVIDIA for final review. All participating models
+retain the configured provider first. When `CODECRAFT_NVIDIA_FALLBACK=true`, definitive CodeCraft credit rejections may switch any remaining stage, including final review, to the configured NVIDIA model; the event and actual model are recorded. All participating models
 must appear in the private rate card. Provider receipts record actual models.
 
 Run the unattended eight-company rehearsal (this consumes search/model quota):
