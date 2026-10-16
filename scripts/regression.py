@@ -40,7 +40,7 @@ def run_one(symbol, seconds=300):
         'facts': len(report.facts) if report else 0, 'strength': report.discoveries[0].evidence_strength.value if report and report.discoveries else 'Not established',
         'headline': report.discoveries[0].discovery_sentence if report and report.discoveries else '',
         'outcome': report.outcome.value if report else summary.status.value,
-        'failures': report.limitations if report else summary.limitations,
+        'failures': [*report.limitations, *(report.abstention.next_evidence_needed if report.abstention else [])] if report else summary.limitations,
         'peers_verified': report.generation_metadata.get('peer_benchmark', {}).get('status') == 'verified' if report else False,
         'cache_reused': 0, 'output': str(output)}
     (output / 'summary.json').write_text(json.dumps(result, indent=2), encoding='utf-8')
@@ -51,6 +51,7 @@ def run_one(symbol, seconds=300):
 def write_report(results, path):
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = ['# Cold-start regression', '', 'Real-provider, empty-database runs. Each company uses the same pipeline and configuration. No manual intervention or historical facts reused.', '',
+        f'Published discoveries: {sum(r["strength"] != "Not established" for r in results)} / {len(results)}. Meeting the time limit alone does not pass discovery acceptance.', '',
         '| Company | Seconds | Verified facts | Strength | Peers verified | Outcome |', '| --- | ---: | ---: | --- | --- | --- |']
     for r in results:
         lines.append(f'| {r["symbol"]} | {r["seconds"]} | {r["facts"]} | {r["strength"]} | {r.get("peers_verified", False)} | {r["outcome"]} |')
@@ -66,8 +67,19 @@ def main():
     parser.add_argument('--companies', nargs='+', default=DEFAULT_COMPANIES)
     parser.add_argument('--seconds', type=int, default=300)
     parser.add_argument('--workers', type=int, choices=(1, 2, 3), default=3)
+    parser.add_argument('--summarize', type=Path, help='Regenerate the Markdown from recorded run artifacts without provider requests.')
     args = parser.parse_args()
     results = []
+    if args.summarize:
+        for path in args.summarize.glob('*/summary.json'):
+            result = json.loads(path.read_text(encoding='utf-8'))
+            report_path = path.parent / 'report.json'
+            if report_path.exists():
+                r = json.loads(report_path.read_text(encoding='utf-8'))
+                result['failures'] = list(dict.fromkeys([*result['failures'], *(r.get('abstention') or {}).get('next_evidence_needed', [])]))
+            results.append(result)
+        write_report(sorted(results, key=lambda r: r['symbol']), Path('reports/regression.md'))
+        return
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {pool.submit(run_one, s, args.seconds): s for s in args.companies}
         for future in as_completed(futures):

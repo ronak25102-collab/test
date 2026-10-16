@@ -19,6 +19,8 @@ def validate_headline(text, entity, facts, calculations):
         errors.append('Maximum 35 words.')
     if entity.casefold() not in text.casefold():
         errors.append('The entity must be named.')
+    if not re.search(r'\b(?:from|between|during)\b|20\d{2}\s*[-–]\s*20\d{2}', text, re.I):
+        errors.append('State the observed time span explicitly.')
     if re.search(r'\b(?:pp|yoy|casa|nim|cagr|basis points)\b', text, re.I):
         errors.append('Expand financial jargon into plain English.')
     allowed = {f.value_decimal for f in facts if f.value_decimal is not None}
@@ -27,6 +29,13 @@ def validate_headline(text, entity, facts, calculations):
     rounded = {x.quantize(Decimal('1')) for x in allowed} | {x.quantize(Decimal('.01')) for x in allowed}
     if any(n not in allowed | rounded for n in number_tokens(text)):
         errors.append('A headline number has no verified fact or registered calculation.')
+    values_by_unit = [(f.value_decimal, f.unit_normalized) for f in facts if f.value_decimal is not None]
+    values_by_unit += [(c.output_value, c.unit) for c in calculations if c.available and c.output_value is not None]
+    for match in re.finditer('(' + NUMBER + r')\s*(%|percent\b|percentage points?\b|crore\b)', text, re.I):
+        value = Decimal(match[1].replace(',', ''))
+        unit = 'percent' if match[2].lower() in {'%', 'percent'} else 'INR_crore' if match[2].lower() == 'crore' else 'percentage_points'
+        if not any(u == unit and value in {v, v.quantize(Decimal('1')), v.quantize(Decimal('.01'))} for v, u in values_by_unit):
+            errors.append('A headline number uses an unverified unit.')
     years = {str(f.period_end.year) for f in facts if f.period_end}
     if not any(y in text for y in years) or not re.search(r'%|\b(?:percent|percentage points?|crore|lakh|times)\b', text, re.I):
         errors.append('Include the verified time span and measurement units.')
@@ -50,5 +59,6 @@ def template_headline(company, facts, calculations):
         detail = f'recorded a {value} percentage point {inputs[0].metric_key.replace("_", " ")} versus {inputs[2].metric_key.replace("_", " ")} growth gap'
     else:
         unit = '%' if c.unit == 'percent' else ' percentage points' if c.unit == 'percentage_points' else ' times'
-        detail = f'recorded {value}{unit} for {c.formula_id.replace("_", " ")} in {inputs[0].metric_key.replace("_", " ")}'
+        label = {'yoy_growth': 'annual growth', 'cagr': 'annual compounded growth'}.get(c.formula_id, c.formula_id.replace('_', ' '))
+        detail = f'recorded {value}{unit} for {label} in {inputs[0].metric_key.replace("_", " ")}'
     return f'{company.legal_name} {detail} {span}.', c

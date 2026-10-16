@@ -48,6 +48,12 @@ def parse_html(document_id: UUID, raw: bytes) -> ParsedDocument:
         value = re.sub(r"\s+", " ", element.get_text(" ", strip=True))
         if value:
             blocks.append(value)
+    # Some original filings expose their text as preformatted statements.
+    # Preserve their line/column layout rather than silently discarding it.
+    for element in soup.find_all('pre'):
+        value = element.get_text('\n', strip=False).strip()
+        if value:
+            blocks.append(value)
     result = _chunk(document_id, title, blocks, "html")
     for table_index, table in enumerate(soup.find_all("table")):
         rows = table.find_all("tr")

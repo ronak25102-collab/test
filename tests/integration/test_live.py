@@ -111,6 +111,12 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.source_coverage["synthetic"] is False
     assert report.discoveries[0].counterargument.unresolved
     assert report.discoveries[0].evidence_strength.value == "Weak"
+    assert len(report.discoveries[0].discovery_sentence.split()) <= 35
+    assert report.generation_metadata['headline']['technical_detail']
+    assert report.generation_metadata['strength_trace']['rules']['peer_comparison_verified'] is False
+    conditions = report.generation_metadata['falsification_tests']['conditions']
+    assert any(c['kind'] == 'next_quarter' and c['threshold'] == '0' for c in conditions)
+    assert next(c for c in conditions if c['checkable_now'])['status'] == 'not_found'
     # Three historical windows, original regulator and peer searches, plus the
     # candidate-specific supporting/opposing pair. Duplicate URLs are not fetched.
     assert 12 <= calls['search'] <= settings.max_search_calls and calls['fetch'] == 2
@@ -120,6 +126,45 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.generation_metadata['submission_checklist']['items'][3]['status'] == 'limited'
     assert summary.progress['counterevidence_checks'] == 1
     assert summary.budget["model_calls"] == calls["model"]
+
+
+def test_full_pipeline_peer_comparison_retains_two_other_issuers_and_reproduces_the_median(store, tmp_path, monkeypatch):
+    from signal_research.research.peer_selector import select_peers
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    settings.max_output_tokens = 120000  # Allow concurrent reservations, not just sequential actual receipts.
+    target = store.get_summary(run_id).company
+    peers = select_peers(target, store.search_companies(''), target.business_profiles[0]).peers
+    search, fetch = TavilySearchProvider.search, PublicFetcher.fetch
+    pages = {}
+    for peer in peers:
+        url = f'https://{peer.verified_ir_domains[0]}/peer-fixture.html'
+        pages[url] = (peer, ('<html><head><meta property="article:published_time" content="2026-05-15"></head><body><pre>'
+            + peer.legal_name + '\nConsolidated Statement of Assets and Liabilities\nINR crore\n'
+            'As at 31 March 2026 | 31 March 2025\nDeposits 133750 125000\nBorrowings 15000 14000\n</pre></body></html>'))
+    def peer_search(self, query, domains, as_of, max_results):
+        for url, (company, _) in pages.items():
+            if query.startswith(f'"{company.legal_name}" financial results'):
+                return [SearchHit(url, company.legal_name + ' Results', '', 1, 'test', date(2026, 5, 15))]
+        return search(self, query, domains, as_of, max_results)
+    def peer_fetch(self, url):
+        if url not in pages:
+            return fetch(self, url)
+        raw = pages[url][1].encode()
+        digest = hashlib.sha256(raw).hexdigest()
+        path = tmp_path / (digest + '.html')
+        path.write_bytes(raw)
+        return FetchResult(url, url, 200, 'text/html', digest, str(path))
+    monkeypatch.setattr(TavilySearchProvider, 'search', peer_search)
+    monkeypatch.setattr(PublicFetcher, 'fetch', peer_fetch)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    benchmark = report.generation_metadata['peer_benchmark']
+    assert benchmark['status'] == 'verified', benchmark
+    row = next(r for r in benchmark['comparisons'] if r['metric'] == 'deposits')
+    assert len(row['peers']) >= 2 and Decimal(row['peer_median']) == 7
+    assert row['classification'] == 'sector-wide'
+    assert report.generation_metadata['strength_trace']['rules']['peer_comparison_verified']
+    assert all(f.entity_id == target.id for f in report.facts)
 
 
 def test_live_credit_failover_uses_nvidia_and_reports_actual_models(store, tmp_path, monkeypatch):

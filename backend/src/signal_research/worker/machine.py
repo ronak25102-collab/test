@@ -148,9 +148,9 @@ class ResearchMachine:
         from signal_research.research.live import LiveResearch
         from signal_research.worker.calls import UncertainCall
         run_settings = self.settings.model_copy(update={'cold_start': self.settings.cold_start or self.store.get_summary(run_id).cold_start})
-        research = LiveResearch(self, run_id, company, as_of, budget)
-        research.settings = run_settings
-        research.calls.settings = run_settings
+        if self.store.get_summary(run_id).mode == RunMode.DEEP:
+            run_settings = run_settings.model_copy(update={'stage_request_seconds': {}})
+        research = LiveResearch(self, run_id, company, as_of, budget, settings=run_settings)
         try:
             return research.run(plan)
         except BudgetExceeded as exc:
@@ -162,8 +162,6 @@ class ResearchMachine:
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
         except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
-            if not research.facts:
-                raise
             report = research.abstain(["Provider access recovery and additional independently verified evidence"])
             report.outcome = ResearchOutcome.PARTIAL
             report.limitations.append(f"Provider work stopped: {exc}. Previously verified evidence was preserved; no discovery was substituted.")

@@ -5,6 +5,7 @@ import { ResearchAudit } from './ResearchAudit'
 export function ReportPrint({ report }: { report: Report }) {
   const discovery = report.discoveries[0]
   return <article className="print-report">
+    <button className="print-control" onClick={() => window.print()}>Print / Save as PDF</button>
     <header><span className="eyebrow">TRACK A · {report.source_coverage.mode as string}</span><h1>{report.company.legal_name}</h1><p>Research cutoff: {report.cutoff} · {report.historical_coverage}</p></header>
     {discovery ? <>
       <section><h2>Discovery</h2><p className="print-headline">{discovery.discovery_sentence}</p><p><strong>{discovery.evidence_strength} evidence.</strong> {discovery.strength_rationale}</p></section>

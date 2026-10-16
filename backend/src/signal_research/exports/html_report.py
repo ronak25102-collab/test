@@ -39,7 +39,9 @@ def report_html(report):
         for identifier in claim.calculation_ids:
             c = next(c for c in report.calculations if c.id == identifier)
             pieces.append(f'<p>Calculation {text(c.formula_id)}: {indian_number(c.output_value)} {text(c.unit)} · ID {c.id}</p>')
-        bound = [facts.get(link.passage_or_fact_id) for link in claim.evidence_links]
+        bound_ids = {link.passage_or_fact_id for link in claim.evidence_links}
+        bound_ids.update(i for c in report.calculations if c.id in claim.calculation_ids for i in c.input_fact_ids)
+        bound = [facts.get(i) for i in bound_ids]
         ids = {link.passage_or_fact_id for link in claim.evidence_links if link.passage_or_fact_id in passages}
         for f in bound:
             if f:

@@ -22,11 +22,13 @@ parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('company')
 parser.add_argument('--seconds', type=int, choices=range(120, 901), default=480)
 parser.add_argument('--cutoff', type=date.fromisoformat, default=date.today())
+parser.add_argument('--cold-start', action='store_true')
+parser.add_argument('--mode', choices=('live', 'deep'), default='live')
 parser.add_argument('--reuse-database', type=Path, help='Reuse a prior validation database to measure historical-source caching; current research is still live.')
 args = parser.parse_args()
 output = Path('data/exports/live-validation') / f'{args.company}-{time.time_ns()}'
 output.mkdir(parents=True)
-settings = Settings(max_run_seconds=args.seconds, max_search_calls=24, max_fetch_documents=24,
+settings = Settings(cold_start=args.cold_start, max_run_seconds=args.seconds, max_search_calls=30, max_fetch_documents=30,
                     max_model_calls=36,
                     max_ocr_pages=8,
                     data_dir=output,
@@ -43,7 +45,7 @@ companies = store.search_companies(args.company)
 company = next((c for c in companies if args.company.upper() in c.symbols), None)
 if company is None:
     raise SystemExit('Company must resolve unambiguously to an existing exchange symbol.')
-run_id = store.create_run(company, args.cutoff, RunMode.LIVE)
+run_id = store.create_run(company, args.cutoff, RunMode(args.mode), cold_start=args.cold_start)
 assert store.lease_next('bounded-validation') == run_id
 print(json.dumps({'run_id': str(run_id), 'company': company.legal_name,
                   'deadline_seconds': args.seconds, 'output': str(output)}), flush=True)

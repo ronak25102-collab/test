@@ -129,3 +129,28 @@ test('published reports expose the eight-part brief and preserve an explicit tem
   await expect(page.getByRole('button', { name: /Inspect timeline evidence/ })).toBeVisible()
   await expect(page.getByText('Synthetic replay', { exact: true })).toBeVisible()
 })
+
+test('demo output exposes strength caps, break evidence, peer gaps and current falsification checks', async ({ page }) => {
+  const fact = report.facts[0], passage = report.passages.find(p => p.id === fact.passage_id)!
+  const enhanced = { ...report, generation_metadata: {
+    headline: { technical_detail: 'Reviewed technical relationship.', technical_claim_id: report.claims[0].id, claim_id: report.claims[0].id, method: 'verified_arithmetic_template' },
+    strength_trace: { rating: 'Weak', rules: { peer_comparison_verified: false }, caps: ['Peer verification is incomplete: maximum Weak.'], origin_families: [], note: 'Corroboration rules.' },
+    cache_usage: { cold_start: true, reused: 0, fresh: report.facts.length },
+    structural_breaks: [{ id: 'break-fixture', metric: fact.metric_key, scope: fact.scope, start: '2025-03-31', end: fact.period_end, growth: '80', passage_ids: [passage.id], source_url: report.documents[0].canonical_url, reason: 'A verified event requires reconciliation.' }],
+    timeline_story: { events: [{ date: fact.period_end, metric: fact.metric_key, scope: fact.scope, fact_id: fact.id, passage_id: passage.id, source_url: report.documents[0].canonical_url, value: fact.value_decimal, unit: fact.unit_normalized, what_changed: 'A source-bound balance was disclosed.', why_it_matters: 'Tests the observed relationship.' }], onsets: [], missing: ['More consecutive quarterly dates are required.'] },
+    peer_benchmark: { status: 'inconclusive', comparisons: [], missing: ['Two matching peer disclosures.'] },
+    falsification_tests: { cadence: { confidence: 'Unknown', note: 'Estimate, not a promise.', missing: ['Two filing dates.'] }, conditions: [{ kind: 'current_reconciliation', metric: 'reconciliation disclosed', operator: '=', threshold: '1', unit: 'event', checkable_now: true, status: 'not_found', source_type: 'Issuer notes', passage_ids: [passage.id], reason: 'No relevant reconciliation was found in checked passages.' }] }
+  } }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: enhanced }))
+  await page.goto(`/?run=${report.run_id}`)
+  await page.getByText('Weak · evidence strength rule trace', { exact: true }).click()
+  await expect(page.getByText('Peer verification is incomplete: maximum Weak.', { exact: true })).toBeVisible()
+  await expect(page.getByText(/0 facts reused, 4 fetched fresh/)).toBeVisible()
+  const timeline = page.getByRole('region', { name: 'Timeline story', exact: true })
+  await expect(timeline).toContainText('Structural break flagged')
+  await timeline.getByRole('button', { name: 'Inspect exact passage ↗', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Verified figure evidence', exact: true })).toContainText(passage.text)
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('heading', { name: 'Observable tests and current checks' })).toBeVisible()
+  await expect(page.getByText('No relevant reconciliation was found in checked passages.', { exact: true })).toBeVisible()
+})

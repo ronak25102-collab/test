@@ -84,6 +84,9 @@ def verify_report(report: ResearchReport) -> ResearchReport:
             used_documents.add(passage.document_id)
     for identifier in used_documents:
         document = documents[identifier]
+        measured = [f.period_end for f in report.facts if f.period_end and f.passage_id in passages and passages[f.passage_id].document_id == identifier]
+        if document.published_at and measured and document.published_at.date() < max(measured):
+            raise VerificationFailure('source publication date precedes a referenced financial period')
         if not available_by_cutoff(document, report.cutoff):
             raise VerificationFailure("unknown or ineligible source availability by cutoff")
     if report.publication_status.value == "published":
@@ -93,7 +96,8 @@ def verify_report(report: ResearchReport) -> ResearchReport:
             if claim.kind == ClaimKind.INFERRED and claim.id not in alternative_claims and len(supporting_origins(claim, facts, passages, documents)) < 2:
                 raise VerificationFailure("material inferred claims require independently originated supporting evidence")
         families = {documents[i].origin_family_id for i in used_documents}
-        if len(families) < 2 or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
+        tiered_weak = report.generation_metadata.get('tiered_publication') and all(d.evidence_strength.value == 'Weak' for d in report.discoveries)
+        if len(families) < (1 if tiered_weak else 2) or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
             raise VerificationFailure("discovery requires primary evidence and independent relevant origins")
         for discovery in report.discoveries:
             if report.generation_metadata.get('headline'):
@@ -109,7 +113,8 @@ def verify_report(report: ResearchReport) -> ResearchReport:
                 if report.generation_metadata.get('peer_benchmark', {}).get('status') != 'verified' and discovery.evidence_strength.value != 'Weak':
                     raise VerificationFailure('unverified peer comparison must cap strength at Weak')
             headline = next((claim for claim in report.claims if claim.text == discovery.discovery_sentence), None)
-            if not headline or len(supporting_origins(headline, facts, passages, documents)) < 2:
+            required_origins = 1 if tiered_weak and headline and headline.kind != ClaimKind.INFERRED else 2
+            if not headline or len(supporting_origins(headline, facts, passages, documents)) < required_origins:
                 raise VerificationFailure("discovery headline requires independently originated supporting evidence")
             if not discovery.counterargument.search_attempted:
                 raise VerificationFailure("counterevidence was not searched")

@@ -317,10 +317,12 @@ def derive_calculations(facts):
 
 
 class LiveResearch:
-    def __init__(self, machine, run_id, company, cutoff, budget):
-        self.machine, self.store, self.settings = machine, machine.store, machine.settings
+    def __init__(self, machine, run_id, company, cutoff, budget, settings=None):
+        self.machine, self.store, self.settings = machine, machine.store, settings or machine.settings
         self.run_id, self.company, self.cutoff, self.budget = run_id, company, cutoff, budget
         self.calls = DurableCalls(self.store, self.settings, run_id, budget)
+        summary = self.store.get_summary(run_id)
+        self.is_deep = bool(summary and summary.mode.value == 'deep')
         self.documents, self.passages, self.facts, self.calculations = [], [], [], []
         self.seen_urls, self.extracted, self.queries, self.limitations = set(), set(), [], []
         self.source_titles = []
@@ -341,12 +343,13 @@ class LiveResearch:
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
-        duration = min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
+        duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
         return min(seconds, duration * seconds / 900)
 
     def analysis_reserve(self):
         """Reserve a real reasoning window, not just one last provider response."""
-        return min(240, min(self.settings.max_run_seconds, self.settings.demo_target_seconds) * .45)
+        duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
+        return min(240, duration * .45)
 
     def stage(self, status, summary):
         from signal_research.domain.enums import RunStatus
@@ -703,6 +706,14 @@ class LiveResearch:
                                     for i, fact in enumerate(accepted) if not verdicts[i].supported)
                     accepted = [fact for i, fact in enumerate(accepted) if verdicts[i].supported]
             self.facts.extend(accepted)
+            current_document = next(d for d in self.documents if d.id == passage.document_id)
+            if accepted and current_document.published_at and current_document.published_at.date() < max(f.period_end for f in accepted):
+                current_document.published_at = None
+                current_document.cutoff_eligibility, current_document.cutoff_eligibility_basis = source_availability(None, current_document.retrieved_at, self.cutoff)
+                self.limitations.append('A publication date preceded a verified reporting period and was marked unknown. Availability must be established by a dated retrieval receipt.')
+                if current_document.cutoff_eligibility != 'eligible':
+                    self.facts = [f for f in self.facts if f.passage_id != passage.id]
+                    accepted = []
             if accepted and passage.page_index is not None:
                 # PDF text and per-row table views can describe the same page.
                 # Once that page has verified facts, do not extract its duplicate
@@ -1021,7 +1032,7 @@ class LiveResearch:
 
     def recover_context(self, hypothesis, force=False):
         """Search original independent reports before giving up on a candidate."""
-        if self.budget.search_calls >= self.budget.max_search_calls or self.budget.fetch_documents >= self.budget.max_fetch_documents:
+        if self.budget.search_calls >= self.budget.max_search_calls or self.budget.fetch_documents >= self.budget.max_fetch_documents or self.budget.remaining_seconds() <= self.time_reserve(120):
             return
         context_texts = [" ".join(p.text.lower() for p in self.passages if p.document_id == d.id)
                          for d in self.documents if d.document_type == "public_context" and d.cutoff_eligibility == "eligible"]
@@ -1056,6 +1067,8 @@ class LiveResearch:
             self.now_check = {'status': 'not_found', 'passage_ids': [], 'reason': 'Review could not bind a current reconciliation to exact original passages.'}
         else:
             self.now_check = review.model_dump(mode='json')
+        if self.now_check['status'] == 'not_found':
+            self.now_check['reason'] = 'No relevant reconciliation was established in the retrieved passages; absence is not proven.'
         self.now_check['searched_queries'] = list(self.opposing_queries)
         self.store.artifact(self.run_id, 'current_falsification_check', self.now_check)
 
@@ -1104,7 +1117,7 @@ class LiveResearch:
         from concurrent.futures import ThreadPoolExecutor, as_completed
         observations, bundles, errors = [], [], []
         def collect(peer):
-            research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget)
+            research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget, settings=self.settings)
             research.peer_mode = True
             metrics = ' '.join(dict.fromkeys(f.metric_key.replace('_', ' ') for f in facts))[:100]
             periods = ' '.join(sorted({str(f.period_end) for f in facts if f.period_end})[-3:])
@@ -1326,8 +1339,7 @@ class LiveResearch:
             if len(origins) < 2:
                 if self.budget.remaining_seconds() < self.time_reserve(120):
                     self.limitations.append("Independent corroboration remains incomplete; additional retrieval was stopped at the remaining time limit.")
-                    self.record_decision(hypothesis, 'withheld', 'Independent corroboration remains incomplete within the remaining verification time.', challenge.relevant_passage_ids)
-                    continue
+                    self.limitations.append('Only a source-observed or reproducible non-causal Weak finding can publish without independent corroboration.')
                 before = len(self.documents)
                 self.recover_context(hypothesis, force=True)
                 if len(self.documents) > before:
@@ -1336,17 +1348,18 @@ class LiveResearch:
                     self.store.artifact(self.run_id, "challenge", challenge.model_dump(mode="json"))
                     relevant = [p for p in self.passages if p.id in challenge.relevant_passage_ids]
                     origins = {d.origin_family_id for d in self.documents if d.cutoff_eligibility == "eligible" and d.id in {p.document_id for p in relevant}}
-                if challenge.refuted or len(origins) < 2:
-                    self.limitations.append("Candidate lacked independently originated relevant evidence or was refuted by the additional check.")
-                    self.record_decision(hypothesis, 'withheld', challenge.reason, challenge.relevant_passage_ids)
+                if challenge.refuted:
+                    self.record_decision(hypothesis, 'refuted', challenge.reason, challenge.relevant_passage_ids)
                     continue
+                if len(origins) < 2:
+                    self.limitations.append('Independent corroboration is incomplete; publication is limited to a verified non-causal Weak observation.')
             if challenge.novelty_status != 'additional_supported_synthesis' or not challenge.novelty_rationale:
                 self.record_decision(hypothesis, challenge.novelty_status, challenge.novelty_rationale or 'Additional synthesis was not established.', challenge.relevant_passage_ids)
                 self.limitations.append('Candidate did not establish additional supported synthesis beyond reported results or published explanations.')
                 continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
-            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write one clear, qualified discovery sentence (prefer under forty words), 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
+            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write one clear, qualified discovery sentence (prefer under forty words), 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
@@ -1368,7 +1381,8 @@ class LiveResearch:
 
     def compose(self, draft, challenge, opposing_query):
         self.draft_feedback = None
-        if set(draft.headline.calculation_ids) & break_calculations(self.structural_breaks, self.calculations):
+        blocked = break_calculations(self.structural_breaks, self.calculations)
+        if set(draft.headline.calculation_ids) & blocked and not set(draft.headline.calculation_ids) - blocked:
             self.limitations.append('Headline growth crosses an unresolved structural break; use a verified post-break relationship instead.')
             return None
         draft = draft.model_copy(update={
@@ -1377,11 +1391,14 @@ class LiveResearch:
             'timeline_analysis': draft.timeline_analysis.model_copy(update={'text': format_prose(draft.timeline_analysis.text)}),
             'counterargument': draft.counterargument.model_copy(update={'text': format_prose(draft.counterargument.text)}),
             'falsification': format_prose(draft.falsification)})
-        if set(draft.headline.calculation_ids) & break_calculations(self.structural_breaks, self.calculations):
+        if set(draft.headline.calculation_ids) & blocked and not set(draft.headline.calculation_ids) - blocked:
             self.limitations.append('Headline growth crosses an unresolved structural break; use a verified post-break relationship instead.')
             return None
         facts, passages, calculations = {f.id: f for f in self.facts}, {p.id: p for p in self.passages}, {c.id: c for c in self.calculations}
-        statements = [draft.headline, *draft.why_it_matters, draft.timeline_analysis, draft.counterargument]
+        current_check = ([Statement(text=format_prose(self.now_check['reason']), kind=ClaimKind.OBSERVED,
+            fact_ids=draft.headline.fact_ids, calculation_ids=draft.headline.calculation_ids,
+            passage_ids=self.now_check['passage_ids'])] if self.now_check['status'] in {'supported', 'contradicted'} else [])
+        statements = [draft.headline, *draft.why_it_matters, draft.timeline_analysis, *current_check, draft.counterargument]
         finding_boundary = draft.headline.model_copy(update={
             'fact_ids': list({identifier for statement in statements for identifier in statement.fact_ids}),
             'calculation_ids': list({identifier for statement in statements for identifier in statement.calculation_ids}),
@@ -1439,11 +1456,11 @@ class LiveResearch:
                for c in claims[:-1]):
             self.limitations.append("A material inferred claim lacked independent supporting origins; candidate withheld.")
             return None
-        if len(supporting_origins(claims[0], facts, passages, {d.id: d for d in documents})) < 2:
+        if len(supporting_origins(claims[0], facts, passages, {d.id: d for d in documents})) < (2 if claims[0].kind == ClaimKind.INFERRED else 1):
             self.limitations.append("Headline lacked independently originated supporting evidence; candidate withheld.")
             return None
         origins = {d.origin_family_id for d in documents if d.cutoff_eligibility == "eligible"}
-        if len(origins) < 2 or any(d.cutoff_eligibility != "eligible" for d in documents) or not any(d.document_type.startswith("issuer") for d in documents):
+        if not origins or any(d.cutoff_eligibility != "eligible" for d in documents) or not any(d.document_type.startswith("issuer") for d in documents):
             return None
         timeline = [TimelineEvent(id=uuid4(), event_date=f.period_end, date_precision=DatePrecision.DAY,
                                  published_at=next(d.published_at for d in documents if d.id == passages[f.passage_id].document_id),
@@ -1468,7 +1485,7 @@ class LiveResearch:
                             claims=claims, timeline_events=sorted(timeline, key=lambda e: (str(e.event_date), e.description)), calculations=self.calculations, facts=self.facts, passages=self.passages, documents=self.documents)
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         report.generation_metadata['temporal_reasoning'] = {'text': draft.timeline_analysis.text,
-                                                          'claim_id': claims[-2].id,
+                                                          'claim_id': claims[1 + len(draft.why_it_matters)].id,
                                                           'onset_status': draft.onset_status}
         report.generation_metadata['historical_cache'] = self.history_cache
         reused_ids = {identifier for entry in self.history_cache for identifier in entry['fact_ids']}
@@ -1489,7 +1506,14 @@ class LiveResearch:
         discovery.evidence_strength = strength
         discovery.strength_rationale = 'Evidence tier follows the displayed origin, peer, structural-break and counterargument rules.'
         report.generation_metadata['strength_trace'] = trace
+        report.generation_metadata['tiered_publication'] = True
+        if len(origins) < 2:
+            discovery.evidence_strength = EvidenceStrength.WEAK
+            trace['rating'] = 'Weak'
+            trace['caps'].append('Only primary-origin arithmetic was corroborated: non-causal Weak observation only.')
         report.generation_metadata['falsification_tests'] = observable_tests(self.facts, [c for c in self.calculations if c.id in used_calcs], self.passages, self.documents, self.cutoff, self.now_check)
+        if current_check:
+            report.generation_metadata['falsification_tests']['conditions'][-1]['claim_id'] = str(claims[-2].id)
         report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
         return attest_report(report)
 
@@ -1533,6 +1557,7 @@ class LiveResearch:
         if validate_headline(text, report.company.legal_name, selected_facts, selected):
             raise ValueError('No valid source-bound headline could be produced.')
         claim = technical.model_copy(update={'id': uuid5(self.run_id, 'plain-headline:' + text), 'text': text})
+        claim.calculation_ids = [c.id for c in selected]
         claim.evidence_links = [link.model_copy(update={'claim_id': claim.id}) for link in claim.evidence_links]
         if method == 'verified_arithmetic_template':
             claim.calculation_ids = [fallback_calc.id]
