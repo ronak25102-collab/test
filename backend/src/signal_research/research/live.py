@@ -83,6 +83,7 @@ from signal_research.research.numeric_claims import (
 from signal_research.research.peer_selector import select_peers
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
+from signal_research.research.structural import break_calculations, detect_breaks
 from signal_research.retrieval.disclosures import (
     embedded_disclosures,
     issuer_navigation,
@@ -306,6 +307,7 @@ class LiveResearch:
         self.history_cache = []
         self.plan_questions = []
         self.revalidated_documents = set()
+        self.structural_breaks = []
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
@@ -729,7 +731,8 @@ class LiveResearch:
                                  **excerpt})
         selected_documents = {p.document_id for p in selected} | used_documents
         required_calculations = set(hypothesis.calculation_ids) if hypothesis else set()
-        model_calculations = sorted(selected_calculations, key=lambda c: (
+        blocked = break_calculations(self.structural_breaks, selected_calculations) if compact else set()
+        model_calculations = sorted([c for c in selected_calculations if c.id not in blocked], key=lambda c: (
             c.id in required_calculations,
             c.formula_id in {'deposit_borrowing_mix_change', 'growth_gap', 'ldr_change', 'funding_share'},
             c.period or ''), reverse=True)[:24]
@@ -743,6 +746,7 @@ class LiveResearch:
                                "document_type": d.document_type} for d in documents.values() if d.id in selected_documents],
                 "passages": source_spans,
                 "historical_series": comparable_series(selected_facts),
+                "structural_breaks": self.structural_breaks,
                 "compatible_research_lanes": research_lanes(selected_facts, model_calculations),
                 "coverage_note": ("Planning context uses previously verified structured facts; original numeric spans are omitted here to reduce latency. Exact linked spans are supplied for challenge and final claim review. " if compact else '') + "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
@@ -766,6 +770,7 @@ class LiveResearch:
         report.generation_metadata['opposing_queries'] = self.opposing_queries
         report.generation_metadata['context_searches'] = self.context_searches
         report.generation_metadata['historical_cache'] = self.history_cache
+        report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         fact_passages = {f.passage_id for f in self.facts}
@@ -1051,6 +1056,12 @@ class LiveResearch:
         self.collect_operating_metrics()
         self.collect_history()
         self.collect_sector_context(peers)
+        self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
+        if any(b['status'].startswith('suspected') for b in self.structural_breaks) and self.budget.remaining_seconds() > self.analysis_reserve():
+            event_hits = self.search(self.focused_query('merger amalgamation acquisition scheme of arrangement reclassification restatement filings'), self.company.verified_ir_domains or None)
+            self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15)
+            self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
+        self.store.artifact(self.run_id, 'structural_breaks', {'events': self.structural_breaks})
         if not self.calculations:
             return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
         self.stage("hypothesizing", "Generating and ranking observation-led mechanisms within comparable reporting boundaries")
@@ -1188,6 +1199,9 @@ class LiveResearch:
 
     def compose(self, draft, challenge, opposing_query):
         self.draft_feedback = None
+        if set(draft.headline.calculation_ids) & break_calculations(self.structural_breaks, self.calculations):
+            self.limitations.append('Headline growth crosses an unresolved structural break; use a verified post-break relationship instead.')
+            return None
         facts, passages, calculations = {f.id: f for f in self.facts}, {p.id: p for p in self.passages}, {c.id: c for c in self.calculations}
         statements = [draft.headline, *draft.why_it_matters, draft.timeline_analysis, draft.counterargument]
         finding_boundary = draft.headline.model_copy(update={
@@ -1279,5 +1293,6 @@ class LiveResearch:
                                                           'claim_id': claims[-2].id,
                                                           'onset_status': draft.onset_status}
         report.generation_metadata['historical_cache'] = self.history_cache
+        report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
         return attest_report(report)
