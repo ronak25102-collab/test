@@ -172,3 +172,30 @@ test('demo output exposes strength caps, break evidence, peer gaps and current f
   await expect(page.getByRole('heading', { name: 'Observable tests and current checks' })).toBeVisible()
   await expect(page.getByText('No relevant reconciliation was found in checked passages.', { exact: true })).toBeVisible()
 })
+
+
+test('withheld candidate stays readable on its beige panel', async ({ page }) => {
+  const candidate = { ...result, generation_metadata: { ...result.generation_metadata, best_candidate: {
+    label: 'Not established', text: 'Synthetic candidate needs independent verification.',
+    reason: 'Scope and peer evidence remain incomplete.', missing: ['Matching peer facts'], fact_ids: [], calculation_ids: []
+  } } }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: candidate }))
+  await page.goto(`/?run=${report.run_id}`)
+  const panel = page.locator('.best-candidate')
+  await expect(panel).toContainText('not a published finding')
+  const contrast = await panel.evaluate(element => {
+    const luminance = (value: string) => {
+      const rgb = value.match(/\d+/g)!.slice(0, 3).map(Number).map(c => {
+        const v = c / 255
+        return v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4
+      })
+      return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722
+    }
+    const background = luminance(getComputedStyle(element).backgroundColor)
+    return Math.min(...Array.from(element.querySelectorAll('strong, p, small')).map(text => {
+      const foreground = luminance(getComputedStyle(text).color)
+      return (Math.max(background, foreground) + .05) / (Math.min(background, foreground) + .05)
+    }))
+  })
+  expect(contrast).toBeGreaterThanOrEqual(4.5)
+})

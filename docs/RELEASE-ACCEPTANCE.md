@@ -8,7 +8,7 @@ real-provider financial results. A working interface is not a verified discovery
 - Final full backend suite: **627 passed, 1 skipped**. The skipped test requires Windows
   symlink-creation permission; symlink exclusion remains implemented. One existing
   Starlette/httpx deprecation warning remains.
-- Frontend: **38 Edge browser tests passed**, TypeScript and production build passed.
+- Frontend: **39 Edge browser tests passed**, TypeScript and production build passed.
 - Ruff passed. Both offline evaluation cases passed. Synthetic fixtures prove
   application behavior only and are labelled as such.
 - Desktop/mobile interface QA found no horizontal overflow or JavaScript errors.
@@ -111,3 +111,12 @@ The saved HDFC Deep report is available in the local dashboard with its original
 run ID, cutoff, timestamps, provider receipts and insufficient-evidence outcome.
 Its six facts and eight calculations were imported without changing conclusions
 or making any provider calls. The portable Partial HTML retains those same results.
+
+
+Final visual QA of the real saved HDFC report found and corrected pale candidate
+text on a beige hero panel. A browser contrast check now enforces at least 4.5:1
+for that panel. The full 39-test browser suite and production build passed after
+the correction. The real report opened with zero JavaScript errors and zero POST
+requests. [Research-code checkpoint bbd65b2](https://github.com/shaurya927/Beyond/actions/runs/38966001122)
+passed both GitHub jobs, including PostgreSQL. The final contrast-only change
+uses the same workflow on push.
