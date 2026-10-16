@@ -81,6 +81,7 @@ from signal_research.research.numeric_claims import (
     supported_percentages,
 )
 from signal_research.research.peer_selector import select_peers
+from signal_research.research.peers import compare_peers
 from signal_research.research.report_builder import build_abstention
 from signal_research.research.sector import CONTEXT_TERMS, extraction_instruction
 from signal_research.research.structural import break_calculations, detect_breaks
@@ -308,6 +309,8 @@ class LiveResearch:
         self.plan_questions = []
         self.revalidated_documents = set()
         self.structural_breaks = []
+        self.peer_mode = False
+        self.peer_benchmark = {'status': 'inconclusive', 'comparisons': [], 'missing': ['Peer collection not completed.']}
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
@@ -486,6 +489,8 @@ class LiveResearch:
         self.progress()
 
     def progress(self, checks=None):
+        if self.peer_mode:
+            return
         self.store.update_run(self.run_id, progress={"sources_found": len(self.seen_urls), "documents_parsed": len(self.documents), "calculations_completed": len(self.calculations), "counterevidence_checks": len(self.challenge_reviews)})
 
     def financial_passage(self, passage):
@@ -682,6 +687,8 @@ class LiveResearch:
         # conflict invalidates earlier figures. Recovery must never resurrect
         # figures from an older snapshot or pretend a discovery was established.
         from signal_research.research.verifier import verify_report
+        if self.peer_mode:
+            return
         snapshot = self.abstain(["Investigation did not finish; retained observations do not establish a discovery."])
         snapshot.outcome = ResearchOutcome.PARTIAL
         verify_report(snapshot)
@@ -747,6 +754,7 @@ class LiveResearch:
                 "passages": source_spans,
                 "historical_series": comparable_series(selected_facts),
                 "structural_breaks": self.structural_breaks,
+                "peer_benchmark": self.peer_benchmark,
                 "compatible_research_lanes": research_lanes(selected_facts, model_calculations),
                 "coverage_note": ("Planning context uses previously verified structured facts; original numeric spans are omitted here to reduce latency. Exact linked spans are supplied for challenge and final claim review. " if compact else '') + "Passages may be exact bounded excerpts. Omitted text is not evidence of absence. Full passages remain in the report; verified facts retain their independently reviewed bindings."}
 
@@ -771,6 +779,7 @@ class LiveResearch:
         report.generation_metadata['context_searches'] = self.context_searches
         report.generation_metadata['historical_cache'] = self.history_cache
         report.generation_metadata['structural_breaks'] = self.structural_breaks
+        report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata.update(self.model_metadata())
         report.source_coverage['historical_series'] = comparable_series(self.facts)
         fact_passages = {f.passage_id for f in self.facts}
@@ -966,6 +975,32 @@ class LiveResearch:
         self.progress()
         return result
 
+    def collect_peer_benchmark(self, hypothesis):
+        selected = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
+        facts = [f for f in self.facts if f.id in selected]
+        peers = select_peers(self.company, self.store.search_companies(''), self.company.business_profiles[0])
+        observations, bundles, errors = [], [], []
+        for peer in peers.peers:
+            if (self.budget.remaining_seconds() < self.time_reserve(180)
+                    or self.budget.search_calls >= self.budget.max_search_calls - 2
+                    or self.budget.model_calls >= self.budget.max_model_calls - 4):
+                errors.append('Peer collection deferred to preserve final review allowance.')
+                break
+            research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget)
+            research.peer_mode = True
+            metrics = ' '.join(dict.fromkeys(f.metric_key.replace('_', ' ') for f in facts))[:100]
+            periods = ' '.join(sorted({str(f.period_end) for f in facts if f.period_end})[-3:])
+            hits = research.search(f'"{peer.legal_name}" financial results {metrics} {periods}', peer.verified_ir_domains or None)
+            research.ingest(hits[:2], time_reserve=self.time_reserve(150), parse_limit=25)
+            research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
+            observations.extend(research.facts)
+            bundles.append({'company': peer.model_dump(mode='json'), 'facts': [f.model_dump(mode='json') for f in research.facts],
+                            'passages': [p.model_dump(mode='json') for p in research.passages],
+                            'documents': [d.model_dump(mode='json') for d in research.documents]})
+            errors.extend(research.limitations)
+        self.peer_benchmark = compare_peers(facts, observations) | {'sources': bundles, 'limitations': errors}
+        self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
+
     def run(self, plan):
         self.plan_questions = [task.query for task in plan]
         self.load_historical_cache()
@@ -1133,6 +1168,7 @@ class LiveResearch:
                 continue
             iteration = investigated
             investigated += 1
+            self.collect_peer_benchmark(hypothesis)
             self.stage("investigating", f"Following candidate {iteration + 1} with a targeted evidence query")
             followup = self.search(self.focused_query(hypothesis.next_query))
             opposing = self.search(self.focused_query(hypothesis.opposing_query), opposing=True)
@@ -1294,5 +1330,6 @@ class LiveResearch:
                                                           'onset_status': draft.onset_status}
         report.generation_metadata['historical_cache'] = self.history_cache
         report.generation_metadata['structural_breaks'] = self.structural_breaks
+        report.generation_metadata['peer_benchmark'] = self.peer_benchmark
         report.generation_metadata['submission_checklist'] = submission_checklist(report)
         return attest_report(report)

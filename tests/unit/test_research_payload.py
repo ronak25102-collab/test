@@ -15,6 +15,7 @@ def test_compact_planning_retains_verified_data_and_review_restores_original_spa
     research.documents, research.passages = report.documents, report.passages
     research.facts, research.calculations = list(report.facts), report.calculations
     research.structural_breaks = []
+    research.peer_benchmark = {}
     unused = report.facts[0].model_copy(update={'id': uuid4(), 'scope': Scope.STANDALONE
         if report.facts[0].scope == Scope.CONSOLIDATED else Scope.CONSOLIDATED})
     research.facts.append(unused)
