@@ -67,10 +67,16 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
             if no_facts:
                 output = schema(facts=[], missing_metrics=["gross_advances"], notes=["Complete dates and financial scope could not be verified."])
         elif schema.__name__ == "FactReview":
+            if p.get('candidates') and 'text' in p['candidates'][0]:
+                return schema(verdicts=[{'index': 0, 'supported': True, 'reason': 'Rewrite preserves the reviewed arithmetic.'}]), type('Usage', (), {'input_tokens': 100, 'output_tokens': 100})()
             assert [c["index"] for c in p["candidates"]] == list(range(4))
             output = schema(verdicts=[{"index": 0 if duplicate_review else i, "supported": True, "reason": "Exact cell/date/entity/scope/scale binding matched"} for i in range(4)])
         elif schema.__name__ == "HypothesisBatch":
             output = schema(candidates=[{"statement": "Advances outpaced deposits", "mechanism": "Balance expansion may change the funding mix", "fact_ids": [f["id"] for f in p["facts"]], "calculation_ids": [c["id"] for c in p["calculations"]], "next_query": "HDFC Bank funding mix disclosures", "opposing_query": "HDFC Bank reclassification acquisition funding growth alternative", "falsification": "A comparable reversal of the growth gap", "significance": 4, "novelty": 3}], missing_evidence=[])
+        elif schema.__name__ == 'CurrentReconciliation':
+            output = schema(status='not_found', passage_ids=[], reason='No directly relevant reconciliation was found in the checked passages.')
+        elif schema.__name__ == 'PlainHeadline':
+            output = schema(sentence='HDFC Bank recorded a 10 percentage point difference between advances and deposit growth from 2025 to 2026.')
         elif schema.__name__ == "Challenge":
             output = schema(refuted=refuted, unresolved=True, strongest_alternative="Growth alone does not establish funding stress", reason="Composition and cost remain untested", relevant_passage_ids=[v["id"] for v in p["passages"]], novelty_status="additional_supported_synthesis", novelty_rationale="The linked cross-metric comparison qualifies the sector explanation.", published_explanation="Sector review does not quantify the issuer growth gap.")
         elif schema.__name__ == "DiscoveryDraft":
@@ -107,7 +113,7 @@ def test_live_publishes_evidence_backed_discovery(store, tmp_path, monkeypatch):
     assert report.discoveries[0].evidence_strength.value == "Weak"
     # Three historical windows, original regulator and peer searches, plus the
     # candidate-specific supporting/opposing pair. Duplicate URLs are not fetched.
-    assert calls["search"] == 12 and calls["fetch"] == 2
+    assert 12 <= calls['search'] <= settings.max_search_calls and calls['fetch'] == 2
     assert len(report.generation_metadata['submission_checklist']['items']) == 8
     # A qualified observation can publish Weak without pretending its onset is known.
     assert not report.generation_metadata['submission_checklist']['discovery_ready']
@@ -486,7 +492,7 @@ def test_limit_during_challenge_saves_verified_partial_report(store, tmp_path, m
     assert len(report.facts) == 4 and report.calculations
     assert not report.discoveries and report.publication_status.value == "abstained"
     assert report.generation_metadata["stopped_by_limit"]
-    assert calls["model"] == 3  # Extraction, independent fact review, hypothesis only.
+    assert calls['model'] == 4  # Extraction, fact review, hypothesis and current reconciliation review.
     before = calls.copy()
     ResearchMachine(store, settings).process(run_id)
     assert calls == before

@@ -106,7 +106,8 @@ class ResearchMachine:
             checks = len(report.generation_metadata.get('challenge_reviews', []))
             if report.source_coverage.get('synthetic'):
                 checks = 1 if report.discoveries else 0
-            self.store.update_run(run_id, progress={"sources_found": len(report.documents), "documents_parsed": len(report.documents), "calculations_completed": len(report.calculations), "counterevidence_checks": checks}, budget=budget.snapshot())
+            cache = report.generation_metadata.get('cache_usage', {})
+            self.store.update_run(run_id, progress={"sources_found": len(report.documents), "documents_parsed": len(report.documents), 'facts_verified': len(report.facts), 'facts_reused': cache.get('reused', 0), 'facts_fresh': cache.get('fresh', len(report.facts)), "calculations_completed": len(report.calculations), "counterevidence_checks": checks}, budget=budget.snapshot())
             self.store.save_report(report)
         except Exception as exc:
             if getattr(exc, "code", None):

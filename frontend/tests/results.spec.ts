@@ -76,7 +76,8 @@ test('source filters, empty states and export links keep their provenance', asyn
   await expect(sources.locator('.source-record')).toHaveCount(report.documents.length)
   await page.locator('.report-export > summary').click()
   await expect(page.getByRole('link', { name: 'CSV', exact: true })).toHaveAttribute('href', new RegExp(`/runs/${report.run_id}/exports/facts.csv$`))
-  await expect(page.getByRole('link', { name: 'Print view', exact: true })).toHaveAttribute('href', `?run=${report.run_id}&print=1`)
+  await expect(page.getByRole('link', { name: 'Print / Save as PDF', exact: true })).toHaveAttribute('href', `?run=${report.run_id}&print=1`)
+  await expect(page.getByRole('link', { name: 'Self-contained HTML', exact: true })).toHaveAttribute('href', new RegExp(`/runs/${report.run_id}/exports/report.html$`))
 })
 
 test('mobile results and evidence dialogs fit the viewport with reduced motion', async ({ page }) => {
@@ -103,6 +104,7 @@ test('withheld reports expose all eight requirements and retain the actual adver
   await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: challenged }))
   await page.goto(`/?run=${report.run_id}`)
   const brief = page.getByRole('region', { name: 'Required discovery output', exact: true })
+  await page.getByText('Submission completeness checklist', { exact: true }).click()
   await expect(brief.locator('li')).toHaveCount(8)
   await expect(brief.getByText('Discovery requirements not met', { exact: true })).toBeVisible()
   const trail = page.getByRole('region', { name: 'Adversarial research trail', exact: true })
@@ -120,6 +122,7 @@ test('published reports expose the eight-part brief and preserve an explicit tem
   await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: published }))
   await page.goto(`/?run=${report.run_id}`)
   const brief = page.getByRole('region', { name: 'Required discovery output', exact: true })
+  await page.getByText('Submission completeness checklist', { exact: true }).click()
   await expect(brief.locator('li')).toHaveCount(8)
   await expect(page.getByRole('heading', { name: 'Why it matters', exact: true })).toBeVisible()
   await expect(page.getByText(published.generation_metadata.temporal_reasoning.text, { exact: true })).toBeVisible()

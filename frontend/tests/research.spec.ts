@@ -156,7 +156,7 @@ test('complete report exposes sources, calculation inputs and printable timeline
   await page.screenshot({ path: 'test-results/evidence-drawer.png', fullPage: true })
   await page.getByRole('button', { name: 'Close evidence' }).click()
   await page.locator('.report-export > summary').click()
-  await page.getByRole('link', { name: 'Print view' }).click()
+  await page.getByRole('link', { name: 'Print / Save as PDF' }).click()
   await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
   await expect(page.getByRole('link', { name: report.documents[0].title })).toHaveAttribute('href', report.documents[0].canonical_url)
   await page.screenshot({ path: 'test-results/print-report.png', fullPage: true })
@@ -199,7 +199,7 @@ test('expired run starts a fresh investigation with the original company and cut
   await expect(page.getByRole('alert')).toContainText('This run reached its total time limit')
   await expect(page.getByRole('button', { name: 'Resume from saved work' })).not.toBeVisible()
   await page.getByRole('button', { name: 'Start a new run' }).click()
-  await expect.poll(() => created).toEqual({ company_id: report.company.id, as_of: report.cutoff, mode: 'live' })
+  await expect.poll(() => created).toEqual({ company_id: report.company.id, as_of: report.cutoff, mode: 'live', cold_start: false })
 })
 
 test('directory resolution selects the returned listed company', async ({ page }) => {

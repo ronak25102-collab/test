@@ -28,7 +28,7 @@ def validate_headline(text, entity, facts, calculations):
     if any(n not in allowed | rounded for n in number_tokens(text)):
         errors.append('A headline number has no verified fact or registered calculation.')
     years = {str(f.period_end.year) for f in facts if f.period_end}
-    if not any(y in text for y in years) or not re.search(r'%|\b(?:percent|percentage points|crore|lakh|times)\b', text, re.I):
+    if not any(y in text for y in years) or not re.search(r'%|\b(?:percent|percentage points?|crore|lakh|times)\b', text, re.I):
         errors.append('Include the verified time span and measurement units.')
     measured = re.sub(r'\b(?:19|20)\d{2}\b', '', text)
     if not 1 <= len(number_tokens(measured)) <= 2:

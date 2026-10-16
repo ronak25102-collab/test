@@ -379,7 +379,8 @@ class LiveResearch:
     def ingest(self, hits, *, time_reserve=0, parse_limit=None, stop_when_balance_ready=False,
                stop_when_financial_ready=False, document_reserve=0):
         from concurrent.futures import ThreadPoolExecutor
-        candidates = list({hit.url: hit for hit in hits if hit.url not in self.seen_urls}.values())
+        candidates = list({hit.url: hit for hit in hits if hit.url not in self.seen_urls
+                           and re.search(r'\.pdf(?:[?#]|$)|/ixbrl/|\.xbrl(?:[?#]|$)', hit.url, re.I)}.values())
         count = min(len(candidates), self.settings.max_fetch_concurrency,
                     max(0, self.budget.max_fetch_documents - document_reserve - self.budget.fetch_documents))
         def prefetch(hit):
@@ -504,7 +505,8 @@ class LiveResearch:
                 identified = any(comparative_bank_batch(p, self.company) for p in parsed.passages)
             own_host = any(domain_matches(portal_host, d) for d in self.company.verified_ir_domains)
             exchange_host = any(domain_matches(portal_host, d) for d in ('nseindia.com', 'bseindia.com'))
-            if identified and not own_host and not exchange_host and raw.startswith(b'%PDF'):
+            original_filing = bool(re.search(r'annual\s+report|statement\s+of\s+(?:assets|financial)|audited\s+financial\s+results|integrated\s+filing', cover_text[:5000], re.I))
+            if identified and original_filing and not own_host and not exchange_host and raw.startswith(b'%PDF'):
                 publisher, origin, kind = self.company.legal_name, f'issuer:{self.company.id}', 'issuer_mirror'
                 self.limitations.append(f'Third-party mirror: {hit.url}. Original issuer origin retained; this is not independent corroboration.')
             if raw.startswith(b"%PDF") and kind.startswith("issuer") and not identified:
@@ -736,6 +738,8 @@ class LiveResearch:
             else:
                 self.limitations.append(f"Conflicting disclosures withheld for {values[0].metric_key} at {values[0].period_end}; restatement status is unresolved.")
         self.calculations = derive_calculations(self.facts)
+        self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
+        self.calculations.extend(recovery_calculations(self.facts, self.structural_breaks))
         self.progress()
         # Persist the whole reviewed state, including an empty state after a
         # conflict invalidates earlier figures. Recovery must never resurrect
@@ -795,7 +799,7 @@ class LiveResearch:
         blocked = break_calculations(self.structural_breaks, selected_calculations) if compact else set()
         model_calculations = sorted([c for c in selected_calculations if c.id not in blocked], key=lambda c: (
             c.id in required_calculations,
-            c.formula_id in {'deposit_borrowing_mix_change', 'growth_gap', 'ldr_change', 'funding_share'},
+            c.formula_id.startswith('recovery_ratio') or c.formula_id in {'deposit_borrowing_mix_change', 'growth_gap', 'ldr_change', 'funding_share'},
             c.period or ''), reverse=True)[:24]
         return {"company": self.company.model_dump(mode="json"), "cutoff": self.cutoff,
                 "facts": [{key: value for key, value in f.model_dump(mode="json").items() if key in {
@@ -1070,7 +1074,7 @@ class LiveResearch:
             for future in as_completed(futures):
                 try:
                     batch = future.result()
-                    candidates.extend(batch.candidates[:1])
+                    candidates.extend(batch.candidates)
                     missing.extend(batch.missing_evidence)
                 except Exception as exc:
                     missing.append(f'Angle {futures[future]["key"]} did not complete: {type(exc).__name__}')
@@ -1364,6 +1368,9 @@ class LiveResearch:
 
     def compose(self, draft, challenge, opposing_query):
         self.draft_feedback = None
+        if set(draft.headline.calculation_ids) & break_calculations(self.structural_breaks, self.calculations):
+            self.limitations.append('Headline growth crosses an unresolved structural break; use a verified post-break relationship instead.')
+            return None
         draft = draft.model_copy(update={
             'headline': draft.headline.model_copy(update={'text': format_prose(draft.headline.text)}),
             'why_it_matters': [s.model_copy(update={'text': format_prose(s.text)}) for s in draft.why_it_matters],
@@ -1491,6 +1498,9 @@ class LiveResearch:
         technical = next(c for c in report.claims if c.text == discovery.discovery_sentence)
         selected = [c for c in report.calculations if c.id in technical.calculation_ids
                     and c.id not in break_calculations(self.structural_breaks, report.calculations)]
+        if not selected:
+            selected = [c for c in report.calculations if c.id in discovery.calculation_ids
+                        and c.id not in break_calculations(self.structural_breaks, report.calculations)]
         selected_facts = [f for f in report.facts if f.id in {i for c in selected for i in c.input_fact_ids}
                           or f.id in {link.passage_or_fact_id for link in technical.evidence_links}]
         fallback, fallback_calc = template_headline(report.company, selected_facts, selected)
@@ -1507,6 +1517,7 @@ class LiveResearch:
                     'facts': [f.model_dump(mode='json') for f in selected_facts],
                     'calculations': [calculation_context(c, selected_facts) for c in selected], 'errors': errors, 'attempt': attempt},
                     stage='verifying', instruction='Rewrite the already reviewed finding as exactly one plain-English sentence of at most 35 words. Name the entity, the change, one or two key numbers with units, and the observed time span. No jargon or unsupported causality. Use only supplied verified numbers; preserve signs and definitions. Do not lead with a structural-break interval.')
+                response.sentence = format_prose(response.sentence)
                 errors = validate_headline(response.sentence, report.company.legal_name, selected_facts, selected)
                 if errors:
                     continue

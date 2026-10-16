@@ -9,6 +9,30 @@ from signal_research.research.integrity import report_digest
 from signal_research.retrieval.metadata import available_by_cutoff
 
 
+def verify_peer_benchmark(report):
+    from signal_research.domain.schemas import Fact, Passage, SourceDocument
+    from signal_research.research.peers import compare_peers
+    benchmark = report.generation_metadata.get('peer_benchmark', {})
+    peers = []
+    for bundle in benchmark.get('sources', []):
+        documents = {d.id: d for d in map(SourceDocument.model_validate, bundle['documents'])}
+        passages = {p.id: p for p in map(Passage.model_validate, bundle['passages'])}
+        for fact in map(Fact.model_validate, bundle['facts']):
+            passage = passages.get(fact.passage_id)
+            document = documents.get(passage.document_id) if passage else None
+            if (str(fact.entity_id) != str(bundle['company']['id']) or fact.entity_id == report.company.id
+                    or fact.status != FactStatus.VERIFIED or not document or not available_by_cutoff(document, report.cutoff)
+                    or not fact.period_end or fact.period_end > report.cutoff):
+                raise VerificationFailure('peer figure lacks verified issuer, source or cutoff lineage')
+            peers.append(fact)
+    reproduced = {r['id']: r for r in compare_peers(report.facts, peers)['comparisons']}
+    for comparison in benchmark.get('comparisons', []):
+        if reproduced.get(comparison['id']) != comparison:
+            raise VerificationFailure('peer comparison failed independent reproduction')
+    if benchmark.get('status') == 'verified' and not benchmark.get('comparisons'):
+        raise VerificationFailure('peer comparison marked verified without matching observations')
+
+
 class VerificationFailure(ValueError):
     code = "CITATION_FAILED"
 
@@ -20,6 +44,8 @@ def verify_report(report: ResearchReport) -> ResearchReport:
     passages = {p.id: p for p in report.passages}
     facts = {f.id: f for f in report.facts}
     calculations = {c.id: c for c in report.calculations}
+    if report.generation_metadata.get('peer_benchmark'):
+        verify_peer_benchmark(report)
     used_documents = set()
     if report.publication_status.value == "published":
         if report.generation_metadata.get('pipeline', '').endswith('-review-v2'):
@@ -70,6 +96,18 @@ def verify_report(report: ResearchReport) -> ResearchReport:
         if len(families) < 2 or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
             raise VerificationFailure("discovery requires primary evidence and independent relevant origins")
         for discovery in report.discoveries:
+            if report.generation_metadata.get('headline'):
+                from signal_research.research.headline import validate_headline
+                from signal_research.research.structural import break_calculations
+                headline_claim = next((c for c in report.claims if str(c.id) == report.generation_metadata['headline']['claim_id']), None)
+                if not headline_claim or headline_claim.text != discovery.discovery_sentence:
+                    raise VerificationFailure('plain headline lacks its reviewed claim')
+                if validate_headline(discovery.discovery_sentence, report.company.legal_name, report.facts, report.calculations):
+                    raise VerificationFailure('plain headline failed word, sentence, unit or numeric validation')
+                if set(headline_claim.calculation_ids) & break_calculations(report.generation_metadata.get('structural_breaks', []), report.calculations):
+                    raise VerificationFailure('plain headline leads with a structural-break interval')
+                if report.generation_metadata.get('peer_benchmark', {}).get('status') != 'verified' and discovery.evidence_strength.value != 'Weak':
+                    raise VerificationFailure('unverified peer comparison must cap strength at Weak')
             headline = next((claim for claim in report.claims if claim.text == discovery.discovery_sentence), None)
             if not headline or len(supporting_origins(headline, facts, passages, documents)) < 2:
                 raise VerificationFailure("discovery headline requires independently originated supporting evidence")
