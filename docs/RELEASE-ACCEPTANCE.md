@@ -120,3 +120,20 @@ the correction. The real report opened with zero JavaScript errors and zero POST
 requests. [Research-code checkpoint bbd65b2](https://github.com/shaurya927/Beyond/actions/runs/38966001122)
 passed both GitHub jobs, including PostgreSQL. The final contrast-only change
 uses the same workflow on push.
+
+## Issuer-search and abbreviated-quarter correction
+
+The BSE zero-fact failure came from other issuers' letters addressed to the
+exchange, followed by unsupported quarterly date normalization. Identifier-led
+filing queries, verified issuer navigation, explicit quarterly column binding,
+registry synonyms and one bounded numerical hypothesis repair now cover these
+generic failure paths. Every literal-table candidate still needs independent
+source review. See [the actual validation record](../reports/bse-retrieval-validation.md).
+
+The final cold BSE check preserved 15 verified facts and 17 calculations in
+300.1 seconds, with no cache reuse. It remained Partial: the primary model key
+reported HTTP 402, the backup completed candidate repair, and later review timed
+out at the live deadline. Verified peers and a published discovery were not
+established. The complete backend suite passed 638 tests with one platform skip;
+the offline evaluations and lint checks passed. These results do not establish
+the missing live-discovery acceptance criteria.

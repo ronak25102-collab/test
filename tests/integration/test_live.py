@@ -51,6 +51,8 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
         return [SearchHit(u, "Results" if u == issuer else "Sector review", "Not evidence", 1, "tavily", date(2026, 5, 15)) for u in urls]
     def fetch(self, url):
         counters["fetch"] += 1
+        if url not in texts:
+            return FetchResult(url, url, 404, "text/html", None, None, error="Fixture has no disclosure at this navigation URL")
         raw = texts[url] if isinstance(texts[url], bytes) else texts[url].encode()
         digest = hashlib.sha256(raw).hexdigest()
         suffix = ".pdf" if raw.startswith(b"%PDF") else ".html"
@@ -823,3 +825,30 @@ def test_local_numerical_failure_gets_one_repair_then_fresh_review(store, tmp_pa
     assert all('999%' not in claim.text for claim in report.claims)
     if not corrected:
         assert not report.discoveries
+
+
+@pytest.mark.parametrize('corrected', [True, False])
+def test_hypothesis_numeric_repair_is_bounded_and_never_bypasses_publication_gates(store, tmp_path, monkeypatch, corrected):
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    original = OpenAIProvider.generate
+    seen = {'hypotheses': 0, 'challenge': 0}
+    def generated(self, schema, messages, *args):
+        output, usage = original(self, schema, messages, *args)
+        if schema.__name__ == 'HypothesisBatch':
+            seen['hypotheses'] += 1
+            if seen['hypotheses'] == 1 or not corrected:
+                output.candidates[0].mechanism += ' An unsupported additional 999% change.'
+            else:
+                assert 'numerical_repair' in json.loads(messages[1]['content'])
+        if schema.__name__ == 'ChallengeReview':
+            seen['challenge'] += 1
+        return output, usage
+    monkeypatch.setattr(OpenAIProvider, 'generate', generated)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert seen['hypotheses'] == 2
+    assert len(store.artifacts(rid, 'hypothesis_numeric_repair')) == 1
+    assert (report.outcome.value == 'discovery') is corrected
+    assert all('999%' not in claim.text for claim in report.claims)
+    if not corrected:
+        assert not report.discoveries and not seen['challenge']

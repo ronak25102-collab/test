@@ -28,7 +28,7 @@ METRICS: dict[str, MetricDefinition] = {
     "vnb": MetricDefinition("vnb", ("value of new business",), "INR_crore", "duration", (Profile.LIFE_INSURER,), "annual report"),
     "ape": MetricDefinition("ape", ("annual premium equivalent", "annualised premium equivalent", "annualized premium equivalent"), "INR_crore", "duration", (Profile.LIFE_INSURER,), "annual report"),
     "combined_ratio": MetricDefinition("combined_ratio", ("combined ratio",), "percent", "duration", (Profile.GENERAL_INSURER,), "annual report"),
-    "transaction_revenue": MetricDefinition("transaction_revenue", ("transaction fees",), "INR_crore", "duration", (Profile.EXCHANGE,), "quarterly results"),
+    "transaction_revenue": MetricDefinition("transaction_revenue", ("transaction fees", "transaction charges"), "INR_crore", "duration", (Profile.EXCHANGE,), "quarterly results"),
     "average_aum": MetricDefinition("average_aum", ("average AUM",), "INR_crore", "duration", (Profile.ASSET_MANAGER,), "quarterly results"),
     "segment_profit": MetricDefinition("segment_profit", ("segment profit",), "INR_crore", "duration", COMMON, "segment disclosure"),
 }
@@ -63,7 +63,7 @@ for key, aliases, unit, kind, profiles in (
     ("expense_ratio", ("expense ratio",), "percent", "duration", (Profile.GENERAL_INSURER,)),
     ("fee_revenue", ("fee revenue", "management fees"), "INR_crore", "duration", (Profile.ASSET_MANAGER, Profile.EXCHANGE)),
     ("revenue", ("revenue from operations", "total revenue", "total revenue from operations"), "INR_crore", "duration", COMMON),
-    ("net_profit", ("net profit", "profit after tax", "profit for the period", "total profit (loss) for period"), "INR_crore", "duration", COMMON),
+    ("net_profit", ("net profit", "net profit after tax", "profit after tax", "profit for the period", "total profit (loss) for period"), "INR_crore", "duration", COMMON),
     ("capital_adequacy", ("capital adequacy ratio", "CRAR"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
 ):
     METRICS[key] = MetricDefinition(key, aliases, unit, kind, profiles, "issuer financial disclosure")

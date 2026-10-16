@@ -13,6 +13,14 @@ from .metadata import domain_matches
 from .url_policy import UnsafeURL, validate_public_url
 
 
+def exchange_results_query(company):
+    """Disambiguate the issuer from names appearing as filing recipients."""
+    if company.isin:
+        return f'"{company.isin}" "financial results"'
+    symbol = company.symbols[0]
+    return f'"{company.legal_name}" "NSE Symbol" "{symbol}" "Name of company" "financial results"'
+
+
 def verified_disclosure_indexes(company) -> list[SearchHit]:
     """Company-neutral entry points; search and page links locate actual reports."""
     hits = []
@@ -40,7 +48,7 @@ def issuer_navigation(raw: bytes, page_url: str, domains: list[str], limit: int 
             continue
         # A business name containing 'Financial' is not a report-navigation
         # label. Quote pages and peer stock links otherwise consume this cap.
-        if not re.search(r"\binvestor\s*relations\b|\bfinancial\s+(?:results?|statements?|reports?|performance)\b|\bannual\s*reports?\b|\binvestor\s*presentations?\b|\bshareholders?\b|^financials?$", label, re.I):
+        if not re.search(r"\binvestor\s*relations\b|\bfinancial\s+(?:results?|statements?|reports?|performance)\b|\bannual\s*reports?\b|\binvestor\s*presentations?\b|\bshareholders?\b|^investors?$|^financials?$", label, re.I):
             continue
         if re.search(r'(?:share|stock)[-/]?(?:price|quote)|(?:price|quote)[-/]?(?:share|stock)', urlparse(url).path, re.I):
             continue

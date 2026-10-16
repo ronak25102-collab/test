@@ -13,7 +13,7 @@ def source_dates(text):
     normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text, flags=re.I)
     # Explicit day/month/'YY notation in contemporary Indian disclosures.
     # Bare FY27 or Q1FY27 still cannot establish any reporting date.
-    normalized = re.sub(r"\b(\d{1,2})\s+(" + MONTH_NAMES + r")[’']\s*(\d{2})(?!\d)",
+    normalized = re.sub(r"(?<![\w’'])(\d{1,2})\s+(" + MONTH_NAMES + r")[’']\s*(\d{2})(?!\d)",
                         lambda m: f"{m[1]} {m[2]} 20{m[3]}", normalized, flags=re.I)
     normalized = normalized.replace(",", " ")
     normalized = re.sub(r"\s+", " ", normalized)
@@ -26,6 +26,43 @@ def source_dates(text):
             except ValueError:
                 continue
     return sorted(result)
+
+
+def abbreviated_quarter_periods(text):
+    """Normalize explicit comparative month-year + Quarter columns only.
+
+    A bare month/FY label is insufficient. Each month column must have its
+    own Quarter label on the following header line in a single-scope income
+    statement. Other mixed FY/9M columns remain unbound.
+    """
+    if not re.search(r'\b(?:profit\s*(?:&|and)\s*loss|income\s+statement)\b', text, re.I):
+        return []
+    if len(set(re.findall(r'\b(?:standalone|consolidated)\b', text.lower()))) != 1:
+        return []
+    months = {name.lower(): i for i in range(1, 13)
+              for name in (calendar.month_name[i], calendar.month_abbr[i])}
+    months['sept'] = 9
+    pattern = re.compile(r'\b(' + '|'.join(months) + r")\.?\s*[’']\s*(\d{2})(?!\d)", re.I)
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        columns = list(pattern.finditer(line))
+        if len(columns) < 2:
+            continue
+        following = ' '.join(lines[index + 1:index + 3])
+        if len(re.findall(r'\bQuarter\b', following, re.I)) != len(columns):
+            continue
+        periods = []
+        for column in columns:
+            year, month = 2000 + int(column[2]), months[column[1].lower()]
+            # Calendar quarters are explicit; arbitrary month labels remain ambiguous.
+            if month not in {3, 6, 9, 12}:
+                return []
+            end = date(year, month, calendar.monthrange(year, month)[1])
+            start_index = year * 12 + month - 3
+            periods.append({'period_start': date(start_index // 12, start_index % 12 + 1, 1),
+                            'period_end': end, 'source_label': column[0] + ' Quarter'})
+        return periods
+    return []
 
 
 def explicit_duration_ranges(text):

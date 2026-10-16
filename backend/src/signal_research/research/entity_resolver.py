@@ -20,6 +20,17 @@ class Resolution:
 
 def resolve(store: Store, query: str, refresh: bool = False) -> Resolution:
     candidates = store.search_companies(query)
+    if candidates and refresh and any(not c.isin for c in candidates):
+        # A matching seed name is not a complete exchange identity. Enrich it
+        # from the public directory rather than treating the seed as final.
+        from .universe import LISTED_URL, refresh_universe
+        try:
+            age = store.snapshot_age_days(LISTED_URL)
+            if age is None or age > 7:
+                store.save_universe_snapshot(refresh_universe(listed=True))
+            candidates = store.search_companies(query)
+        except Exception:
+            pass  # Keep the known entity; exact filing ownership still needs verification.
     if not candidates and refresh:
         from .universe import LISTED_URL, NIFTY_URL, refresh_universe
         try:

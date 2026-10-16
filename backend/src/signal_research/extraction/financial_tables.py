@@ -13,11 +13,70 @@ from signal_research.finance.units import parse_numeric
 from signal_research.research.identity import issuer_named
 
 from .bank_tables import scope_in_text, subsidiary_only
-from .dates import COMPLETE_DATE, declared_duration_periods, source_dates
+from .dates import (
+    COMPLETE_DATE,
+    abbreviated_quarter_periods,
+    declared_duration_periods,
+    source_dates,
+)
 from .models import ExtractedFactBatch, ExtractedFactCandidate
 
 NUMBER = re.compile(r"(?<![\w.])\(?-?\d[\d,]*(?:\.\d+)?\)?%?(?![\w.])")
 DURATION = re.compile(r"\b(year|quarter|three months|six months|nine months|twelve months|3 months|6 months|9 months|12 months)\s+ended\b", re.I)
+
+
+def quarter_presentation_batch(passage, company, profile, *, document_issuer_verified=False):
+    """Literal leading quarter columns in mixed quarter/YTD presentation tables.
+
+    Only explicitly labelled quarter columns are normalized. Fiscal/YTD cells
+    are counted to verify table width, then omitted, never assigned guessed dates.
+    Candidates still require the independent source review.
+    """
+    text = passage.text
+    if subsidiary_only(text) or not (document_issuer_verified or issuer_named(text, company)):
+        return None
+    periods = abbreviated_quarter_periods(text)
+    if not periods:
+        return None
+    lines = text.splitlines()
+    headers = [(i, line) for i, line in enumerate(lines) if len(re.findall(r'\bQuarter\b', line, re.I)) == len(periods)]
+    if len(headers) != 1:
+        return None
+    header_index, header = headers[0]
+    # Columns must begin with quarter labels. Other layouts need model review.
+    if not re.match(r'^\s*(?:Quarter\s+){' + str(len(periods)) + '}', header, re.I):
+        return None
+    total_columns = len(periods) + len(re.findall(r'\b20\d{2}-\d{2}\b', header))
+    prefix = '\n'.join(lines[:header_index + 1])
+    unit = re.search(r'(?:₹|INR|Rs\.?)\s*(?:in\s+)?(crores?|cr|lakhs?|millions?|billions?|thousands?)\b', prefix, re.I)
+    if not unit:
+        return None
+    scope = 'consolidated' if scope_in_text('consolidated', prefix) else 'standalone'
+    facts = []
+    for metric in metrics_for_profile(profile):
+        if metric.kind == 'stock' or metric.unit != 'INR_crore':
+            continue
+        aliases = sorted((*metric.aliases, metric.key.replace('_', ' ')), key=len, reverse=True)
+        rows = []
+        for line in lines[header_index + 1:]:
+            for alias in sorted(aliases, key=len, reverse=True):
+                match = re.match(r'^\s*(?:\d+[.)]?\s+)?' + re.escape(alias) +
+                                 r'\s*(?:\([\d+\-*/ .]+\))?\s+(.+)$', line, re.I)
+                if not match:
+                    continue
+                cells = NUMBER.findall(match[1])
+                if not NUMBER.sub('', match[1]).strip() and len(cells) == total_columns:
+                    rows.append(cells)
+                break
+        if len(rows) != 1:
+            continue
+        for period, cell in zip(periods, rows[0][:len(periods)], strict=True):
+            facts.append(ExtractedFactCandidate(metric_key=metric.key, value_raw=cell, unit_raw='INR ' + unit[1],
+                currency='INR', period_type='duration', period_start=period['period_start'], period_end=period['period_end'],
+                scope=scope, passage_id=passage.id, extraction_confidence=Decimal('.99')))
+            if len(facts) == 6:
+                return ExtractedFactBatch(facts=facts, notes=['Literal quarter columns; YTD/FY cells omitted; independent review required.'])
+    return ExtractedFactBatch(facts=facts) if facts else None
 
 
 def financial_table_batch(passage, company, profile, *, document_issuer_verified=False):

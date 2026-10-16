@@ -43,12 +43,16 @@ from signal_research.extraction.bank_tables import (
 )
 from signal_research.extraction.column_tables import column_metric_lead
 from signal_research.extraction.dates import (
+    abbreviated_quarter_periods,
     declared_duration_periods,
     explicit_duration_ranges,
     source_dates,
 )
 from signal_research.extraction.eligibility import minimum_source_bindings
-from signal_research.extraction.financial_tables import financial_table_batch
+from signal_research.extraction.financial_tables import (
+    financial_table_batch,
+    quarter_presentation_batch,
+)
 from signal_research.extraction.models import ExtractedFactBatch, source_fact_batch_schema
 from signal_research.extraction.stock_ratios import stock_ratio_batch
 from signal_research.extraction.validate import validate_candidate
@@ -100,6 +104,7 @@ from signal_research.research.structural import (
 )
 from signal_research.retrieval.disclosures import (
     embedded_disclosures,
+    exchange_results_query,
     issuer_navigation,
     linked_disclosures,
     verified_disclosure_indexes,
@@ -565,7 +570,9 @@ class LiveResearch:
             self.passages.extend(parsed.passages)
             self.progress()
             if stop_when_financial_ready and kind.startswith('issuer') and eligibility == 'eligible':
-                if any(exchange_table_batch(p, self.company, self.company.business_profiles[0]) for p in parsed.passages):
+                if any(exchange_table_batch(p, self.company, self.company.business_profiles[0]) or
+                       (abbreviated_quarter_periods(p.text) and self.financial_passage(p) and
+                        minimum_source_bindings(p, self.company.business_profiles[0])) for p in parsed.passages):
                     break  # Review this explicit filing before downloading weaker leads.
             if stop_when_balance_ready and kind.startswith("issuer") and document.cutoff_eligibility == "eligible":
                 # Enough explicit comparative balances can enter independent
@@ -691,6 +698,7 @@ class LiveResearch:
                 for metric in metrics for alias in (*metric.aliases, metric.key.replace('_', ' ')))
             periods = [period for period in source_dates(p.text) if period <= self.cutoff]
             periods.extend(period for _, period in month_end_columns(p.text) if period <= self.cutoff)
+            periods.extend(p['period_end'] for p in abbreviated_quarter_periods(p.text) if p['period_end'] <= self.cutoff)
             latest_period = max(periods).toordinal() if periods else 0
             numeric_lead = numeric_measures > 0 or column_metric_lead(p, profile)
             return (p.document_id in (preferred_document_ids or ()), numeric_lead, bindings and dates and unit_header, bindings and dates, rows > 0 if profile.value == "bank" else financial_rows > 0, p.extraction_method not in {"pdf_table", "html_table"}, rows if profile.value == "bank" else financial_rows, latest_period, published[p.document_id], labels)
@@ -736,15 +744,18 @@ class LiveResearch:
             if batch is None:
                 batch = exchange_table_batch(passage, self.company, profile)
             if batch is None:
+                batch = quarter_presentation_batch(passage, self.company, profile, document_issuer_verified=issuer_bound)
+            if batch is None:
                 batch = financial_table_batch(passage, self.company, profile, document_issuer_verified=issuer_bound)
             if batch is None:
                 batch = ratio_batch
             extraction_method = passage.extraction_method if batch and passage.extraction_method == 'exchange_table' else "explicit_comparative_columns" if batch else "model"
             if batch is None:
-                dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)})
+                dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)}
+                               | {p['period_end'] for p in abbreviated_quarter_periods(passage.text)})
                 batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "source_period_columns": [{"label": label, "period_end": str(period)} for label, period in month_end_columns(passage.text)],
-                                      "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text)],
+                                      "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text), *abbreviated_quarter_periods(passage.text)],
                                       "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages if issuer_named(p.text, self.company)],
                                       "allowed_metric_keys": [m.key for m in metrics],
                                       "research_focus_metrics": list(focus_metrics),
@@ -1155,8 +1166,21 @@ class LiveResearch:
         selected = [a for a in angles if a['coverage_groups'] == a['required_groups']]
         def investigate(angle):
             scoped = payload | {'research_angle': angle}
-            return self.calls.model(cited_hypothesis_schema(scoped), scoped, stage='hypothesizing',
+            batch = self.calls.model(cited_hypothesis_schema(scoped), scoped, stage='hypothesizing',
                 instruction='Research only research_angle. Return at most one candidate with an additional quantified cross-metric or cross-source relationship, not a restatement of management narrative or headline results. Use one compatible reporting lane, supplied verified numbers and registered calculations only. Exclude growth-gap comparisons crossing structural_breaks; prefer post-break recovery. Read peer_benchmark and test whether this is only a sector story. Provide short supporting/opposing search fragments and an observable falsification test. No unsupported causal claims or invented numbers. Empty candidates are allowed when evidence is insufficient.')
+            invalid = [h for h in batch.candidates if not supported_percentages(h.statement + ' ' + h.mechanism,
+                [f for f in self.facts if f.id in h.fact_ids],
+                [c for c in self.calculations if c.id in h.calculation_ids])]
+            if invalid and self.budget.remaining_seconds() > 30:
+                feedback = scoped | {'numerical_repair': {
+                    'previous_candidates': [h.model_dump(mode='json') for h in invalid],
+                    'allowed_percentages': [{'calculation_id': str(c.id), 'value': str(c.output_value), 'unit': c.unit}
+                        for c in self.calculations if c.available and c.unit in {'percent', 'percentage_points'}],
+                    'reason': 'One or more percentages lack an exact linked verified fact or registered calculation.'}}
+                self.store.artifact(self.run_id, 'hypothesis_numeric_repair', {'angle': angle['key'], 'attempt': 1})
+                batch = self.calls.model(cited_hypothesis_schema(scoped), feedback, stage='hypothesizing',
+                    instruction='Repair only the unsupported numerical details of previous_candidates. Every percentage in statement AND mechanism must use its exact supplied verified ratio fact or registered calculation ID. Do not compute new percentages, differences, shares or thresholds in prose, and do not import percentages from unverified context. Remove unsupported numerical detail or return no candidate. Preserve reporting scope, period, definitions and an honestly qualified relationship. No new causal assertion. The repaired candidate must pass the same numerical, comparability, novelty, adversarial and final semantic gates; this is the only repair attempt.')
+            return batch
         candidates, missing = [], []
         with ThreadPoolExecutor(max_workers=3) as pool:
             futures = {pool.submit(investigate, a): a for a in selected[:3]}
@@ -1255,18 +1279,24 @@ class LiveResearch:
         if peers.peers:
             peer_names = " ".join(f'"{peer.legal_name}"' for peer in peers.peers)
             queries.append((f'"{self.company.legal_name}" {peer_names} {CONTEXT_TERMS[profile]} comparison {self.cutoff.year}', None))
+        if self.company.isin or profile.value == "exchange":
+            queries.insert(0, (exchange_results_query(self.company), ['nsearchives.nseindia.com']))
         initial = self.search_many(queries)
         hits = [items[i] for i in range(4) for items in initial if len(items) > i]
         if not any(any(domain_matches(urlparse(hit.url).hostname or "", domain)
                        for domain in self.company.verified_ir_domains) for hit in hits):
             hits = [*verified_disclosure_indexes(self.company), *hits]
         self.stage("fetching", "Retrieving original documents; search snippets remain leads")
-        self.ingest(hits[:8], time_reserve=self.time_reserve(300), stop_when_balance_ready=profile.value == "bank",
+        self.ingest(hits[:8], time_reserve=self.time_reserve(300), stop_when_balance_ready=profile.value == "bank", stop_when_financial_ready=True,
                     document_reserve=min(6, self.budget.max_fetch_documents // 3))
+        if not self.issuer_financial_coverage():
+            self.stage("discovering", "Following the issuer website navigation after search leads failed issuer identity checks")
+            self.ingest(verified_disclosure_indexes(self.company), time_reserve=self.time_reserve(240),
+                        stop_when_financial_ready=True, document_reserve=self.peer_document_reserve())
         if not self.issuer_financial_coverage():
             if self.budget.search_calls < self.budget.max_search_calls and self.budget.fetch_documents < self.budget.max_fetch_documents - 3:
                 self.stage("discovering", "Seeking a dated exchange copy when issuer-portal leads lack usable disclosure dates")
-                filing_hits = self.search(f'"{self.company.legal_name}" "INTEGRATED FILING"',
+                filing_hits = self.search(exchange_results_query(self.company) + ' "INTEGRATED FILING"',
                                           ['nsearchives.nseindia.com'], search_depth='advanced')
                 self.stage("fetching", "Retrieving exchange disclosure leads; document identity and publication date still require verification")
                 self.ingest(filing_hits[:3], time_reserve=self.time_reserve(240), stop_when_financial_ready=True, document_reserve=3)

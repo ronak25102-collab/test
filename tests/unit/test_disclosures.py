@@ -152,3 +152,21 @@ def test_cms_pdf_formats_and_quarter_labels_are_dynamic_document_leads():
     raw = b'<a href="https://assets.example.org/is/content/results?fmt=pdf">Investor Presentation Q1 FY27</a><a href="/financials/q1fy27.pdf">Q1 FY27</a>'
     hits = linked_disclosures(raw, 'https://example.org/financials', ['example.org'])
     assert {hit.url for hit in hits} == {'https://assets.example.org/is/content/results?fmt=pdf', 'https://example.org/financials/q1fy27.pdf'}
+
+
+def test_exchange_results_query_prefers_verified_identifier_over_ambiguous_name():
+    from types import SimpleNamespace
+
+    from signal_research.retrieval.disclosures import exchange_results_query
+    company = SimpleNamespace(legal_name='Quartz Exchange Limited', symbols=['QUARTZ'], isin='INE000A01000')
+    assert exchange_results_query(company) == '"INE000A01000" "financial results"'
+    company.isin = None
+    query = exchange_results_query(company)
+    assert '"NSE Symbol" "QUARTZ"' in query and '"Name of company"' in query
+
+
+def test_short_investors_navigation_label_locates_the_issuer_section():
+    from signal_research.retrieval.disclosures import issuer_navigation
+    raw = b'<a href="/static/investor_relations/overview.html">Investors</a><a href="/quote">Stock price</a>'
+    assert [hit.url for hit in issuer_navigation(raw,'https://issuer.example/',['issuer.example'])] == [
+        'https://issuer.example/static/investor_relations/overview.html']

@@ -88,3 +88,59 @@ def test_hyphenated_month_dates_and_explicit_compound_durations():
     periods = declared_duration_periods('Quarter and Nine Months ended December 31, 2025')
     assert {(p['period_start'],p['period_end']) for p in periods} == {(date(2025, 10, 1),date(2025, 12, 31)), (date(2025, 4, 1),date(2025, 12, 31))}
     assert declared_duration_periods('Quarter and nine months Q3FY26') == []
+
+
+def test_adjacent_short_year_columns_do_not_invent_day_month_dates():
+    from signal_research.extraction.dates import source_dates
+    assert source_dates("Dec’25 Sept’25 Dec’24 9M FY 2025-26") == []
+    assert source_dates("30 June’26 30 June’25") == [date(2025, 6, 30), date(2026, 6, 30)]
+
+
+def test_explicit_quarter_columns_supply_only_their_own_duration():
+    from signal_research.extraction.dates import abbreviated_quarter_periods
+    from signal_research.extraction.eligibility import minimum_source_bindings
+    from signal_research.extraction.validate import date_in_text
+    text = ("Consolidated Profit & Loss\n(INR in million)\n"
+            "Dec’25 Sept’25 Dec’24 9M FY FY\nSr. No. Particulars\n"
+            "Quarter Quarter Quarter 2025-26 2024-25\nNet profit 100 90 70 260 240")
+    periods = abbreviated_quarter_periods(text)
+    assert [(p['period_start'], p['period_end']) for p in periods] == [
+        (date(2025, 10, 1), date(2025, 12, 31)),
+        (date(2025, 7, 1), date(2025, 9, 30)),
+        (date(2024, 10, 1), date(2024, 12, 31))]
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=text)
+    assert minimum_source_bindings(passage, Profile.EXCHANGE)
+    assert not date_in_text(date(2025, 12, 31), text)  # No implicit stock-balance date.
+    candidate = ExtractedFactCandidate(metric_key='net_profit', value_raw='100', unit_raw='INR million', currency='INR',
+        period_type='duration', period_start=date(2025, 10, 1), period_end=date(2025, 12, 31),
+        scope='consolidated', passage_id=passage.id, extraction_confidence='.99')
+    assert validate_candidate(candidate, passage, uuid4(), Profile.EXCHANGE).fact
+    assert not validate_candidate(candidate.model_copy(update={'period_start': date(2025, 4, 1)}), passage, uuid4(), Profile.EXCHANGE).fact
+    assert not validate_candidate(candidate.model_copy(update={'scope': 'standalone'}), passage, uuid4(), Profile.EXCHANGE).fact
+    for unbound in (text.replace('Quarter', 'Period'), text.replace('Consolidated', ''),
+                    text.replace('Profit & Loss', 'Key highlights'), text.replace('Dec’25', 'Nov’25'),
+                    text.replace('Quarter Quarter Quarter', 'Quarter Quarter')):
+        assert not abbreviated_quarter_periods(unbound)
+
+
+def test_literal_quarter_table_binds_cells_without_generating_financial_values():
+    from types import SimpleNamespace
+
+    from signal_research.extraction.financial_tables import quarter_presentation_batch
+    company = SimpleNamespace(legal_name='Quartz Exchange Limited')
+    text = ("Quartz Exchange Limited\nConsolidated Profit & Loss\nINR in million\n"
+            "Dec’25 Sept’25 Dec’24 9M FY FY\nSr. No. Particulars\n"
+            "Quarter Quarter Quarter 2025-26 2024-25\n"
+            "1 Transaction Charges 100 90 70 260 240\n"
+            "2 Revenue From Operations (1+3+4) 120 100 80 300 280")
+    passage = Passage(id=uuid4(), document_id=uuid4(), text=text)
+    batch = quarter_presentation_batch(passage, company, Profile.EXCHANGE)
+    assert [(f.metric_key, f.value_raw) for f in batch.facts] == [
+        ('transaction_revenue','100'), ('transaction_revenue','90'), ('transaction_revenue','70'),
+        ('revenue','120'), ('revenue','100'), ('revenue','80')]
+    assert all(validate_candidate(f, passage, uuid4(), Profile.EXCHANGE).fact for f in batch.facts)
+    assert all(f.period_end.month in {9, 12} and f.period_start.month in {7, 10} for f in batch.facts)
+    for ambiguous in (text.replace('INR in million',''), text.replace('Consolidated',''),
+                      text.replace('100 90 70 260 240', '100 90 70').replace('120 100 80 300 280','120 100 80'),
+                      text.replace('Quartz Exchange Limited', 'Different Issuer Limited')):
+        assert not quarter_presentation_batch(passage.model_copy(update={'text': ambiguous}), company, Profile.EXCHANGE)

@@ -12,7 +12,12 @@ from signal_research.finance.units import parse_numeric, to_inr_crore
 from signal_research.research.identity import multiple_issuer_headings, normalize_name
 
 from .bank_tables import month_end_columns, scope_in_text, subsidiary_only
-from .dates import declared_duration_periods, explicit_duration_ranges, source_dates
+from .dates import (
+    abbreviated_quarter_periods,
+    declared_duration_periods,
+    explicit_duration_ranges,
+    source_dates,
+)
 from .models import ExtractedFactCandidate
 
 
@@ -22,10 +27,10 @@ class FactValidation:
     reason: str | None = None
 
 
-def date_in_text(value: date | None, text: str, *, allow_month_end: bool = False) -> bool:
+def date_in_text(value: date | None, text: str, *, allow_month_end: bool = False, allow_quarter_duration: bool = False) -> bool:
     if value is None:
         return False
-    if value in source_dates(text):
+    if value in source_dates(text) or (allow_quarter_duration and any(p['period_end'] == value for p in abbreviated_quarter_periods(text))):
         return True
     normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text.lower())
     normalized = re.sub(r"[,.]", " ", normalized)
@@ -84,11 +89,12 @@ def validate_candidate(
         return FactValidation(None, "metric label is absent from the cited span")
     if not numeric_token_present(candidate.value_raw, text):
         return FactValidation(None, "raw value does not occur in the cited passage")
-    if not date_in_text(candidate.period_end, text, allow_month_end=profile == Profile.BANK and candidate.period_type.value == "instant"):
+    if not date_in_text(candidate.period_end, text, allow_month_end=profile == Profile.BANK and candidate.period_type.value == "instant",
+                        allow_quarter_duration=candidate.period_type.value == 'duration'):
         return FactValidation(None, "period end is absent from the cited span")
     if candidate.period_type.value == "duration":
         declared = any(p['period_start'] == candidate.period_start and p['period_end'] == candidate.period_end
-                       for p in [*declared_duration_periods(text), *explicit_duration_ranges(text)])
+                       for p in [*declared_duration_periods(text), *explicit_duration_ranges(text), *abbreviated_quarter_periods(text)])
         if not declared:
             return FactValidation(None, "duration start/end are not bound to one explicit reporting interval")
     if not scope_in_text(candidate.scope, text):
