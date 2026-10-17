@@ -74,5 +74,23 @@
       "quote": "Deposits: 31 March 2026: 120000; 31 March 2025: 100000."
     },
     "scope": "Small synthetic source-binding probe using production scope enum, not a full research benchmark."
+  },
+  "sonnet_probe": {
+    "model": "claude-sonnet-5",
+    "seconds": 24.77,
+    "checks": {
+      "scope": true,
+      "values": true,
+      "reject_absent": true,
+      "quote": true
+    },
+    "passed": true,
+    "usage": {
+      "input_tokens": 632,
+      "output_tokens": 1523,
+      "request_id": "chatcmpl-01a14a60-5562-7761-ba42-f720c9cea4cf",
+      "status": "ok",
+      "cost_status": "unknown"
+    }
   }
 }

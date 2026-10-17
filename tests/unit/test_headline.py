@@ -26,6 +26,7 @@ def test_three_invalid_writer_attempts_use_the_source_bound_template(store):
     report = build_synthetic_report(uuid4(), store.search_companies('SYNTHBANK')[0], date(2026, 10, 15))
     research = LiveResearch.__new__(LiveResearch)
     research.run_id, research.structural_breaks = report.run_id, []
+    research.settings = SimpleNamespace(model_request_timeout_seconds=40, stage_request_seconds={'verifying':40})
     research.budget = SimpleNamespace(remaining_seconds=lambda: 120)
     attempts = []
     def generate(schema, payload, **kwargs):
@@ -49,6 +50,25 @@ def test_recovery_is_reproduced_from_verified_ordered_ratio_facts():
     assert not calculate('recovery_ratio', [numeric_fact(f) for f in reversed(facts)]).available
 
 
+def test_funding_mix_template_keeps_denominator_scope_and_actual_quarter_span():
+    from signal_research.research.headline import template_headline
+    from signal_research.research.live import derive_calculations
+    company = SimpleNamespace(legal_name='Quartz Financial Bank Limited')
+    facts = [Fact(id=uuid4(), entity_id=uuid4(), metric_key=metric, value_decimal=value,
+        unit_normalized='INR_crore', currency='INR', period_type='instant', scope='consolidated',
+        period_end=date(year, 6, 30), definition_id=metric, passage_id=uuid4(), status='verified')
+        for metric, year, value in [('deposits',2025,100),('deposits',2026,120),('borrowings',2025,30),('borrowings',2026,25)]]
+    # All observations belong to one issuer, with exact verified lane inputs.
+    for f in facts:
+        f.entity_id = facts[0].entity_id
+    calculations = derive_calculations(facts)
+    text, selected = template_headline(company, facts, calculations)
+    assert selected.formula_id == 'deposit_borrowing_mix_change'
+    assert 'deposits plus borrowings' in text and 'consolidated' in text
+    assert 'June 2025 to June 2026' in text
+    assert not validate_headline(text, company.legal_name, facts, calculations)
+
+
 def reviewed_headline_fixture(store):
     from signal_research.research.live import LiveResearch
     from signal_research.research.report_builder import build_synthetic_report
@@ -59,8 +79,21 @@ def reviewed_headline_fixture(store):
     discovery.discovery_sentence = technical.text
     research = LiveResearch.__new__(LiveResearch)
     research.run_id, research.structural_breaks = report.run_id, []
+    research.settings = SimpleNamespace(model_request_timeout_seconds=40, stage_request_seconds={'verifying':40})
     research.budget = SimpleNamespace(remaining_seconds=lambda: 120)
     return research, report, technical
+
+
+def test_optional_rewrite_cannot_consume_finalization_after_financial_review(store):
+    research, report, technical = reviewed_headline_fixture(store)
+    technical.text += ' This extra sentence forces the short-headline path.'
+    report.discoveries[0].discovery_sentence = technical.text
+    research.budget = SimpleNamespace(remaining_seconds=lambda: 80)
+    research.calls = SimpleNamespace(model=lambda *a, **k: (_ for _ in ()).throw(AssertionError('Optional provider call')))
+    research.write_plain_headline(report)
+    assert report.generation_metadata['headline']['method'] == 'verified_arithmetic_template'
+    assert report.generation_metadata['headline']['technical_detail'] == technical.text
+    assert not validate_headline(report.discoveries[0].discovery_sentence, report.company.legal_name, report.facts, report.calculations)
 
 
 def test_already_reviewed_valid_headline_preserves_exact_claim_without_provider_calls(store):

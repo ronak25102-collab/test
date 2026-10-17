@@ -483,9 +483,13 @@ class LiveResearch:
             document_id = UUID(bytes=bytes.fromhex(fetched.body_hash[:32]))
             raw = Path(fetched.local_path).read_bytes()
             if depth < 3 and fetched.content_type == "text/html":
-                leads = linked_disclosures(raw, fetched.final_url or hit.url, self.company.verified_ir_domains, issuer_name=self.company.legal_name)
+                leads = linked_disclosures(raw, fetched.final_url or hit.url, self.company.verified_ir_domains, issuer_name=self.company.legal_name,
+                                           preferred_periods=getattr(self, 'preferred_periods', ()))
                 leads += embedded_disclosures(raw, fetched.final_url or hit.url, self.company.verified_ir_domains)
                 leads += issuer_navigation(raw, fetched.final_url or hit.url, self.company.verified_ir_domains) if depth < 2 else []
+                if self.peer_mode:
+                    from signal_research.retrieval.disclosures import period_lead_score
+                    leads.sort(key=lambda lead: period_lead_score(lead, getattr(self, 'preferred_periods', ())), reverse=True)
                 queue[:0] = [(lead, depth + 1) for lead in leads if lead.url not in self.seen_urls]
             try:
                 if raw.startswith(b"%PDF"):
@@ -712,6 +716,13 @@ class LiveResearch:
             if note not in self.limitations:
                 self.limitations.append(note)
         published = {d.id: d.published_at.timestamp() if d.published_at else 0 for d in self.documents}
+        def peer_period_match(p):
+            preferred = getattr(self, 'preferred_periods', ())
+            if not self.peer_mode or not preferred:
+                return 0
+            dates = set(source_dates(p.text)) | {period for _, period in month_end_columns(p.text)}
+            dates |= {item['period_end'] for item in abbreviated_quarter_periods(p.text)}
+            return len(dates & set(preferred))
         def score(p):
             text = p.text.lower()
             labels = sum(bool(re.search(r"\b" + re.escape(alias.lower()) + r"\b", text)) for m in metrics for alias in m.aliases)
@@ -738,9 +749,10 @@ class LiveResearch:
         ranked = sorted([p for p in self.passages if p.extraction_method != 'ocr_identity' and p.id not in self.extracted and p.id not in ambiguous and p.document_id in eligible and
                          (only_passage_ids is None or p.id in only_passage_ids) and
                          (preferred_document_ids is None or p.document_id in preferred_document_ids) and
+                         (not self.peer_mode or not getattr(self, 'preferred_periods', ()) or peer_period_match(p)) and
                          not subsidiary_only(p.text) and self.financial_passage(p) and minimum_source_bindings(p, profile)
                          and score(p)[1] and (not focus or focus_score(p))],
-                        key=lambda p: (bool(getattr(self, 'preferred_scope', None) and scope_in_text(self.preferred_scope, p.text)), focus_score(p), *score(p)), reverse=True)
+                        key=lambda p: (peer_period_match(p), bool(getattr(self, 'preferred_scope', None) and scope_in_text(self.preferred_scope, p.text)), focus_score(p), *score(p)), reverse=True)
         if not ranked and eligible:
             note = 'No unreviewed financial page had the explicit date, scope, unit and numeric metric bindings required for model extraction.'
             if note not in self.limitations:
@@ -1362,6 +1374,7 @@ class LiveResearch:
             research = LiveResearch(self.machine, self.run_id, peer, self.cutoff, self.budget, settings=self.settings)
             research.peer_mode = True
             from signal_research.research.peers import peer_search_query
+            from signal_research.retrieval.disclosures import period_lead_score
             scopes = {f.scope.value for f in facts}
             research.preferred_scope = next(iter(scopes)) if len(scopes) == 1 else None
             research.preferred_periods = {f.period_end for f in facts if f.period_end}
@@ -1376,6 +1389,7 @@ class LiveResearch:
                     if issuer_named(hit.title + ' ' + hit.snippet, peer)
                     or any(domain_matches(urlparse(hit.url).hostname or '', d) for d in peer.verified_ir_domains)]
             hits.sort(key=lambda hit: (
+                period_lead_score(hit, research.preferred_periods),
                 any(domain_matches(urlparse(hit.url).hostname or '', d) for d in peer.verified_ir_domains),
                 bool(re.search(r'\.pdf(?:[/?#]|$)', hit.url, re.I))), reverse=True)
             if not hits and self.budget.remaining_seconds() > self.investigation_reserve() + 30:
@@ -1896,7 +1910,13 @@ class LiveResearch:
         from signal_research.providers.llm.codecraft_provider import CodeCraftError
         from signal_research.providers.llm.nvidia_provider import NvidiaRequestError
         for attempt in range(3):
-            if self.budget.remaining_seconds() < 12:
+            # Rewriting is optional after the actual financial discovery passed
+            # independent review. Never consume the finalization window on a
+            # writer plus its entailment reviewer; use the existing validated
+            # arithmetic template when both full requests cannot fit.
+            rewrite_window = 2 * min(self.settings.model_request_timeout_seconds,
+                                    self.settings.stage_request_seconds.get('verifying', 40)) + 20
+            if self.budget.remaining_seconds() <= rewrite_window:
                 break
             try:
                 response = self.calls.model(PlainHeadline, {'entity': report.company.legal_name, 'technical_detail': technical.text,

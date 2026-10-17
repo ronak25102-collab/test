@@ -120,6 +120,36 @@ def test_roster_remains_twelve_real_companies():
     assert len([s for _, s, _ in UNIVERSE_SEED if s != 'SYNTHBANK']) == 12
 
 
+def test_housing_developer_is_not_an_nbfc_peer_even_in_an_old_directory():
+    from signal_research.db.repositories import infer_profile
+    assert infer_profile('Quartz Foundations & Housing Limited') is None
+    assert infer_profile('Quartz Housing Finance Limited') == 'nbfc'
+    def company(name):
+        return Company(id=uuid4(), legal_name=name, symbols=[name.split()[0].upper()], business_profiles=[Profile.NBFC])
+    target = company('Quartz Finance Limited')
+    builder = company('Aardvark Foundations & Housing Limited')
+    lender = company('Birch Housing Finance Limited')
+    assert select_peers(target, [builder, lender], Profile.NBFC).peers == (lender,)
+
+
+def test_peer_page_without_requested_period_never_calls_extraction_model(store, settings):
+    from signal_research.domain.schemas import Passage
+    rid = store.create_run(store.search_companies('AXISBANK')[0], date(2026, 10, 17), RunMode.LIVE)
+    research = LiveResearch(SimpleNamespace(store=store, settings=settings), rid,
+        store.get_summary(rid).company, date(2026, 10, 17), Budget(30, 30, 100, 0))
+    research.peer_mode = True
+    research.preferred_periods = {date(2026, 6, 30), date(2025, 6, 30)}
+    document = SimpleNamespace(id=uuid4(), published_at=None, cutoff_eligibility='eligible', document_type='issuer_results')
+    research.documents = [document]
+    research.passages = [Passage(id=uuid4(), document_id=document.id,
+        text='Standalone balance sheet. INR crore. As at 30 September 2026 and 30 September 2025.\nDeposits 120 100\nBorrowings 25 30')]
+    research.financial_passage = lambda passage: True
+    research.extraction_model = lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError('Wrong-quarter model call'))
+    research.extract(limit=1, focus_metrics=('deposits', 'borrowings'))
+    assert not research.facts
+    assert any('No unreviewed financial page' in note for note in research.limitations)
+
+
 def test_optional_page_workers_inherit_the_parent_review_reserve(store, settings, monkeypatch):
     settings.max_run_seconds = settings.demo_target_seconds = 600
     settings.stage_request_seconds = dict.fromkeys(

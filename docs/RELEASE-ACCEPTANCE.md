@@ -38,12 +38,39 @@ research. The initial unconstrained scope probe exposed an invalid scope label;
 with the production reporting-scope enum, all ten source-binding checks passed in
 23.64 seconds (749 input and 1,357 output tokens). This small check does not prove
 full-run accuracy or a particular speedup. The full twelve-company Flash
-regression is recorded separately; only completed actual results count.
+regression is recorded separately; only completed actual results count. A second
+small Sonnet 5 probe passed four binding checks in 24.77 seconds. That probe is
+not an equivalent full-run benchmark and does not establish a speed advantage;
+Flash remains configured.
 
 [The preceding twelve-company baseline](../reports/regression-reliability.md)
 published zero discoveries and zero verified peer benchmarks. It predates the
 final reliability changes and model switch and is retained as failure evidence.
 Earlier incomplete/superseded local cohorts are not acceptance passes.
+
+## Latest filing and headline finalization corrections
+
+The expanded local full suite passed 683 tests with one platform skip before the
+last quarter-label and NBFC classification additions; their targeted 58-test
+suite passed. The next GitHub source checkpoint runs the complete final suite.
+Bare "housing" no longer classifies a property developer as an NBFC; peer
+selection also excludes that legacy false positive from existing directories.
+
+
+Peer lead ranking now prefers the requested calendar/fiscal quarter before the
+portal download cap is applied. Peer extraction skips pages with no requested
+reporting date, rather than requesting a schema whose period can only be null.
+Dates in lead labels remain retrieval hints; exact original-source binding,
+independent review and all comparability gates still apply.
+
+The first Flash HDFC run passed independent semantic review of its financial
+draft, including novelty and observable falsification, but an optional headline
+rewrite consumed the remaining deadline. The finalization correction uses the
+already implemented validated arithmetic template when a writer AND its reviewer
+cannot both fit with local finalization time. No discovery is published if the
+actual financial semantic review fails. The failed cold run is not retroactively
+changed to a success. Dedicated tests check that no optional provider call starts
+inside this protected window.
 
 ## Historical software verification
 

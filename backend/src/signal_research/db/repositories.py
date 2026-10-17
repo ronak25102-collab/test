@@ -680,6 +680,7 @@ def company_schema(row: CompanyModel | None) -> Company:
 
 
 def infer_profile(industry: str) -> str | None:
+    industry = industry.lower()
     if "insurance" in industry and "life" in industry:
         return "life_insurer"
     if "insurance" in industry:
@@ -692,7 +693,7 @@ def infer_profile(industry: str) -> str | None:
         return "bank"
     if "finserv" in industry or "financial services" in industry or "holdings" in industry:
         return "diversified"
-    if "nbfc" in industry or "finance" in industry or "lending" in industry or "housing" in industry:
+    if "nbfc" in industry or "finance" in industry or "lending" in industry:
         return "nbfc"
     if "securities" in industry or "capital markets" in industry or "investments" in industry:
         return "diversified"

@@ -21,6 +21,23 @@ def exchange_results_query(company):
     return f'"{company.legal_name}" "NSE Symbol" "{symbol}" "Name of company" "financial results"'
 
 
+def period_lead_score(hit, periods):
+    """Prefer requested quarters in lead labels, never treat labels as evidence."""
+    text = unquote(hit.url + ' ' + hit.title).lower()
+    text = re.sub(r'[-_/]', ' ', text)
+    matched = 0
+    for end in periods or ():
+        month = end.strftime('%B').lower()
+        named = bool(re.search(r'\b' + month[:3] + r'(?:' + month[3:] + r')?\b', text)
+                     and re.search(r'(?<!\d)' + str(end.year) + r'(?!\d)', text))
+        quarter = (end.month - 4) % 12 // 3 + 1
+        fiscal_year = end.year + (end.month >= 4)
+        fiscal = bool(re.search(r'\bq\s*' + str(quarter) + r'\s*fy\s*(?:' +
+                      str(fiscal_year) + '|' + str(fiscal_year)[-2:] + r')(?!\d)', text))
+        matched += named or fiscal
+    return matched
+
+
 def verified_disclosure_indexes(company) -> list[SearchHit]:
     """Company-neutral entry points; search and page links locate actual reports."""
     hits = []
@@ -70,7 +87,7 @@ def issuer_navigation(raw: bytes, page_url: str, domains: list[str], limit: int 
     return [hit for _, hit in hits[:limit]]
 
 
-def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int = 4, *, issuer_name: str | None = None) -> list[SearchHit]:
+def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int = 4, *, issuer_name: str | None = None, preferred_periods=()) -> list[SearchHit]:
     if not any(domain_matches(urlparse(page_url).hostname or "", domain) for domain in domains):
         return []
     soup = BeautifulSoup(raw, "html.parser")
@@ -123,7 +140,7 @@ def linked_disclosures(raw: bytes, page_url: str, domains: list[str], limit: int
         # for retrieving comparable balance figures within the parsing budget.
         financial = int(bool(re.search(r"financial\s+results", description, re.I)) or (financial_path and financial_file))
         leads.append((year, financial, SearchHit(url, label or filename, "Linked issuer document; publication date requires source verification", len(leads) + 1, "issuer_link")))
-    leads.sort(key=lambda item: item[:2], reverse=True)
+    leads.sort(key=lambda item: (period_lead_score(item[2], preferred_periods), *item[:2]), reverse=True)
     return [hit for _, _, hit in leads[:limit]]
 
 

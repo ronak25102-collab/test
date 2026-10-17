@@ -5,6 +5,25 @@ from signal_research.retrieval.disclosures import linked_disclosures
 from signal_research.retrieval.metadata import source_publication
 
 
+def test_peer_requested_quarter_outranks_newer_downloads_before_link_cap():
+    raw = b'''<a href="/financial-results-september-2026.pdf">Financial Results September 2026</a>
+    <a href="/financial-results-june-2026.pdf">Financial Results June 2026</a>
+    <a href="/annual-report-2027.pdf">Annual Report 2027</a>'''
+    hits = linked_disclosures(raw, 'https://issuer.example/results', ['issuer.example'],
+                             limit=1, preferred_periods=[date(2026, 6, 30)])
+    assert len(hits) == 1 and 'june-2026' in hits[0].url
+    assert hits[0].published_at is None  # Ranking never establishes availability.
+
+
+def test_peer_fiscal_quarter_lead_matching_is_generic_and_not_a_fact_date():
+    from signal_research.providers.search.base import SearchHit
+    from signal_research.retrieval.disclosures import period_lead_score
+    hit = SearchHit('https://issuer.example/Q1FY27-results.pdf', '', '', 1, 'test')
+    assert period_lead_score(hit, [date(2026, 6, 30)]) == 1
+    assert period_lead_score(hit, [date(2026, 9, 30)]) == 0
+    assert period_lead_score(hit, [date(2025, 6, 30)]) == 0
+
+
 def test_malformed_links_do_not_abort_official_navigation_or_discovery():
     from signal_research.retrieval.disclosures import issuer_navigation
     raw = b'<a href="https://[broken">Financial results</a><a href="https://issuer.example:invalid/">Annual report</a><a href="/investors">Investor relations</a><a href="/financial-results.pdf">Financial Results</a>'
