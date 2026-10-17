@@ -1,0 +1,275 @@
+/* Styled evidence report for the Print / Save as PDF view. Matches the company-report layout. */
+.pr {
+  --pr-ink: #20372a;
+  --pr-green: #20372a;
+  --pr-olive: #8a9a6b;
+  --pr-paper: #f4f2ea;
+  --pr-line: #d8ddcd;
+  --pr-muted: #6a7560;
+  position: relative;
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 40px 46px 70px;
+  color: #2a3327;
+  background: var(--pr-paper);
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.pr .print-control {
+  position: sticky;
+  top: 12px;
+  margin-bottom: 20px;
+  padding: 9px 16px;
+  border: 1px solid var(--pr-green);
+  border-radius: 6px;
+  background: var(--pr-green);
+  color: #f4f2ea;
+  font-size: 12px;
+  z-index: 30;
+}
+
+/* Faded "b×" logo watermark. Fixed positioning repeats it on every printed page. */
+.pr-watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 430px;
+  transform: translate(-50%, -50%);
+  color: #20372a;
+  opacity: 0.07;
+  z-index: 0;
+  pointer-events: none;
+}
+.pr-watermark svg { display: block; width: 100%; height: auto; }
+
+.pr > *:not(.pr-watermark):not(.pr-running-header):not(.pr-running-footer) { position: relative; z-index: 1; }
+
+/* The green rule across the very top, echoed by the cover. */
+.pr-cover {
+  border-top: 10px solid var(--pr-green);
+  padding-top: 26px;
+  margin-bottom: 22px;
+}
+.pr-kicker {
+  display: block;
+  color: var(--pr-olive);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  margin-bottom: 10px;
+}
+.pr-cover h1 {
+  margin: 0 0 8px;
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1b2a20;
+}
+.pr-cover p {
+  margin: 0;
+  color: var(--pr-muted);
+  font-size: 14px;
+}
+
+/* Callout banner (insufficient evidence / published discovery). */
+.pr-callout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: start;
+  padding: 18px 22px;
+  margin-bottom: 30px;
+  background: #f2ecd8;
+  border-left: 5px solid #8a7a3f;
+}
+.pr-callout.pr-callout-published { border-left-color: var(--pr-olive); }
+.pr-callout strong {
+  color: #8a6f2f;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.pr-callout.pr-callout-published strong { color: #3f6049; }
+.pr-callout p { margin: 0; color: #4a4a38; }
+
+/* Numbered section heading with a dark square badge. */
+.pr-section { margin-bottom: 34px; }
+.pr-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--pr-line);
+}
+.pr-section-badge {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: var(--pr-green);
+  color: #f4f2ea;
+  font-size: 13px;
+  font-weight: 700;
+}
+.pr-section-heading h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1b2a20;
+}
+
+/* Research coverage stat grid. */
+.pr-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--pr-line);
+  border: 1px solid var(--pr-line);
+}
+.pr-stat {
+  padding: 16px 18px;
+  background: #f6f4ec;
+}
+.pr-stat strong {
+  display: block;
+  font-size: 30px;
+  font-weight: 800;
+  color: #22352a;
+  line-height: 1.1;
+}
+.pr-stat small {
+  display: block;
+  margin-top: 6px;
+  color: var(--pr-muted);
+  font-size: 11px;
+}
+
+.pr-meta-line { color: #3a4433; font-size: 13px; margin: 0 0 8px; }
+.pr-meta-line strong { color: #22352a; margin-right: 4px; }
+
+/* Bar chart. */
+.pr-bars { width: 100%; height: auto; margin: 10px 0 6px; }
+.pr-bar-value { fill: #22352a; font-size: 14px; font-weight: 700; }
+.pr-bar-label { fill: var(--pr-muted); font-size: 12px; }
+.pr-bar-unit { fill: var(--pr-muted); font-size: 11px; }
+
+/* Tables. */
+.pr-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.pr-table thead th {
+  background: var(--pr-green);
+  color: #f4f2ea;
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 600;
+}
+.pr-table tbody td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #e4e6da;
+}
+.pr-table tbody tr:nth-child(even) td { background: #efeddf; }
+.pr-table a { color: #2f5540; text-decoration: underline; overflow-wrap: anywhere; }
+.pr-register .pr-num { width: 36px; color: var(--pr-muted); }
+.pr-unknown { color: #9aa390; }
+.pr-unknown sup { font-size: 9px; }
+
+.pr-note { color: var(--pr-muted); font-size: 11px; line-height: 1.6; margin: 10px 0 0; }
+.pr-footnote { color: #9aa390; font-size: 10px; margin: 8px 0 0; }
+
+/* Limitations groups. */
+.pr-limitation-group { margin-bottom: 18px; }
+.pr-limitation-group h3 { break-after: avoid; }
+.pr-limitation-group h3 {
+  margin: 0 0 8px;
+  color: var(--pr-olive);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.pr-limitation-group ul { margin: 0; padding-left: 20px; }
+.pr-limitation-group li { margin-bottom: 5px; color: #3a4433; }
+
+/* Dark closing strip above the footer (screen + print). */
+.pr-closing-strip {
+  margin-top: 30px;
+  padding: 11px 16px;
+  background: var(--pr-green);
+  color: #f4f2ea;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* Running header/footer: hidden on screen, fixed on print so they repeat on each page. */
+.pr-frame, .pr-frame > thead, .pr-frame > tbody, .pr-frame > tfoot, .pr-frame > thead > tr, .pr-frame > tbody > tr, .pr-frame > tfoot > tr, .pr-frame td { display: block; width: 100%; padding: 0; border: 0; }
+.pr-frame > thead, .pr-frame > tfoot { display: none; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  .pr {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-size: 11px;
+  }
+  .print-control { display: none; }
+
+  /* Wrapper table: thead/tfoot repeat on every page, so the page margin is 0 and they supply it. */
+  .pr-frame { display: table; width: 100%; border-collapse: collapse; font-size: inherit; }
+  .pr-frame > thead { display: table-header-group; }
+  .pr-frame > tfoot { display: table-footer-group; }
+  .pr-frame > tbody { display: table-row-group; }
+  .pr-frame > thead > tr, .pr-frame > tbody > tr, .pr-frame > tfoot > tr { display: table-row; break-inside: auto; page-break-inside: auto; }
+  .pr-frame td { display: table-cell; width: auto; padding: 0; border: 0; }
+  .pr-frame td.pr-frame-body { padding: 0 14mm; }
+  .pr-topbar {
+    height: 4mm;
+    background: linear-gradient(90deg, #8a9a6b 0 16mm, #20372a 16mm);
+  }
+  .pr-running-header, .pr-running-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4mm 14mm 6mm;
+    font-size: 8px;
+    letter-spacing: 0.04em;
+    color: #6a7560;
+  }
+  .pr-running-footer { padding: 5mm 14mm 8mm; }
+  .pr-running-footer span:first-child { border-top: 0; }
+  .pr-cover { border-top: 0; padding-top: 2mm; }
+  .pr-keep { break-inside: avoid; page-break-inside: avoid; }
+  .pr-bars { max-height: 56mm; }
+  .pr-stat-grid { background: transparent; gap: 0; border: 1px solid var(--pr-line); }
+  .pr-stat { border-right: 1px solid var(--pr-line); border-bottom: 1px solid var(--pr-line); }
+  .pr-stat:nth-child(4n) { border-right: 0; }
+  .pr-stat:nth-last-child(-n+4) { border-bottom: 0; }
+
+  html, body { background: #f4f2ea; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-report.pr section, .print-report.pr .pr-section { break-inside: auto; page-break-inside: auto; margin-bottom: 20px; }
+  .pr-section-heading { break-after: avoid; }
+  .pr-table thead { display: table-header-group; }
+  .pr-table tr { break-inside: avoid; }
+  .pr-callout { break-inside: avoid; margin-bottom: 20px; }
+  .pr-stat { background: transparent; }
+  .pr-table tbody tr:nth-child(even) td { background: #efeddf99; }
+  .pr-table a::after { content: ''; }
+  /* Preserve the dark fills and olive accents in print. */
+  .pr-section-badge, .pr-table thead th, .pr-closing-strip, .pr-cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pr-stat, .pr-callout, .pr-table tbody tr:nth-child(even) td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pr-bars { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Keep dates on one line in the evidence register. */
+.pr-register th:last-child, .pr-register td:last-child { white-space: nowrap; }

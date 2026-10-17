@@ -140,7 +140,8 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
       <nav className="report-page-turner" aria-label="Continue reading report">{nav.map(([key, label], index) => {
         const current = nav.findIndex(([key]) => key === section)
         if (Math.abs(index - current) !== 1) return null
-        return <a key={key} href={routeHref({ view: 'report', runId: report.run_id, section: key })} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><small>{index < current ? 'PREVIOUS PAGE' : 'NEXT PAGE'}</small><span>{index < current ? '\u2190 ' : ''}{label}{index > current ? ' \u2192' : ''}</span></a>
+        const previous = index < current
+        return <a key={key} className={previous ? 'turn-previous' : 'turn-next'} href={routeHref({ view: 'report', runId: report.run_id, section: key })} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><small>{previous ? 'PREVIOUS PAGE' : 'NEXT PAGE'}</small><strong>{previous ? `\u2190 ${label}` : `${label} \u2192`}</strong></a>
       })}</nav>
       <footer className="report-footnote"><span>Every figure has a paper trail.</span><span>Cutoff {report.cutoff} · Public evidence research</span></footer>
     </div>
