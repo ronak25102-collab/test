@@ -36,10 +36,13 @@
 .report-page .report-hero { padding: 20px 32px 0; }
 .report-page .report-company { margin: 14px 0 10px; }
 .report-page .report-hero h2 { margin-bottom: 10px; font-size: clamp(26px, 2.6vw, 36px); }
-.report-page .report-hero .report-hero-description { margin-bottom: 14px; line-height: 1.6; }
+.report-page .report-hero .report-hero-description { margin-bottom: 12px; line-height: 1.55; font-size: 14.5px; }
 .report-page .report-verdict { padding-block: 12px; }
 .report-page .report-hero .best-candidate { margin: 12px 0; padding: 14px 20px; line-height: 1.5; }
-.report-page .report-hero .best-candidate p { font-size: 13px; margin: 6px 0; }
+.report-page .report-hero .best-candidate > strong { font-size: 16px; }
+.report-page .report-hero .best-candidate p, .report-page .report-hero .best-candidate li { font-size: 14.5px; }
+.report-page .report-hero .best-candidate p { margin: 6px 0; }
+.report-page .report-hero .best-candidate small { font-size: 13.5px; }
 .report-page .report-hero .best-candidate ul { margin: 6px 0; padding-left: 20px; }
 @media (max-width: 760px) {
  .report-page-turner { gap: 10px; }

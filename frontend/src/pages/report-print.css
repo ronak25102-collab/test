@@ -182,6 +182,13 @@
 .pr-note { color: var(--pr-muted); font-size: 11px; line-height: 1.6; margin: 10px 0 0; }
 .pr-footnote { color: #9aa390; font-size: 10px; margin: 8px 0 0; }
 
+/* Lists and headline used by the discovery sections. */
+.pr-list { margin: 0; padding-left: 20px; }
+.pr-list li { margin-bottom: 7px; color: #3a4433; }
+.pr-muted { color: var(--pr-muted); }
+.pr-headline { font-size: 15px; font-weight: 600; color: #1b2a20; }
+.pr-callout p:first-child { margin-top: 0; }
+
 /* Limitations groups. */
 .pr-limitation-group { margin-bottom: 18px; }
 .pr-limitation-group h3 { break-after: avoid; }
@@ -208,7 +215,7 @@
 }
 
 /* Running header/footer: hidden on screen, fixed on print so they repeat on each page. */
-.pr-frame, .pr-frame > thead, .pr-frame > tbody, .pr-frame > tfoot, .pr-frame > thead > tr, .pr-frame > tbody > tr, .pr-frame > tfoot > tr, .pr-frame td { display: block; width: 100%; padding: 0; border: 0; }
+.pr-frame, .pr-frame > thead, .pr-frame > tbody, .pr-frame > tfoot, .pr-frame > thead > tr, .pr-frame > tbody > tr, .pr-frame > tfoot > tr, .pr-frame > thead > tr > td, .pr-frame > tbody > tr > td, .pr-frame > tfoot > tr > td { display: block; width: 100%; padding: 0; border: 0; }
 .pr-frame > thead, .pr-frame > tfoot { display: none; }
 
 @media print {
@@ -231,8 +238,8 @@
   .pr-frame > tfoot { display: table-footer-group; }
   .pr-frame > tbody { display: table-row-group; }
   .pr-frame > thead > tr, .pr-frame > tbody > tr, .pr-frame > tfoot > tr { display: table-row; break-inside: auto; page-break-inside: auto; }
-  .pr-frame td { display: table-cell; width: auto; padding: 0; border: 0; }
-  .pr-frame td.pr-frame-body { padding: 0 14mm; }
+  .pr-frame > thead > tr > td, .pr-frame > tbody > tr > td, .pr-frame > tfoot > tr > td { display: table-cell; width: auto; padding: 0; border: 0; }
+  .pr-frame > tbody > tr > td.pr-frame-body { padding: 0 14mm; }
   .pr-topbar {
     height: 4mm;
     background: linear-gradient(90deg, #8a9a6b 0 16mm, #20372a 16mm);
@@ -273,3 +280,4 @@
 
 /* Keep dates on one line in the evidence register. */
 .pr-register th:last-child, .pr-register td:last-child { white-space: nowrap; }
+.pr-callout div p + p { margin-top: 6px; }

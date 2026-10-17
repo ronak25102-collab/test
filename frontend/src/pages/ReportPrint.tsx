@@ -143,6 +143,12 @@ export function ReportPrint({ report }: { report: Report }) {
   const decisions = report.generation_metadata?.research_decisions?.length || 0
   const unknownDateDocs = report.documents.filter(d => !d.published_at).length
   const limitationGroups = groupLimitations(report.limitations)
+  let sectionNo = 0
+  const num = () => ++sectionNo
+  const inputsOf = (calculation: Calculation) => calculation.input_fact_ids.map(id => {
+    const fact = report.facts.find(f => f.id === id)
+    return fact ? `${fact.metric_key}: ${displayNumber(fact.value_decimal)} ${fact.unit_normalized} at ${fact.period_end} (${fact.scope})` : id
+  }).join('; ')
   const runningStrip = `PUBLIC EVIDENCE RESEARCH | NO INVESTMENT RECOMMENDATION | SOURCE CUTOFF ${cutoffShort}`
 
   return (
@@ -173,16 +179,21 @@ export function ReportPrint({ report }: { report: Report }) {
       </header>
 
       <div className={`pr-callout ${discovery ? 'pr-callout-published' : ''}`}>
-        <strong>{discovery ? 'PUBLISHED DISCOVERY' : 'INSUFFICIENT EVIDENCE'}</strong>
-        <p>
-          {discovery
-            ? discovery.strength_rationale
-            : 'No primary discovery was published because the evidence gates did not pass. Additional investigation was carried out within the configured research limits.'}
-        </p>
+        <strong>{discovery ? `PUBLISHED DISCOVERY \u00b7 ${discovery.evidence_strength.toUpperCase()} EVIDENCE` : 'INSUFFICIENT EVIDENCE'}</strong>
+        {discovery
+          ? <div><p className="pr-headline">{discovery.discovery_sentence}</p><p>{discovery.strength_rationale}</p></div>
+          : <p>No primary discovery was published because the evidence gates did not pass. Additional investigation was carried out within the configured research limits.</p>}
       </div>
 
+      {discovery && discovery.why_it_matters.length > 0 && (
+        <section className="pr-section">
+          <SectionHeading index={num()} title="Why it matters" />
+          <ul className="pr-list">{discovery.why_it_matters.map(item => <li key={item.claim_id}>{item.text}</li>)}</ul>
+        </section>
+      )}
+
       <section className="pr-section">
-        <SectionHeading index={1} title="Research coverage" />
+        <SectionHeading index={num()} title="Research coverage" />
         <div className="pr-stat-grid">
           {coverageStats.map(stat => (
             <div className="pr-stat" key={stat.label}>
@@ -195,7 +206,7 @@ export function ReportPrint({ report }: { report: Report }) {
 
       {comparison && (
         <section className="pr-section">
-          <SectionHeading index={2} title="Verified figure comparison" />
+          <SectionHeading index={num()} title="Verified figure comparison" />
           <div className="pr-keep">
           <p className="pr-meta-line">
             <strong>Metric</strong> {comparison.metric} ({comparison.scope.toLowerCase()}), comparison
@@ -233,8 +244,58 @@ export function ReportPrint({ report }: { report: Report }) {
         </section>
       )}
 
+      {report.calculations.length > 0 && (discovery || !comparison) && (
+        <section className="pr-section">
+          <SectionHeading index={num()} title="Key numbers" />
+          <table className="pr-table">
+            <thead><tr><th>Calculation</th><th>Value</th><th>Unit</th><th>Inputs</th></tr></thead>
+            <tbody>
+              {report.calculations.map((calculation: Calculation) => (
+                <tr key={calculation.id}>
+                  <td>{calculation.formula_id}</td>
+                  <td>{displayNumber(calculation.output_value)}</td>
+                  <td>{displayUnit(calculation.unit)}</td>
+                  <td>{inputsOf(calculation)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+      {discovery && report.timeline_events.length > 0 && (
+        <section className="pr-section">
+          <SectionHeading index={num()} title="Timeline" />
+          <ul className="pr-list">
+            {report.timeline_events.map(event => (
+              <li key={event.id}>
+                <strong>{event.event_date ? longDate(event.event_date) : 'Date unknown'}</strong> {'\u2014'} {event.description}{' '}
+                <span className="pr-muted">(published {event.published_at ? longDate(event.published_at.slice(0, 10)) : 'date unknown'})</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {discovery && (
+        <section className="pr-section">
+          <SectionHeading index={num()} title="Counterargument" />
+          <p>{discovery.counterargument.statement}</p>
+          {discovery.counterargument.search_summary && <p className="pr-note">{discovery.counterargument.search_summary}</p>}
+        </section>
+      )}
+
+      {discovery && discovery.falsification_rules.length > 0 && (
+        <section className="pr-section">
+          <SectionHeading index={num()} title="Falsification" />
+          {discovery.falsification_rules.map(rule => (
+            <p key={rule.id}><strong>{rule.observable_metric_or_event}:</strong> {rule.interpretation}</p>
+          ))}
+        </section>
+      )}
+
       <section className="pr-section">
-        <SectionHeading index={comparison ? 3 : 2} title="Evidence register" />
+        <SectionHeading index={num()} title="Evidence register" />
         <p className="pr-note">
           {report.documents.length} documents | {report.passages.length} passages | {report.facts.length} normalized facts.
           Where the original publication date is unknown, public availability is verified by a dated retrieval receipt rather
@@ -271,31 +332,13 @@ export function ReportPrint({ report }: { report: Report }) {
 
       {limitationGroups.length > 0 && (
         <section className="pr-section">
-          <SectionHeading index={comparison ? 4 : 3} title="Limitations" />
+          <SectionHeading index={num()} title="Limitations" />
           {limitationGroups.map(group => (
             <div className="pr-limitation-group" key={group.title}>
               <h3>{group.title}</h3>
               <ul>{group.items.map(item => <li key={item}>{item}</li>)}</ul>
             </div>
           ))}
-        </section>
-      )}
-
-      {!comparison && !discovery && (
-        <section className="pr-section">
-          <SectionHeading index={report.facts.length ? 3 : 2} title="Key numbers" />
-          <table className="pr-table">
-            <thead><tr><th>Calculation</th><th>Value</th><th>Unit</th></tr></thead>
-            <tbody>
-              {report.calculations.map((calculation: Calculation) => (
-                <tr key={calculation.id}>
-                  <td>{displayUnit(calculation.formula_id)}</td>
-                  <td>{displayNumber(calculation.output_value)}</td>
-                  <td>{displayUnit(calculation.unit)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </section>
       )}
 

@@ -60,7 +60,7 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
   const inspected = facts.find(fact => fact.id === pointId) || facts[facts.length - 1]
   const points = values.map((value, index) => `${x(index)},${y(value)}`).join(' ')
   return <div className="fact-history">
-    <div className="history-heading"><div><span className="section-kicker">COMPARE THE VERIFIED FIGURES</span><h4>How the numbers moved.</h4></div><span>{facts.length} comparable dates</span></div>
+    <div className="history-heading"><div><span className="section-kicker">COMPARE THE VERIFIED FIGURES</span><h4>How the numbers moved.</h4></div><span>{facts.length} {active[0].startsWith('quarterly-') ? (facts.length === 1 ? 'quarter' : 'quarters') : (facts.length === 1 ? 'year' : 'years')} observed</span></div>
     <label>Comparable metric <select aria-label="Comparable metric" value={active[0]} onChange={event => setSelected(event.target.value)}>
       {series.map(([key, observations]) => <option key={key} value={key}>{observations[0].metric_key.replaceAll('_', ' ')} · {observations[0].scope} · {observations[0].segment || 'all'}{key.startsWith('quarterly-') ? ' · consecutive quarters' : ' · annual comparison'}</option>)}
     </select></label>
@@ -74,7 +74,7 @@ function FactHistory({ report, onFact }: { report: Report; onFact?: (fact: Fact)
       {facts.map((fact, index) => <g key={fact.id}>
         <circle cx={x(index)} cy={y(values[index])} r="4" fill="#1e4b51" />
         {(facts.length <= 6 || index === 0 || index === facts.length - 1) && <text x={x(index)} y={y(values[index]) - 10} textAnchor="middle" fontSize="11">{displayNumber(fact.value_decimal)}</text>}
-        {(facts.length <= 6 || index % 4 === 0 || index === facts.length - 1) && <text x={x(index)} y="165" textAnchor="middle" fontSize="10">{fact.period_end}</text>}
+        {(facts.length <= (active[0].startsWith('quarterly-') ? 6 : 7) || index % 4 === 0 || index === facts.length - 1) && <text x={x(index)} y="165" textAnchor="middle" fontSize="10">{fact.period_end}</text>}
       </g>)}
     </svg>{facts.map((fact, index) => <button className={`history-point ${inspected.id === fact.id ? 'point-selected' : ''}`} key={fact.id} style={{ left: `${x(index) / 460 * 100}%`, top: `${y(values[index]) / 185 * 100}%` }} aria-label={`${displayMetric(fact.metric_key)} on ${fact.period_end}: ${displayNumber(fact.value_decimal)} ${displayUnit(fact.unit_normalized)}`} aria-pressed={inspected.id === fact.id} onClick={() => setPointId(fact.id)} onFocus={() => setPointId(fact.id)} onPointerEnter={() => setPointId(fact.id)} onKeyDown={event => {
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
