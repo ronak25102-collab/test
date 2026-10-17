@@ -1,4 +1,4 @@
-# Beyond — Track A
+# Beyond 
 
 Beyond investigates listed financial businesses from public evidence. The live
 pipeline extracts source-bound facts, runs registered Decimal calculations,
