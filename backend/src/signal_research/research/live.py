@@ -1278,6 +1278,13 @@ class LiveResearch:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         from signal_research.research.planning import angle_planning_payload
+        if getattr(self.settings, 'fast_verified_proposals', False) and not self.is_deep:
+            from signal_research.research.proposals import verified_proposals
+            proposed = verified_proposals(self.company, self.facts, self.calculations, self.structural_breaks)
+            if proposed.candidates:
+                self.store.artifact(self.run_id, 'verified_arithmetic_proposals', {
+                    'publication_review_required': True, **proposed.model_dump(mode='json')})
+                return proposed
         angles = route_angles(self.company, self.facts, self.calculations, [p.text for p in self.passages])
         self.store.artifact(self.run_id, 'angle_router', {'angles': angles, 'parallel_limit': 3})
         selected = [a for a in angles if a['coverage_groups'] == a['required_groups']]
@@ -1678,6 +1685,17 @@ class LiveResearch:
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
+            if (getattr(self.settings, 'fast_verified_proposals', False) and self.draft_feedback
+                    and self.draft_feedback.get('validation_stage') == 'local_numerical_gates'):
+                from signal_research.research.draft_repair import coverage_repair
+                corrected = coverage_repair(draft, self.facts, self.calculations)
+                if corrected is not None:
+                    self.store.artifact(self.run_id, 'draft_coverage_repair', {
+                        'reason': 'One unsupported numeric-context bullet replaced by the linked formula coverage limitation.',
+                        'fresh_independent_review_required': True})
+                    report = self.compose(corrected, challenge, hypothesis.opposing_query)
+                    if report:
+                        return report
             # Repair a specific unsupported qualification or observable test only
             # after novelty survived review. Rewording cannot rescue failed novelty.
             if (self.draft_feedback and self.draft_feedback.get('repairable')

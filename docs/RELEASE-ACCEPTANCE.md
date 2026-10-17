@@ -3,7 +3,49 @@
 This record separates implemented behavior, automated verification and actual
 real-provider financial results. A working interface is not a verified discovery.
 
-## Software verification
+## Current reliability checkpoint and model change
+
+The 17 October reliability update passed **679 backend tests**, with one Windows
+symlink-permission skip and the existing Starlette deprecation warning. Frontend
+production build and **48 Edge tests** passed. Commit `97c85a3` passed both GitHub
+jobs, including PostgreSQL. These checks establish software behavior, not a real
+financial discovery.
+
+The publication window is reserved at every optional request, peer extraction
+preserves its parent's reserve, and peer work no longer blocks planning. The full
+classified directory supplies peers. Concurrent event allocation is serialized
+across repository instances. Definitive credential/model rejection can use an
+authorized alternate route; uncertain requests are never silently resubmitted.
+
+Live mode can propose source-bound relationships directly from registered
+calculations, saving a planning call. Counterevidence, novelty, numerical lineage
+and independent semantic publication review remain mandatory. Structural-break
+intervals are excluded. A single unsupported context bullet can be replaced only
+by an existing formula coverage limitation and must pass fresh review. Oversized
+diagnostic reasons may be shortened; financial values and verdicts are unchanged.
+
+At the user's request **Opus has been removed from the active configuration**.
+CodeCraft `gemini-3.7-flash` now handles extraction, drafting and review; NVIDIA
+remains the authorized fallback. The configured ID is reported as provided by
+CodeCraft: Google documents that its own 3.7 endpoint now aliases 3.8, which does
+not prove CodeCraft's underlying deployment. No underlying version is asserted.
+The public catalog balance rate is USD 1.242 per million input/output tokens,
+checked 17 October; included allowances may apply. The shareable rate card and
+submission template match the configured ID.
+
+[The model probe](../reports/model-probe.json) used synthetic evidence, not market
+research. The initial unconstrained scope probe exposed an invalid scope label;
+with the production reporting-scope enum, all ten source-binding checks passed in
+23.64 seconds (749 input and 1,357 output tokens). This small check does not prove
+full-run accuracy or a particular speedup. The full twelve-company Flash
+regression is recorded separately; only completed actual results count.
+
+[The preceding twelve-company baseline](../reports/regression-reliability.md)
+published zero discoveries and zero verified peer benchmarks. It predates the
+final reliability changes and model switch and is retained as failure evidence.
+Earlier incomplete/superseded local cohorts are not acceptance passes.
+
+## Historical software verification
 
 - Final full backend suite: **627 passed, 1 skipped**. The skipped test requires Windows
   symlink-creation permission; symlink exclusion remains implemented. One existing

@@ -23,6 +23,6 @@ def supported_numbers(text, facts, calculations):
     normalized = re.sub(r'\b(20\d{2})-(\d{2})\b', lambda m: m[1] + ' ' + m[1][:2] + m[2], normalized)
     normalized = re.sub(r'(?<=\d)-(?=\d)', ' ', normalized)  # Explicit dates/ranges, not subtraction.
     values = number_tokens(normalized)
-    if re.search(r'\b(?:declin|fell|decreas|reduc|drop|slower)', text, re.I):
+    if re.search(r'\b(?:declin|fell|decreas|reduc|drop|slower|down|shrank|contract)', text, re.I):
         allowed |= {abs(v) for v in allowed}
     return all(value in allowed for value in values)

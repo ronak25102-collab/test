@@ -19,3 +19,9 @@ def test_iso_dates_and_fiscal_ranges_do_not_create_negative_or_invented_numbers(
     assert supported_numbers('The ratio was 10% on 2024-03-31 in FY2023-24.', facts, [])
     assert supported_numbers('The ratio was 10% in 2023–24.', facts, [])
     assert not supported_numbers('The ratio was 10% on 2028-03-31.', facts, [])
+
+
+def test_down_is_a_plain_english_rendering_of_a_verified_negative_change():
+    c = SimpleNamespace(output_value=Decimal('-5.6272'), available=True)
+    assert supported_numbers('Borrowings were down 5.63%.', [], [c])
+    assert not supported_numbers('Borrowings were up 5.63%.', [], [c])

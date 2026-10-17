@@ -1,11 +1,11 @@
 {
   "provider": "codecraft",
-  "account_scope": "Shared demo configuration snapshot, 2026-10-15. Confirm rates for your own account; NVIDIA zero rates apply only to included hosted prototype access.",
+  "account_scope": "CodeCraft public catalog balance rates checked 2026-10-17. Confirm rates for your own account; NVIDIA zero rates apply only to included hosted prototype access.",
   "models": [
     {
-      "model_id": "claude-opus-5.5",
-      "input_usd_per_million_tokens": 8.303,
-      "output_usd_per_million_tokens": 8.303,
+      "model_id": "gemini-3.7-flash",
+      "input_usd_per_million_tokens": 1.242,
+      "output_usd_per_million_tokens": 1.242,
       "currency": "USD",
       "official_pricing_url": "https://www.codecraftapi.com/models"
     },

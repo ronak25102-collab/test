@@ -1,0 +1,78 @@
+{
+  "initial_unconstrained_probe": {
+    "model": "gemini-3.7-flash",
+    "seconds": 19.97,
+    "checks": {
+      "entity": true,
+      "scope": false,
+      "currency": true,
+      "unit": true,
+      "current_period": true,
+      "prior_period": true,
+      "current_value": true,
+      "prior_value": true,
+      "unsupported_claim_rejected": true,
+      "verbatim_quote": true
+    },
+    "passed": false,
+    "usage": {
+      "input_tokens": 706,
+      "output_tokens": 1114,
+      "request_id": "chatcmpl-01a14a54-6b92-738e-933b-dc8c966c831f",
+      "status": "ok",
+      "cost_status": "unknown"
+    },
+    "result": {
+      "entity": "Harbour Bank",
+      "scope": "all",
+      "currency": "INR",
+      "unit": "crore",
+      "current_period": "2026-03-31",
+      "prior_period": "2025-03-31",
+      "current_deposits": 120000.0,
+      "prior_deposits": 100000.0,
+      "loan_growth_claim_supported": false,
+      "loan_growth_rejection_reason": "Loans are not disclosed in this extract",
+      "quote": "Deposits: 31 March 2026: 120000; 31 March 2025: 100000."
+    },
+    "scope": "Small synthetic source-binding probe, not a full research benchmark."
+  },
+  "production_scope_probe": {
+    "model": "gemini-3.7-flash",
+    "seconds": 23.64,
+    "checks": {
+      "entity": true,
+      "scope": true,
+      "currency": true,
+      "unit": true,
+      "current_period": true,
+      "prior_period": true,
+      "current_value": true,
+      "prior_value": true,
+      "unsupported_claim_rejected": true,
+      "verbatim_quote": true
+    },
+    "passed": true,
+    "usage": {
+      "input_tokens": 749,
+      "output_tokens": 1357,
+      "request_id": "chatcmpl-01a14a55-eb5a-775b-8462-422a4a7e495d",
+      "status": "ok",
+      "cost_status": "unknown"
+    },
+    "result": {
+      "entity": "Harbour Bank",
+      "scope": "consolidated",
+      "currency": "INR",
+      "unit": "crore",
+      "current_period": "2026-03-31",
+      "prior_period": "2025-03-31",
+      "current_deposits": 120000.0,
+      "prior_deposits": 100000.0,
+      "loan_growth_claim_supported": false,
+      "loan_growth_rejection_reason": "Loans are not disclosed in this extract",
+      "quote": "Deposits: 31 March 2026: 120000; 31 March 2025: 100000."
+    },
+    "scope": "Small synthetic source-binding probe using production scope enum, not a full research benchmark."
+  }
+}

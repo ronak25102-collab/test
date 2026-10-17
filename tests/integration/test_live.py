@@ -19,7 +19,7 @@ from signal_research.worker.machine import ResearchMachine
 
 
 def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=False, dated=True, linked=False, no_facts=False, duplicate_review=False):
-    settings = Settings(data_dir=tmp_path, allow_unknown_cost=True, auto_start_worker=False,
+    settings = Settings(data_dir=tmp_path, allow_unknown_cost=True, auto_start_worker=False, fast_verified_proposals=False,
                         tavily_api_key="test-only", openai_api_key="test-only", openai_model_extract="extract", openai_model_research="research")
     company = store.search_companies("HDFCBANK")[0]
     issuer = "https://www.hdfc.bank.in/about-us/investor-relations/financial-results"
@@ -752,6 +752,25 @@ def test_empty_search_and_inaccessible_sources_abstain_without_model_or_dummy_da
     assert report.abstention and not report.facts and not report.discoveries
     assert calls['model'] == 0
     assert any('Controlled inaccessible source' in item for item in report.limitations)
+
+
+@pytest.mark.parametrize('reject_claim', [False, True])
+def test_fast_verified_proposals_skip_model_planning_but_keep_final_review(store, tmp_path, monkeypatch, reject_claim):
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch, reject_claim=reject_claim)
+    settings.fast_verified_proposals = True
+    generate = OpenAIProvider.generate
+    reviewed = []
+    def without_planning(self, schema, *args, **kwargs):
+        assert schema.__name__ != 'HypothesisBatch', 'Registered relationships need no extra planning model call'
+        if schema.__name__ == 'SemanticReview':
+            reviewed.append(True)
+        return generate(self, schema, *args, **kwargs)
+    monkeypatch.setattr(OpenAIProvider, 'generate', without_planning)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert reviewed
+    assert bool(report.discoveries) is not reject_claim
+    assert store.artifacts(run_id, 'verified_arithmetic_proposals')[0]['payload']['publication_review_required']
 
 
 def test_angle_planning_starts_before_slow_peer_collection_finishes(store, tmp_path, monkeypatch):

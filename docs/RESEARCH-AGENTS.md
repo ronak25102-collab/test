@@ -18,6 +18,11 @@ agents, extra user action or separate application is required.
 - **Angle planners** explore applicable metric groups in parallel. Each receives
   one comparable reporting lane and exact existing arithmetic. Duplicate input
   metadata is removed from planning only; final review retains original evidence.
+  Live mode first proposes relationships directly from registered calculations
+  (`FAST_VERIFIED_PROPOSALS=true`). These are unconfirmed candidates: models still
+  check counterevidence, novelty and every final claim. Structural-break intervals
+  remain excluded. A missing registered relationship falls back to model planning;
+  Deep mode keeps model planning for broader exploration.
 - Counterargument and current falsification checks can overlap, followed by the
   existing composition and independent final publication review.
 

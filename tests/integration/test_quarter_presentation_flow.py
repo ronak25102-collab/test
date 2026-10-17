@@ -53,7 +53,9 @@ def test_presentation_quarters_require_independent_column_review(store, tmp_path
     monkeypatch.setattr(TavilySearchProvider, 'search', search)
     monkeypatch.setattr(PublicFetcher, 'fetch', fetch)
     monkeypatch.setattr(OpenAIProvider, 'generate', generate)
-    settings = Settings(data_dir=tmp_path, allow_unknown_cost=True, tavily_api_key='test-only',
+    # This fixture exercises extraction; its model planner deliberately returns
+    # no thesis. Fast proposals and their publication reviews have separate tests.
+    settings = Settings(data_dir=tmp_path, allow_unknown_cost=True, tavily_api_key='test-only', fast_verified_proposals=False,
                         openai_api_key='test-only', openai_model_research='research', openai_model_extract='extract')
     run_id = store.create_run(company, date(2026, 10, 8), RunMode.LIVE)
     store.lease_next('quarter-review')

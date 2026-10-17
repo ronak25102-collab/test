@@ -78,7 +78,7 @@ Open <http://127.0.0.1:5173>. API diagnostics are at
 
 ### Provider and rate-card readiness
 
-The submission template uses CodeCraft Opus for extraction and research, with an
+The submission template uses CodeCraft `gemini-3.7-flash` for extraction and research, with an
 explicit NVIDIA fallback, including final review, after definitive credit
 exhaustion. Secondary CodeCraft credentials are a JSON array in the private
 `CODECRAFT_SECONDARY_API_KEYS`. They do not increase an account's actual quota.

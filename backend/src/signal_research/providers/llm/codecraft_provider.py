@@ -11,6 +11,7 @@ from pydantic import BaseModel, ValidationError
 from signal_research.settings import Settings
 
 from .base import LLMProvider, ProviderNotConfigured, ProviderUsage
+from .structured import validate_response
 
 
 class CodeCraftError(RuntimeError):
@@ -97,7 +98,7 @@ class CodeCraftProvider(LLMProvider):
             fence = re.fullmatch(r"\s*```(?:json)?\s*(\{[\s\S]*\})\s*```\s*", content)
             if fence:
                 content = fence[1]
-            parsed = schema.model_validate_json(content)
+            parsed = validate_response(schema, content)
         except (KeyError, IndexError, AttributeError, TypeError, ValueError, ValidationError) as cause:
             detail = ''
             if isinstance(cause, ValidationError):

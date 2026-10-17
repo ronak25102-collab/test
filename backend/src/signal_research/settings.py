@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     codecraft_key_routing: Literal['sequential', 'balanced'] = 'sequential'
     max_model_concurrency: int = Field(default=3, ge=1, le=6)
     max_research_agents: int = Field(default=3, ge=1, le=6)
+    fast_verified_proposals: bool = True
     nvidia_planning: bool = False
     codecraft_model_research: str = ""
     codecraft_model_extract: str = ""

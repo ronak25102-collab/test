@@ -11,6 +11,7 @@ from pydantic import BaseModel, ValidationError
 from signal_research.settings import Settings
 
 from .base import LLMProvider, ProviderNotConfigured, ProviderUsage
+from .structured import validate_response
 
 
 class NvidiaRequestError(RuntimeError):
@@ -177,7 +178,7 @@ class NvidiaProvider(LLMProvider):
             if fenced:
                 content = fenced[1]
             try:
-                parsed = schema.model_validate_json(content)
+                parsed = validate_response(schema, content)
             except ValidationError as error:
                 fields = ', '.join('.'.join(map(str, e['loc'])) + ':' + e['type']
                                    for e in error.errors(include_input=False, include_url=False)[:3])
