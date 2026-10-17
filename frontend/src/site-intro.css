@@ -1,0 +1,109 @@
+/* The cross introduces the wordmark, which resolves into the centered Beyond logo. */
+.site-content[data-intro-playing="true"] *,
+.site-content[data-intro-playing="true"] *::before,
+.site-content[data-intro-playing="true"] *::after { animation-play-state: paused !important; }
+
+.site-intro {
+  --intro-duration: 4.15s;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--paper);
+  background: radial-gradient(ellipse at 15% 10%, #3e6a4d 0%, #254f39 48%, #172c24 100%);
+  animation: intro-lifetime var(--intro-duration) linear both;
+}
+.intro-skip {
+  position: absolute;
+  top: max(4vh, 24px);
+  right: max(4.5vw, 24px);
+  z-index: 2;
+  border: 1px solid #f6f5ef35;
+  border-radius: 30px;
+  padding: 9px 14px;
+  background: transparent;
+  color: var(--paper);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: .03em;
+}
+.intro-skip:hover { background: #f6f5ef15; }
+.intro-skip:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
+.intro-skip span { margin-left: 14px; }
+.intro-character-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(168px, 24vw, 260px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.intro-character { display: block; width: 100%; height: 100%; overflow: visible; animation: intro-character-flight var(--intro-duration) linear both; }
+.intro-character-body { fill: var(--paper); }
+.intro-final-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+  font-size: clamp(50px, 8vw, 108px);
+  font-weight: 750;
+  letter-spacing: -.065em;
+  line-height: 1.15;
+  pointer-events: none;
+  animation: intro-wordmark var(--intro-duration) linear both;
+}
+.intro-final-logo { position: absolute; left: -.343em; top: .002em; display: block; width: .95em; height: .95em; }
+.intro-final-logo svg { display: block; width: 100%; height: 100%; overflow: visible; animation: intro-logo-focus var(--intro-duration) cubic-bezier(.3, 0, .2, 1) both; }
+.intro-final-logo svg path:first-child { animation: intro-logo-body var(--intro-duration) ease both; }
+.intro-final-logo svg path:last-child { opacity: 0; animation: intro-logo-cross var(--intro-duration) linear both; }
+.intro-final-name { display: inline-block; white-space: nowrap; animation: intro-name-exit var(--intro-duration) ease both; }
+.intro-name-letter { display: inline-block; animation: intro-letter-reveal .45s calc(1.95s + var(--letter) * .065s) cubic-bezier(.2, .8, .3, 1) both; }
+.intro-name-letter:last-child { color: #b3c59b; }
+.intro-dust { position: absolute; left: -20px; bottom: 25px; display: flex; gap: 9px; animation: intro-dust var(--intro-duration) linear both; }
+.intro-dust i { width: 4px; height: 4px; background: #c7d2ad; border-radius: 50%; }
+.intro-dust i:nth-child(2) { transform: translateY(-7px); width: 3px; height: 3px; }
+.intro-dust i:last-child { transform: translateY(3px); width: 2px; height: 2px; }
+.intro-announcement { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@keyframes intro-lifetime { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes intro-character-flight {
+  0%, 4% { opacity: 0; transform: translate(-65vw, 0) rotate(-18deg) scale(1); }
+  5% { opacity: 1; transform: translate(-60vw, 0) rotate(-18deg) scale(1); }
+  14% { transform: translate(-35px, 0) rotate(-12deg) scale(.94, 1.08); animation-timing-function: cubic-bezier(.16, .7, .3, 1); }
+  20% { transform: translate(0, 0) rotate(8deg) scale(1.05, .95); }
+  25%, 30% { transform: translate(0, 0) rotate(0) scale(1); }
+  36% { transform: translate(0, 8px) rotate(12deg) scale(1.13, .85); animation-timing-function: cubic-bezier(.4, 0, .6, 1); }
+  42% { transform: translate(0, -14px) rotate(-9deg) scale(.87, 1.14); }
+  49% { transform: translate(calc(var(--dock-x) * .35), calc(var(--dock-y) - 140px)) rotate(-32deg) scale(.52); }
+  55% { transform: translate(var(--dock-x), calc(var(--dock-y) - 25px)) rotate(8deg) scale(calc(var(--dock-scale) * 1.25)); }
+  59% { transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
+  62% { transform: translate(var(--dock-x), calc(var(--dock-y) - 3px)) rotate(-8deg) scale(var(--dock-scale)); }
+  65% { opacity: 1; transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
+  66%, 100% { opacity: 0; transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
+}
+@keyframes intro-wordmark { 0%, 49% { opacity: 0; } 57%, 100% { opacity: 1; } }
+@keyframes intro-letter-reveal {
+  0% { opacity: 0; transform: translateY(.3em) scale(.88, 1.12); }
+  75% { opacity: 1; transform: translateY(-.025em) scale(1.02, .98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes intro-name-exit {
+  0%, 75% { opacity: 1; transform: translateY(0); }
+  83%, 100% { opacity: 0; transform: translateY(-12px); }
+}
+@keyframes intro-logo-focus {
+  0%, 76% { transform: translate(0, 0) scale(1); }
+  86%, 100% { transform: translate(var(--logo-center-x), var(--logo-center-y)) scale(1.55); }
+}
+@keyframes intro-logo-cross { 0%, 65% { opacity: 0; } 66%, 100% { opacity: 1; } }
+@keyframes intro-logo-body { 0%, 76% { opacity: 0; } 86%, 100% { opacity: 1; } }
+@keyframes intro-dust {
+  0%, 17% { opacity: 0; transform: translateX(-25px); }
+  20% { opacity: .75; }
+  30%, 100% { opacity: 0; transform: translateX(-45px); }
+}
+@media (max-width: 480px) { .intro-skip { font-size: 9px; } }
+@media (prefers-reduced-motion: reduce), print { .site-intro { display: none; } }
