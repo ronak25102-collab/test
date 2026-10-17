@@ -9,11 +9,14 @@ import { usePageMotion } from '../usePageMotion'
 import { QueueControls } from './QueueControls'
 import { ResearchProgress } from './ResearchProgress'
 import { RunHistory } from './RunHistory'
+import { useAppRoute } from '../appRoute'
+import './research-pages.css'
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
 
 export function App() {
-  const [landingVisible, setLandingVisible] = useState(() => !new URLSearchParams(location.search).has('run') && new URLSearchParams(location.search).get('view') !== 'workspace')
+  const { route, navigate } = useAppRoute()
+  const landingVisible = route.view === 'home'
   const [motionPaused, setMotionPaused] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
   const { shellRef, activeSection } = usePageMotion(motionPaused, landingVisible)
   const [query, setQuery] = useState('HDFCBANK')
@@ -22,7 +25,7 @@ export function App() {
   const [asOf, setAsOf] = useState(today)
   const [mode, setMode] = useState('live')
   const [coldStart, setColdStart] = useState(false)
-  const [runId, setRunId] = useState<string | null>(new URLSearchParams(location.search).get('run'))
+  const runId = route.runId || null
   const [run, setRun] = useState<RunSummary | null>(null)
   const [report, setReport] = useState<Report | null>(null)
   const [events, setEvents] = useState<{ sequence: number; stage: string; public_summary: string }[]>([])
@@ -37,6 +40,35 @@ export function App() {
   const pendingCreation = useRef<{ signature: string; key: string } | null>(null)
   const runPending = Boolean(runId && (!run || run.id !== runId || !['completed', 'failed', 'cancelled'].includes(run.status)))
   const printable = new URLSearchParams(location.search).get('print') === '1'
+  const reportVisible = !landingVisible && route.view !== 'workspace' && report?.run_id === runId
+  const workspaceVisible = route.view === 'workspace'
+  const progressVisible = !landingVisible && !workspaceVisible && !reportVisible
+
+  useEffect(() => {
+    setRun(null); setReport(null); setEvents([]); setClaimId(null); setError('')
+    restoredFormRun.current = null
+  }, [runId])
+
+  useEffect(() => {
+    if (!runId || !run || run.id !== runId || printable) return
+    const next = run.status === 'completed' && report?.run_id === runId ? 'report' : 'progress'
+    if (route.view === 'run' || (route.view === 'progress' && next === 'report') || (route.view === 'report' && run.status !== 'completed')) {
+      navigate({ view: next, runId, section: route.section || 'overview' }, { replace: true, scroll: next === 'report' })
+    }
+  }, [run, report, runId, route.view, route.section, printable, navigate])
+
+  useEffect(() => { setClaimId(null) }, [route.view, route.section])
+
+  useEffect(() => {
+    if (!reportVisible) return
+    const frame = requestAnimationFrame(() => document.getElementById('research-page-heading')?.focus({ preventScroll: true }))
+    return () => cancelAnimationFrame(frame)
+  }, [reportVisible])
+
+  useEffect(() => {
+    const page = workspaceVisible ? 'Research workspace' : reportVisible ? `Report - ${route.section || 'overview'}` : progressVisible ? 'Research progress' : 'Look beyond the numbers'
+    document.title = `${run?.id === runId ? `${run.company.legal_name} | ` : ''}${page} - Beyond`
+  }, [workspaceVisible, reportVisible, progressVisible, route.section, run, runId])
 
   useEffect(() => {
     if (!revealNewRun.current || !run || run.id !== runId) return
@@ -48,9 +80,7 @@ export function App() {
   }, [run, runId, motionPaused, report])
 
   function launchWorkspace() {
-    setLandingVisible(false)
-    if (!runId) history.pushState({}, '', '?view=workspace')
-    window.scrollTo({ top: 0, behavior: 'instant' })
+    navigate({ view: 'workspace' })
     window.requestAnimationFrame(() => document.getElementById('start-heading')?.focus({ preventScroll: true }))
   }
 
@@ -62,26 +92,17 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    const onPop = () => {
-      const params = new URLSearchParams(location.search)
-      setLandingVisible(!params.has('run') && params.get('view') !== 'workspace')
-      setRunId(params.get('run'))
-    }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
-
-  useEffect(() => {
     let active = true
     api.configuration().then(result => { if (active) setConfiguration(result) }).catch(() => {})
     return () => { active = false }
   }, [])
 
   useEffect(() => {
+    if (!workspaceVisible) return
     let active = true
     const timer = window.setTimeout(() => api.companies(query).then((data) => { if (active) setCompanies(data.items) }).catch((err) => { if (active) setError(err.message) }), 250)
     return () => { active = false; window.clearTimeout(timer) }
-  }, [query])
+  }, [query, workspaceVisible])
   useEffect(() => {
     if (!runId) return
     let active = true
@@ -157,9 +178,8 @@ export function App() {
       const result = await api.createRun(company.id, cutoff, runMode, pendingCreation.current.key, coldStart)
       pendingCreation.current = null
       revealNewRun.current = true
-      setLandingVisible(false)
-      setRunId(result.run_id)
-      history.replaceState({}, '', `?run=${result.run_id}`)
+      navigate({ view: 'progress', runId: result.run_id })
+      setPollVersion(value => value + 1)
     } catch (err) { setError((err as Error).message); setRun(previousRun); setReport(previousReport) }
     finally { creatingRun.current = false; setBusy(false) }
   }
@@ -167,13 +187,16 @@ export function App() {
   if (printable && report) return <ReportPrint report={report} />
 
   return <div ref={shellRef} className={`shell ${motionPaused ? 'motion-paused' : ''} ${landingVisible ? 'with-landing' : 'workspace-view'}`}>
-    <a className="skip-link" href="#research">Skip to research</a>
-    <header className="topbar"><a className="brand" href="/" aria-label="Beyond home"><BeyondMark /><span>beyond<span className="brand-period">.</span></span></a><nav aria-label="Main navigation">{[['platform', 'Platform'], ['how-it-works', 'How it works'], ['why-beyond', 'Our approach']].map(([id, label]) => <a key={id} href={landingVisible ? `#${id}` : `/#${id}`} aria-current={landingVisible && activeSection === id ? 'location' : undefined}>{label}</a>)}</nav><div className="header-actions"><button className="motion-button" onClick={() => setMotionPaused(v => !v)} aria-pressed={motionPaused} aria-label={motionPaused ? 'Enable animations' : 'Pause animations'} title={motionPaused ? 'Enable animations' : 'Pause animations'}>{motionPaused ? '▷' : 'Ⅱ'}</button><button className="button-dark header-launch" onClick={launchWorkspace}>{landingVisible ? 'Launch workspace' : 'Research workspace'}<Arrow diagonal /></button></div><span className="reading-progress" aria-hidden="true" /></header>
+    <a className="skip-link" href={landingVisible ? '#platform' : '#research'}>{landingVisible ? 'Skip to main content' : 'Skip to research'}</a>
+    <header className="topbar"><a className="brand" href="/" aria-label="Beyond home"><BeyondMark /><span>beyond<span className="brand-period">.</span></span></a><nav aria-label="Main navigation">{[['platform', 'Platform'], ['how-it-works', 'How it works'], ['why-beyond', 'Our approach']].map(([id, label]) => <a key={id} href={landingVisible ? `#${id}` : `/#${id}`} aria-current={landingVisible && activeSection === id ? 'location' : undefined}>{label}</a>)}</nav><div className="header-actions"><button className="motion-button" onClick={() => setMotionPaused(v => !v)} aria-pressed={motionPaused} aria-label={motionPaused ? 'Enable animations' : 'Pause animations'} title={motionPaused ? 'Enable animations' : 'Pause animations'}>{motionPaused ? '▷' : 'Ⅱ'}</button><button className="button-dark header-launch" onClick={launchWorkspace}>{landingVisible ? 'Launch workspace' : workspaceVisible ? 'Research workspace' : 'New research'}<Arrow diagonal /></button></div><span className="reading-progress" aria-hidden="true" /></header>
     <main className="app-main">
       {landingVisible && <Landing onLaunch={launchWorkspace} motionPaused={motionPaused} />}
-      <div className="workspace-container" id="research">
-      <div className="workspace-heading"><div><span className="section-kicker">BEYOND / RESEARCH WORKSPACE</span><h1>The evidence starts here.</h1><p>A company. A question. A trail you can follow.</p></div><QueueControls onCleared={() => setPollVersion(v => v + 1)} /></div>
-      <details className={`research-setup ${report ? 'setup-collapsible' : ''}`} open={!report || undefined}><summary className="setup-summary"><span className="setup-symbol">↳</span><span><strong>Investigation settings</strong><small>{report?.company.legal_name} · Cutoff {report?.cutoff} · {report?.source_coverage.mode as string}</small></span><span className="setup-toggle">Adjust setup <span>+</span></span></summary>
+      <div className={`workspace-container research-page ${reportVisible ? 'report-page' : progressVisible ? 'progress-page' : 'setup-page'}`} id="research" hidden={landingVisible}>
+      {!landingVisible && <>
+      {!workspaceVisible && <nav className="research-breadcrumbs" aria-label="Research navigation"><a href="?view=workspace" onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); launchWorkspace() } }}>Research workspace</a><span aria-hidden="true">/</span><span>{reportVisible ? 'Saved report' : 'Live progress'}</span></nav>}
+      <div className="workspace-heading"><div><span className="section-kicker">BEYOND / {workspaceVisible ? 'RESEARCH WORKSPACE' : reportVisible ? 'RESEARCH REPORT' : 'LIVE INVESTIGATION'}</span><h1 id="research-page-heading" tabIndex={-1}>{workspaceVisible ? 'The evidence starts here.' : reportVisible ? 'Your research, in focus.' : 'Following the evidence.'}</h1><p>{workspaceVisible ? 'A company. A question. A trail you can follow.' : run?.id === runId ? `${run.company.legal_name} \u00b7 Cutoff ${run.as_of} \u00b7 ${run.mode === 'replay' ? 'Synthetic replay' : run.mode === 'deep' ? 'Extended research' : 'Live research'}` : 'Opening your saved investigation...'}</p></div>{!reportVisible && <QueueControls onCleared={() => setPollVersion(v => v + 1)} />}</div>
+      </>}
+      {workspaceVisible && <>
       <section className="control-card" aria-labelledby="start-heading">
         <div className="control-heading"><span className="control-number">01</span><div><span className="eyebrow">SET THE DIRECTION</span><h2 id="start-heading" tabIndex={-1}>Investigate a listed financial business</h2><p className="muted">Choose the company, define your cutoff, and follow the evidence.</p></div></div>
         <div className="form-grid"><label>Company search<input value={query} onChange={(e) => { setQuery(e.target.value); setSelected(null) }} placeholder="Name or exchange symbol" /></label><label>Cutoff date<input type="date" value={asOf} onChange={(e) => setAsOf(e.target.value)} /></label><label>Mode<select value={mode} onChange={(e) => setMode(e.target.value)}><option value="replay">Replay · synthetic fixture</option><option value="live">Live · public sources</option><option value="deep">Deep · extended research, outside demo budget</option></select></label></div>
@@ -182,14 +205,16 @@ export function App() {
         {mode !== 'replay' && configuration?.ready === false && <div className="error" role="status"><strong>Live research needs configuration.</strong> {configuration.issues.join(' ')} Replay remains available for SYNTHBANK.</div>}
         {mode !== 'replay' && <label className="cold-start-control"><input type="checkbox" checked={coldStart} onChange={e => setColdStart(e.target.checked)} /> Cold start rehearsal · disable historical fact reuse</label>}
         <div className="research-launch"><button className="primary" disabled={!selected || busy || runPending || (mode !== 'replay' && configuration?.ready === false)} onClick={() => start()}>{busy ? 'Preparing research…' : 'Start autonomous research'} <Arrow /></button><span>Original sources. Visible reasoning.<br />Conclusions that earn their place.</span></div>
-        {run?.status === 'queued' && <p role="status" className="muted">Research is queued. The worker processes one run at a time; another click is not needed.</p>}
       </section>
-      </details>
-      {!landingVisible && <RunHistory refreshKey={`${runId || ''}:${run?.status || ''}`} />}
+      <RunHistory refreshKey={`${runId || ''}:${run?.status || ''}`} onOpen={saved => navigate({ view: saved.status === 'completed' ? 'report' : 'progress', runId: saved.id, section: 'overview' })} />
+      </>}
       {error && <div className="error" role="alert">{error}</div>}
-      {run && !report && <ResearchProgress run={run} events={events} onCancel={() => api.cancel(run.id).then(() => setPollVersion(v => v + 1)).catch(err => setError(err.message))} onResume={resume} onRestart={() => start(run.company, run.as_of, run.mode)} />}
-      {report && <ResearchResult report={report} onClaim={setClaimId} key={report.run_id} />}
-      {report && activeClaim && <EvidenceDrawer report={report} claim={activeClaim} evidence={activeEvidence} onClose={() => setClaimId(null)} />}
+      {progressVisible && run?.status === 'queued' && <p role="status" className="research-queue-note">Research is queued. Your investigation starts when a worker is available; this page updates automatically.</p>}
+      {progressVisible && !run && !error && <div className="research-page-loading" role="status"><span className="research-loading-line" />Opening investigation and checking its latest status...</div>}
+      {progressVisible && error && <button className="quiet" onClick={() => { setError(''); setPollVersion(value => value + 1) }}>Retry loading investigation</button>}
+      {progressVisible && run?.id === runId && <ResearchProgress run={run} events={events} onCancel={() => api.cancel(run.id).then(() => setPollVersion(v => v + 1)).catch(err => setError(err.message))} onResume={resume} onRestart={() => start(run.company, run.as_of, run.mode)} />}
+      {reportVisible && report && <ResearchResult report={report} onClaim={setClaimId} section={route.section || 'overview'} onNavigate={section => navigate({ view: 'report', runId: report.run_id, section })} key={report.run_id} />}
+      {reportVisible && report && activeClaim && <EvidenceDrawer report={report} claim={activeClaim} evidence={activeEvidence} onClose={() => setClaimId(null)} />}
       </div>
     </main>
     <footer className="site-footer"><a className="brand" href="/">beyond.</a><span>Evidence first · No investment recommendations</span><span>{run ? `${run.mode.toUpperCase()} RUN ${run.id.slice(0, 8)}` : 'TRACK A / FINANCIAL SERVICES'}</span></footer>

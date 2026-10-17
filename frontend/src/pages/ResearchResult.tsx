@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
 import type { Fact, Report } from '../api/generated'
+import { type ReportSection, routeHref } from '../appRoute'
 import { TimelineStory } from './TimelineStory'
 import { PeerComparison } from './PeerComparison'
 import { API_BASE } from '../api/client'
@@ -35,32 +36,47 @@ function SourceLibrary({ report }: { report: Report }) {
   </section>
 }
 
-export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (id: string) => void }) {
+function ReportExport({ report }: { report: Report }) {
+  return <details className="report-export"><summary>Export report <span>↗</span></summary><div><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.html`}>Self-contained HTML</a><a href={`?run=${report.run_id}&print=1`}>Print / Save as PDF</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.json`}>JSON</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/facts.csv`}>CSV</a></div></details>
+}
+
+export function ResearchResult({ report, onClaim, section, onNavigate }: { report: Report; onClaim: (id: string) => void; section: ReportSection; onNavigate: (section: ReportSection) => void }) {
   const discovery = report.discoveries[0]
   const [search, setSearch] = useState('')
   const [scope, setScope] = useState('All scopes')
   const [selectedFact, setSelectedFact] = useState<Fact | null>(null)
-  const [activeSection, setActiveSection] = useState('overview')
   const [showAdditionalCalculations, setShowAdditionalCalculations] = useState(false)
   const root = useRef<HTMLElement>(null)
   const id = useId()
-  const nav = [['overview', 'Overview'], ['figures', 'Verified figures'], ['calculations', 'Calculations'], ['sources', 'Sources'], ['review', 'Review']]
+  const nav: [ReportSection, string][] = [['overview', 'Overview'], ['figures', 'Verified figures'], ['calculations', 'Calculations'], ['sources', 'Sources'], ['review', 'Review']]
   const filteredFacts = report.facts.filter(fact => (scope === 'All scopes' || fact.scope === scope) && `${fact.metric_key.replaceAll('_', ' ')} ${fact.period_end} ${fact.scope} ${fact.segment || ''}`.toLowerCase().includes(search.toLowerCase()))
   const scopes = [...new Set(report.facts.map(fact => fact.scope))]
   const findingCalculationIds = new Set(discovery?.calculation_ids || [])
   const displayedCalculations = discovery && !showAdditionalCalculations ? report.calculations.filter(c => findingCalculationIds.has(c.id)) : report.calculations
   const origins = new Set(report.documents.filter(document => document.cutoff_eligibility === 'eligible').map(document => document.origin_family_id)).size
 
+  useEffect(() => { setSelectedFact(null) }, [section])
+
   useEffect(() => {
     const element = root.current
     if (!element) return
+    const navigation = element.querySelector<HTMLElement>('.report-navigation')
+    const currentLink = navigation?.querySelector<HTMLElement>('[aria-current="page"]')
+    const centerCurrentPage = () => {
+      if (navigation && currentLink) navigation.scrollLeft = Math.max(0, currentLink.offsetLeft - (navigation.clientWidth - currentLink.offsetWidth) / 2)
+    }
+    centerCurrentPage()
+    const resize = new ResizeObserver(centerCurrentPage)
+    if (navigation) resize.observe(navigation)
     const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('report-in-view'); observer.unobserve(entry.target) } }), { threshold: .04 })
     element.querySelectorAll('.report-reveal').forEach(section => observer.observe(section))
-    return () => observer.disconnect()
-  }, [report.run_id])
+    return () => { observer.disconnect(); resize.disconnect() }
+  }, [report.run_id, section])
 
-  return <section className={`result-card report-dashboard ${discovery ? 'report-published' : 'report-withheld'}`} ref={root} aria-label={`${report.company.legal_name} research report`} tabIndex={-1}>
-    <header className="report-hero"><div className="report-hero-top"><span className="report-eyebrow">{discovery ? 'PRIMARY DISCOVERY' : report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}<span> / {String(report.source_coverage.mode || 'mode unrecorded').toUpperCase()}</span></span><details className="report-export"><summary>Export report <span>↗</span></summary><div><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.html`}>Self-contained HTML</a><a href={`?run=${report.run_id}&print=1`}>Print / Save as PDF</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.json`}>JSON</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/facts.csv`}>CSV</a></div></details></div>
+  return <section className={`result-card report-dashboard ${discovery ? 'report-published' : 'report-withheld'}`} ref={root} data-report-page={section} aria-label={`${report.company.legal_name} research report`} tabIndex={-1}>
+    <nav className="report-navigation" aria-label="Report sections">{nav.map(([key, label], index) => <a key={key} href={routeHref({ view: 'report', runId: report.run_id, section: key })} aria-current={section === key ? 'page' : undefined} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><span>0{index + 1}</span>{label}</a>)}</nav>
+    {section === 'overview' && <>
+    <header className="report-hero"><div className="report-hero-top"><span className="report-eyebrow">{discovery ? 'PRIMARY DISCOVERY' : report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}<span> / {String(report.source_coverage.mode || 'mode unrecorded').toUpperCase()}</span></span><ReportExport report={report} /></div>
       <div className="report-company"><span>{report.company.symbols.join(' · ')}</span><span>Cutoff {report.cutoff}</span>{report.source_coverage.synthetic === true && <span>Synthetic replay</span>}</div>
       <h2>{discovery?.discovery_sentence || (report.facts.length ? 'Verified evidence collected' : report.outcome === 'partial' ? 'Investigation incomplete' : 'More evidence needed')}</h2>
       {!discovery && report.generation_metadata?.best_candidate && <section className="best-candidate"><strong>Not established · best research candidate</strong><p>{report.generation_metadata.best_candidate.text}</p><p>{report.generation_metadata.best_candidate.reason}</p><ul>{report.generation_metadata.best_candidate.missing.map(item => <li key={item}>{item}</li>)}</ul><small>This is an unverified candidate, not a published finding.</small></section>}
@@ -71,8 +87,11 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
     </header>
     {report.outcome === 'partial' && <p role="status" className="report-partial">Research stopped before discovery verification finished. See source access and coverage details for the reason. Further investigation needs a new run.</p>}
     <div className="report-stat-grid">{[[report.facts.length, 'Verified facts', 'Source-bound figures'], [report.calculations.length, 'Calculations', 'Reproducible arithmetic'], [report.documents.length, 'Documents', 'Retrieved sources'], [origins, 'Source families', 'Available by cutoff']].map(([value, label, caption], index) => <div className="report-stat" key={label} style={{ '--stat-delay': `${index * 70}ms` } as CSSProperties}><span>0{index + 1} / {label}</span><strong>{value}</strong><small>{caption}</small></div>)}</div>
-    <nav className="report-navigation" aria-label="Report sections">{nav.map(([key, label], index) => <a key={key} href={`#report-${key}`} aria-current={activeSection === key ? 'location' : undefined} onClick={() => setActiveSection(key)}><span>0{index + 1}</span>{label}</a>)}</nav>
+    </>}
+    {section !== 'overview' && <header className="report-page-summary"><div><span className="section-kicker">{report.company.symbols.join(' / ')} / SAVED RESEARCH</span><h2>{nav.find(([key]) => key === section)?.[1]}</h2><p>{report.company.legal_name} / Cutoff {report.cutoff}</p></div><ReportExport report={report} /></header>}
+
     <div className="report-body">
+      {section === 'overview' && <>
       <section className="report-section report-reveal" id="report-overview" aria-labelledby={`${id}-overview`}><div className="report-section-title"><div><span className="section-kicker">01 / A CLEARER VIEW</span><h3 id={`${id}-overview`}>The evidence at a glance.</h3></div><span>{report.company.legal_name}</span></div>
         {discovery && <div className="report-why"><h3>Why it matters</h3><ul className="linked-list">{discovery.why_it_matters.map(item => <li key={item.claim_id}><button onClick={() => onClaim(item.claim_id)}>{item.text}<Arrow diagonal /></button></li>)}</ul></div>}
         <ResearchAudit report={report} onFact={setSelectedFact} />
@@ -80,6 +99,8 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
         <TimelineStory report={report} onFact={setSelectedFact} />
         {report.generation_metadata?.temporal_reasoning && <section className="report-why"><h3>When the relationship emerged</h3><p>{report.generation_metadata.temporal_reasoning.text}</p><p className="muted">Onset: {report.generation_metadata.temporal_reasoning.onset_status}</p><button onClick={() => onClaim(report.generation_metadata!.temporal_reasoning!.claim_id)}>Inspect timeline evidence <Arrow diagonal /></button></section>}
       </section>
+      </>}
+      {section === 'figures' && <>
       <section className="report-section report-reveal" id="report-figures" aria-labelledby={`${id}-figures`}><div className="report-section-title"><div><span className="section-kicker">02 / SOURCE-BOUND FIGURES</span><h3 id={`${id}-figures`}>Verified source figures</h3></div><span>{report.facts.length} figures to explore</span></div>
         <div className="figure-toolbar"><label className="report-search"><span>Filter verified figures</span><input value={search} onChange={event => setSearch(event.target.value)} placeholder="Find a metric, period or segment" /></label><label className="scope-filter"><span>Financial scope</span><select value={scope} onChange={event => setScope(event.target.value)}><option>All scopes</option>{scopes.map(item => <option key={item}>{item}</option>)}</select></label>{(search || scope !== 'All scopes') && <button className="quiet" onClick={() => { setSearch(''); setScope('All scopes') }}>Reset filters</button>}</div>
         <p className="figure-count" aria-live="polite">{filteredFacts.length} of {report.facts.length} verified figures shown</p>
@@ -90,6 +111,8 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
         })}</div>
         {!filteredFacts.length && <div className="report-empty">{report.facts.length ? 'No figures match these filters.' : 'No verified financial figures were established for this run.'}</div>}
       </section>
+      </>}
+      {section === 'calculations' && <>
       <section className="report-section report-reveal" id="report-calculations" aria-labelledby={`${id}-calculations`}><div className="report-section-title"><div><span className="section-kicker">03 / CHECK THE ARITHMETIC</span><h3 id={`${id}-calculations`}>Reproducible calculations</h3></div><span>Expand any calculation to see its inputs</span></div>
         {discovery && report.calculations.length > displayedCalculations.length && <p className="muted">Showing the {displayedCalculations.length} calculations linked to this discovery.</p>}
         {discovery && report.calculations.some(c => !findingCalculationIds.has(c.id)) && <button className="quiet" aria-pressed={showAdditionalCalculations} onClick={() => setShowAdditionalCalculations(value => !value)}>{showAdditionalCalculations ? 'Show discovery calculations only' : 'Show additional research calculations'}</button>}
@@ -100,7 +123,11 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
           return <article className="calculation-card" key={calc.id}><span className="calculation-metric">{metrics.join(' / ') || 'Registered calculation'}</span><h4>{displayMetric(calc.formula_id)}</h4><div className={`calculation-value ${Number(calc.output_value) < 0 ? 'value-decrease' : ''}`}>{displayNumber(calc.output_value)}<span>{displayUnit(calc.unit)}</span></div><div className="calculation-context">{[...new Set(inputs.filter(Boolean).map(fact => fact!.scope))].join(' / ')} · Formula v{calc.formula_version}</div><details><summary>Calculation inputs</summary><code>{calculationFormulas[calc.formula_id] || calc.formula_id}</code><ol>{inputs.map((fact, index) => <li key={calc.input_fact_ids[index]}>{fact ? <><span>{displayMetric(fact.metric_key)}</span><strong>{displayNumber(fact.value_decimal)} {displayUnit(fact.unit_normalized)}</strong><small>{fact.period_end} · {fact.scope}</small><button onClick={() => setSelectedFact(fact)}>Inspect input <span>↗</span></button></> : 'Input unavailable'}</li>)}</ol>{calc.comparability_checks.length > 0 && <p>{calc.comparability_checks.join('; ')}</p>}{calc.limitations.length > 0 && <p>{calc.limitations.join('; ')}</p>}</details>{claim && <button className="calculation-claim" onClick={() => onClaim(claim.id)}>Open claim evidence <Arrow diagonal /></button>}</article>
         })}</div>{!report.calculations.length && <div className="report-empty">No reproducible calculations were available for this run.</div>}
       </section>
+      </>}
+      {section === 'sources' && <>
       <SourceLibrary report={report} />
+      </>}
+      {section === 'review' && <>
       <section className="report-section report-reveal" id="report-review" aria-labelledby={`${id}-review`}><div className="report-section-title"><div><span className="section-kicker">05 / QUESTION THE CONCLUSION</span><h3 id={`${id}-review`}>The other side of the story.</h3></div><span>{discovery ? 'Challenge & falsification' : 'Coverage gaps & next evidence'}</span></div>
         {discovery ? <><div className="report-review-grid"><section className="counter report-review-card"><span className="review-card-symbol">⇄</span><h3>Strongest counterargument</h3><p>{discovery.counterargument.statement}</p><small>{discovery.counterargument.search_summary}</small><span className="pill">Active challenge {discovery.counterargument.search_attempted ? 'completed' : 'not run'}</span></section><section className="falsification report-review-card"><span className="review-card-symbol">±</span><h3>What would change this conclusion</h3>{discovery.falsification_rules.map(rule => <div className="falsification-rule" key={rule.id}><strong>{rule.observable_metric_or_event}</strong><p>{rule.operator}{rule.threshold ? ` ${rule.threshold} ${displayUnit(rule.unit)}` : ''} · {rule.interpretation}</p><small>Expected evidence: {rule.expected_source_type}</small></div>)}</section></div><section className="report-timeline" hidden={!!report.generation_metadata?.timeline_story}><h3>Timeline</h3>{report.timeline_events.map(event => <details key={event.id}><summary><time>{event.event_date || 'Date unknown'}</time><span>{event.description}</span><span>+</span></summary><p>Publication {event.published_at?.slice(0, 10) || 'date unknown'} · {event.source_ids.length} source</p>{report.documents.filter(document => event.source_ids.includes(document.id)).map(document => <a key={document.id} href={document.canonical_url} target="_blank" rel="noreferrer">{document.title}</a>)}</details>)}</section></> : <div className="report-review-grid"><section className="report-review-card missing-evidence"><span className="review-card-symbol">◌</span><h3>What is still missing</h3><ul>{report.abstention?.missing_requirements.map(item => <li key={item}>{item}</li>)}</ul>{!report.abstention?.missing_requirements.length && <p>No additional requirements were recorded.</p>}</section><section className="report-review-card next-evidence"><span className="review-card-symbol">↗</span><h3>Next evidence needed</h3><ul>{report.abstention?.next_evidence_needed.map(item => <li key={item}>{item}</li>)}</ul>{!report.abstention?.next_evidence_needed.length && <p>Inspect the source coverage and limitations for the next investigation.</p>}</section></div>}
         <ChallengeTrail report={report} />
@@ -109,6 +136,12 @@ export function ResearchResult({ report, onClaim }: { report: Report; onClaim: (
         {!discovery && report.timeline_events.length > 0 && <section className="report-timeline"><h3>Timeline of verified observations</h3><p>Reporting dates show observed snapshots; they do not establish trend onset or causality.</p>{report.timeline_events.map(event => <details key={event.id}><summary><time>{event.event_date || 'Date unknown'}</time><span>{event.description}</span><span>+</span></summary>{report.documents.filter(source => event.source_ids.includes(source.id)).map(source => <a key={source.id} href={source.canonical_url} target="_blank" rel="noreferrer">{source.title}</a>)}</details>)}</section>}
         <details className="limitations report-limitations"><summary><span>{discovery ? 'Coverage and limitations' : 'Source access and coverage details'}</span><span>{report.limitations.length} notes</span></summary><ul>{report.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul></details>
       </section>
+      </>}
+      <nav className="report-page-turner" aria-label="Continue reading report">{nav.map(([key, label], index) => {
+        const current = nav.findIndex(([key]) => key === section)
+        if (Math.abs(index - current) !== 1) return null
+        return <a key={key} href={routeHref({ view: 'report', runId: report.run_id, section: key })} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><small>{index < current ? 'PREVIOUS PAGE' : 'NEXT PAGE'}</small><span>{index < current ? '\u2190 ' : ''}{label}{index > current ? ' \u2192' : ''}</span></a>
+      })}</nav>
       <footer className="report-footnote"><span>Every figure has a paper trail.</span><span>Cutoff {report.cutoff} · Public evidence research</span></footer>
     </div>
     {selectedFact && <SourceInspector fact={selectedFact} report={report} onClose={() => setSelectedFact(null)} />}

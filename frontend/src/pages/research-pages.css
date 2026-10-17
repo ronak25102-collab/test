@@ -1,0 +1,44 @@
+.research-page[hidden] { display: none; }
+.research-breadcrumbs { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; color: #8b967f; font-size: 11px; }
+.research-breadcrumbs a { color: #49673b; text-decoration: none; }
+.research-breadcrumbs a:hover { text-decoration: underline; }
+.research-page .workspace-heading h1 { outline-offset: 8px; }
+.research-page .workspace-heading h1:focus { outline: none; }
+.research-page .workspace-heading p { max-width: 680px; line-height: 1.7; }
+.research-page.progress-page { width: min(1160px, 90vw); }
+.research-page.progress-page .progress-card { margin-top: 20px; }
+.research-queue-note { margin: 20px 0; padding: 15px 18px; border: 1px solid #dce4cf; border-radius: 8px; background: #edf2e5; color: #627750; font-size: 12px; line-height: 1.6; }
+.research-page-loading { padding: 36px; margin-block: 24px; border: 1px solid #dce4cf; border-radius: 12px; background: #fbfcf7; color: #6d7e5c; font-size: 12px; line-height: 1.7; }
+.research-loading-line { display: block; width: 140px; height: 3px; margin-bottom: 18px; border-radius: 3px; background: linear-gradient(90deg, #99b078, #dce6ce, #99b078); background-size: 200% 100%; animation: research-loading 1.8s ease-in-out infinite; }
+@keyframes research-loading { to { background-position: -200% 0; } }
+.report-page-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 30px 36px; border-radius: 15px 15px 0 0; background: #edf1e5; color: var(--ink); }
+.report-page-summary h2 { font-weight: 400; font-size: 32px; letter-spacing: -1px; margin: 13px 0 8px; }
+.report-page-summary p { font-size: 11px; color: #7b8a6c; margin: 0; }
+.report-page-summary .report-export > summary { color: var(--green); border-color: #bdcbb0; }
+.report-page .report-navigation { position: sticky; top: 88px; z-index: 5; background: #fcfdf7; border-radius: 15px 15px 0 0; }
+.report-page .report-hero, .report-page .report-page-summary { border-radius: 0; }
+.report-page .report-navigation a[aria-current='page'] { color: #254f39; border-bottom-color: #5c7c44; background: #eaf0df; }
+.report-page-turner { display: flex; justify-content: space-between; gap: 20px; border-top: 1px solid #dfe5d5; padding: 24px 0; }
+.report-page-turner a { display: grid; gap: 8px; text-decoration: none; color: #375b32; padding: 14px 18px; border: 1px solid #dde5d2; border-radius: 8px; min-width: 180px; }
+.report-page-turner a:last-child { margin-left: auto; text-align: right; }
+.report-page-turner a:hover { background: #f0f4e7; border-color: #bac9a6; }
+.report-page-turner small { font-size: 7px; letter-spacing: .1em; color: #8c9b7c; }
+.report-page-turner span { font-size: 12px; }
+.report-page .report-body { min-height: 340px; }
+@media (max-width: 760px) {
+ .research-breadcrumbs { margin-bottom: 22px; font-size: 10px; }
+ .research-page.progress-page { width: 90vw; }
+ .research-page .workspace-heading h1 { font-size: 32px; }
+ .research-page .workspace-heading p { font-size: 11px; }
+ .report-page-summary { padding: 24px 19px; gap: 12px; align-items: flex-start; }
+ .report-page-summary h2 { font-size: 26px; }
+ .report-page-summary p { font-size: 9px; }
+ .report-page-summary .report-export > summary { white-space: nowrap; padding: 9px; font-size: 8px; }
+ .report-page .report-navigation { top: 72px; overflow-x: auto; flex-wrap: nowrap; }
+ .report-page .report-navigation a { flex-shrink: 0; white-space: nowrap; }
+ .report-page-turner { gap: 10px; }
+ .report-page-turner a { min-width: 0; padding: 12px; }
+ .report-page-turner span { font-size: 10px; }
+ .research-queue-note { font-size: 10px; }
+}
+@media (prefers-reduced-motion: reduce) { .research-loading-line { animation: none; } }
