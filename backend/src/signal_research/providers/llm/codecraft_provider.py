@@ -26,6 +26,14 @@ class CodeCraftTimeout(CodeCraftError):
     code = 'CODECRAFT_TIMEOUT'
 
 
+class CodeCraftUnavailable(CodeCraftError):
+    """An explicit rejection, distinct from an uncertain transport response."""
+    def __init__(self, status):
+        self.http_status = status
+        self.code = f'CODECRAFT_HTTP_{status}'
+        super().__init__(f'CodeCraft explicitly rejected the request (HTTP {status})')
+
+
 class CodeCraftCreditsExhausted(CodeCraftError):
     """Explicit HTTP 402 rejection, distinct from throttling or uncertain work."""
     code = "CODECRAFT_CREDITS_EXHAUSTED"
@@ -116,6 +124,8 @@ class CodeCraftProvider(LLMProvider):
                     if response.status_code != 200:
                         if response.status_code == 402:
                             raise CodeCraftCreditsExhausted("CodeCraft token allowance and balance exhausted (HTTP 402)")
+                        if response.status_code in {401, 403, 404, 429, 503}:
+                            raise CodeCraftUnavailable(response.status_code)
                         explanations = {401: "authentication failed", 403: "access denied",
                                         404: "model unavailable", 429: "rate or quota limit reached"}
                         detail = explanations.get(response.status_code, "request failed")

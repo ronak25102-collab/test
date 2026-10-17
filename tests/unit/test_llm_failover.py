@@ -170,7 +170,7 @@ def test_exhausted_primary_is_skipped_for_new_payloads_and_other_model_role(pipe
     assert sent == ['primary-test', 'backup-one-test', 'backup-one-test']
 
 
-@pytest.mark.parametrize('status', [400, 401, 403, 404, 429, 500, 503])
+@pytest.mark.parametrize('status', [400, 500])
 def test_rate_access_and_provider_errors_never_rotate_keys(pipeline, monkeypatch, status):
     sent = install_http(monkeypatch, lambda _: httpx.Response(status))
     with pytest.raises(CodeCraftError):
@@ -179,6 +179,20 @@ def test_rate_access_and_provider_errors_never_rotate_keys(pipeline, monkeypatch
         pipeline.model(Result, {})
     assert sent == ['primary-test']
     assert pipeline.budget.model_calls == 1 and pipeline.budget.output_tokens > 0
+
+
+@pytest.mark.parametrize('routing', ['sequential', 'balanced'])
+@pytest.mark.parametrize('status', [401, 403, 404, 429, 503])
+def test_explicit_rejections_fail_over_without_repeating_or_claiming_exhausted_credits(pipeline, monkeypatch, routing, status):
+    pipeline.settings.codecraft_key_routing = routing
+    sent = install_http(monkeypatch, lambda key: httpx.Response(status) if key == 'primary-test' else codecraft_success())
+    assert pipeline.model(Result, {'operation': 'first'}).value == 42
+    assert pipeline.model(Result, {'operation': 'first'}).value == 42
+    assert sent == ['primary-test', 'backup-one-test']
+    records = pipeline.store.provider_calls(pipeline.run_id)
+    assert records[0]['status'] == f'rejected_http_{status}'
+    assert not any(a['kind'].startswith('exhausted:') for a in pipeline.store.artifacts(pipeline.run_id))
+    assert not pipeline._active_credentials
 
 
 @pytest.mark.parametrize('finish', ['stop', 'length'])

@@ -71,8 +71,9 @@ def live_fixture(store, tmp_path, monkeypatch, *, refuted=False, reject_claim=Fa
         elif schema.__name__ == "FactReview":
             if p.get('candidates') and 'text' in p['candidates'][0]:
                 return schema(verdicts=[{'index': 0, 'supported': True, 'reason': 'Rewrite preserves the reviewed arithmetic.'}]), type('Usage', (), {'input_tokens': 100, 'output_tokens': 100})()
-            assert [c["index"] for c in p["candidates"]] == list(range(4))
-            output = schema(verdicts=[{"index": 0 if duplicate_review else i, "supported": True, "reason": "Exact cell/date/entity/scope/scale binding matched"} for i in range(4)])
+            count = len(p['candidates'])
+            assert [c["index"] for c in p["candidates"]] == list(range(count))
+            output = schema(verdicts=[{"index": 0 if duplicate_review else i, "supported": True, "reason": "Exact cell/date/entity/scope/scale binding matched"} for i in range(count)])
         elif schema.__name__ == "HypothesisBatch":
             output = schema(candidates=[{"statement": "Advances outpaced deposits", "mechanism": "Balance expansion may change the funding mix", "fact_ids": [f["id"] for f in p["facts"]], "calculation_ids": [c["id"] for c in p["calculations"]], "next_query": "HDFC Bank funding mix disclosures", "opposing_query": "HDFC Bank reclassification acquisition funding growth alternative", "falsification": "A comparable reversal of the growth gap", "significance": 4, "novelty": 3}], missing_evidence=[])
         elif schema.__name__ == 'CurrentReconciliation':
@@ -313,7 +314,9 @@ def test_invalid_top_ranked_candidates_do_not_hide_a_valid_lower_ranked_candidat
     ResearchMachine(store, settings).process(run_id)
     report = verify_report(store.get_report(run_id))
     assert report.discoveries
-    assert len(report.generation_metadata['research_decisions']) == 2
+    decisions = report.generation_metadata['research_decisions']
+    assert len([d for d in decisions if d['disposition'] == 'withheld']) == 2
+    assert len([d for d in decisions if d['published']]) == 1
     assert len(report.generation_metadata['challenge_reviews']) == 1
 
 
@@ -749,6 +752,50 @@ def test_empty_search_and_inaccessible_sources_abstain_without_model_or_dummy_da
     assert report.abstention and not report.facts and not report.discoveries
     assert calls['model'] == 0
     assert any('Controlled inaccessible source' in item for item in report.limitations)
+
+
+def test_angle_planning_starts_before_slow_peer_collection_finishes(store, tmp_path, monkeypatch):
+    from threading import Event
+
+    from signal_research.research.live import LiveResearch
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    peer_started, planning_started, overlapped = Event(), Event(), Event()
+    peers, planning = LiveResearch.collect_peer_benchmark, LiveResearch.angle_hypotheses
+    def slow_peers(self, hypothesis):
+        if not self.peer_collection_attempted:
+            peer_started.set()
+            assert planning_started.wait(timeout=5), 'Planner must not wait for this peer'
+            overlapped.set()
+        return peers(self, hypothesis)
+    def plan(self, payload):
+        assert peer_started.wait(timeout=5)
+        planning_started.set()
+        return planning(self, payload)
+    monkeypatch.setattr(LiveResearch, 'collect_peer_benchmark', slow_peers)
+    monkeypatch.setattr(LiveResearch, 'angle_hypotheses', plan)
+    ResearchMachine(store, settings).process(run_id)
+    assert overlapped.is_set()
+    assert verify_report(store.get_report(run_id)).discoveries
+
+
+def test_composition_timeout_preserves_the_actual_candidate_without_publishing_it(store, tmp_path, monkeypatch):
+    from signal_research.providers.llm.codecraft_provider import CodeCraftTimeout
+    settings, run_id, _ = live_fixture(store, tmp_path, monkeypatch)
+    generate = OpenAIProvider.generate
+    def timeout_draft(self, schema, *args, **kwargs):
+        if schema.__name__ == 'DiscoveryDraft':
+            raise CodeCraftTimeout('Controlled timeout after challenge, without a real API request')
+        return generate(self, schema, *args, **kwargs)
+    monkeypatch.setattr(OpenAIProvider, 'generate', timeout_draft)
+    ResearchMachine(store, settings).process(run_id)
+    report = verify_report(store.get_report(run_id))
+    assert report.outcome.value == 'partial'
+    assert not report.discoveries
+    candidate = report.generation_metadata['best_candidate']
+    assert candidate['text'] == 'Advances outpaced deposits'
+    assert candidate['label'] == 'Not established'
+    assert 'must finish before publication' in candidate['reason']
+    assert any('timed out' in reason for reason in candidate['missing'])
 
 
 def test_malformed_pdf_is_reported_without_silent_synthetic_substitution(store, tmp_path, monkeypatch):

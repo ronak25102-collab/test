@@ -10,6 +10,9 @@ agents, extra user action or separate application is required.
   state. Only the coordinator merges reviewed results and removes conflicts.
 - **Peer researchers** retrieve and verify comparable observations for selected
   peers concurrently. Their facts remain separate from the target company's facts.
+  They start alongside optional issuer history, using the complete classified
+  exchange directory rather than the search box's 20-result autocomplete slice.
+  Requested metrics, scope and period endpoints are bounded to the comparison.
 - **Supporting-source and counter-evidence researchers** search concurrently.
   Search results remain unverified leads until original passages are checked.
 - **Angle planners** explore applicable metric groups in parallel. Each receives
@@ -44,7 +47,10 @@ usable capacity; keys belonging to one account may share quota and rate limits.
 ## Failure handling and limits
 
 - Explicit CodeCraft HTTP 402 permits the configured authorized fallback route.
-  HTTP 429, access errors and uncertain timeouts do not trigger key rotation.
+  Explicit 401/403/404/429/503 rejections also permit the next authorized route.
+  Their actual HTTP status is retained separately from credit exhaustion. Rejected
+  routes are skipped for the rest of this run; reservations remain conservative.
+  Generic 400/500 errors, malformed output and uncertain timeouts do not rotate.
 - An uncertain billed operation stays pinned and is never silently resent.
 - Each agent obeys the same run deadline, cost and token budget. A failed page or
   unavailable peer does not discard other independently verified results.
@@ -52,6 +58,10 @@ usable capacity; keys belonging to one account may share quota and rate limits.
   every fact from that document, including facts returned by another worker.
 - Numerical hypothesis repair is skipped when it would spend the protected final
   review window. Unsupported output still cannot publish.
+- Live runs reserve separate windows for challenge, composition and independent
+  verification at the actual request boundary. Optional page agents inherit
+  their parent's reserve. Database event sequencing is serialized across workers
+  and API processes, preventing concurrent progress events from aborting a run.
 
 There is no zero-failure guarantee. Provider latency, exhausted credits, blocked
 sources and genuinely insufficient evidence can still produce a Partial or

@@ -33,7 +33,7 @@ def issuer_cover_identity(text: str, company) -> bool:
     compact_target = re.sub(r'[^a-z0-9]', '', target)
     for line in text.splitlines():
         # An exact issuer signature is authorship, unlike a passing mention.
-        line = re.sub(r'^\s*For\s+', '', line, flags=re.I)
+        line = re.sub(r'^\s*(?:For\s+|To\s+(?:the\s+)?(?:Members|Board\s+of\s+Directors)\s+of\s+)', '', line, flags=re.I)
         if normalize_name(line) == target:
             return True
         # Font letter spacing and concatenated legal suffixes can affect headings.
@@ -47,7 +47,7 @@ def issuer_cover_identity(text: str, company) -> bool:
 
 def structured_issuer_identity(text, company):
     """Exact owner and symbol cells in an exchange financial filing."""
-    names = re.findall(r'^Name of (?:the )?company\s*\|\s*(.+)$', text, re.I | re.M)
+    names = re.findall(r'^Name of (?:the )?(?:company|bank)\s*\|\s*(.+)$', text, re.I | re.M)
     symbols = re.findall(r'^NSE Symbol\s*\|\s*(\S+)\s*$', text, re.I | re.M)
     return (bool(names) and all(normalize_name(name) == normalize_name(company.legal_name) for name in names)
             and bool(symbols) and all(symbol.upper() in company.symbols for symbol in symbols))
@@ -107,6 +107,12 @@ def multiple_issuer_headings(text: str, company_name: str = '') -> bool:
     names = set()
     addressees = {'bse', 'national stock exchange', 'national stock exchange of india'}
     for line in text.splitlines():
+        # Listing recipients can share a PDF line. They are not two issuers;
+        # remove only complete exchange addressees, never another company name.
+        recipients = re.sub(r'\b(?:National\s+Stock\s+Exchange(?:\s+of\s+India)?|BSE)\s+(?:Limited|Ltd\.?)\b',
+                            '', line, flags=re.I)
+        if recipients != line and not recipients.strip(' ,;|\t'):
+            continue
         match = re.fullmatch(r'\s*(?:For\s+)?([A-Za-z0-9&.,() /-]{2,100}\b(?:Limited|Ltd\.?))\s*', line, re.I)
         if not match:
             continue

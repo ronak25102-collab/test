@@ -53,6 +53,16 @@ def test_exchange_columns_keep_quarter_and_year_separate_and_convert_lakhs():
     assert source_origin('https://broker.example/filing.html', target, '', text)[2] == 'public_context'
 
 
+def test_banking_exchange_identity_uses_the_explicit_bank_name_and_symbol():
+    target = company()
+    raw = filing().replace(b'Name of company', b'Name of bank')
+    parsed = parse_html(uuid4(), raw)
+    assert len(parsed.passages) == 2
+    assert structured_issuer_identity('\n'.join(p.text for p in parsed.passages), target)
+    foreign = parse_html(uuid4(), raw.replace(b'Quartz Financial Services Limited', b'Different Bank Limited'))
+    assert not structured_issuer_identity('\n'.join(p.text for p in foreign.passages), target)
+
+
 @pytest.mark.parametrize('name,symbol', [('Different Financial Limited', 'QFS'),
                                        ('Quartz Financial Services Limited', 'OTHER')])
 def test_other_issuer_or_symbol_cannot_supply_facts(name, symbol):
@@ -80,6 +90,9 @@ def test_exact_issuer_signature_is_accepted_but_passing_mentions_are_not():
     target = company()
     assert issuer_cover_identity('For Quartz Financial Services Limited', target)
     assert not issuer_cover_identity('We reviewed Quartz Financial Services Limited results', target)
+    assert issuer_cover_identity('To the Members of Quartz Financial Services Limited', target)
+    assert issuer_cover_identity('To the Board of Directors of Quartz Financial Services Limited', target)
+    assert not issuer_cover_identity('Report to the Members of Different Finance Limited mentions Quartz Financial Services Limited', target)
 
 
 def test_identical_quarter_and_ytd_columns_are_deduplicated():

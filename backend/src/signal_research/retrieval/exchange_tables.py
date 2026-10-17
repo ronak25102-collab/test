@@ -26,7 +26,8 @@ def exchange_table_passages(document_id, soup):
         if key in general and general[key] != value:
             return []  # Contradictory company/currency metadata is not a binding.
         general[key] = value
-    name = general.get('name of company') or general.get('name of the company')
+    name = (general.get('name of company') or general.get('name of the company')
+            or general.get('name of bank') or general.get('name of the bank'))
     symbol = general.get('nse symbol')
     currency = general.get('description of presentation currency', '')
     rounding = general.get('level of rounding used in financial results', '')

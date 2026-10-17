@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from signal_research.domain.enums import Profile
@@ -14,5 +15,11 @@ class PeerSelection:
 
 def select_peers(target: Company, candidates: list[Company], profile: Profile, limit: int = 3) -> PeerSelection:
     eligible = [candidate for candidate in candidates if candidate.id != target.id and "SYNTHBANK" not in candidate.symbols and profile in candidate.business_profiles]
-    peers = tuple(sorted(eligible, key=lambda c: (not bool(c.verified_ir_domains), c.legal_name))[:limit])
-    return PeerSelection(peers, tuple(f"same routed profile: {profile.value}" for _ in peers))
+    def specialization(company):
+        # Legal-name classifications are generic directory attributes, never
+        # a hand-picked ticker list. Prefer comparable business models first.
+        return next((label for label in ('small finance', 'payments', 'regional rural', 'housing finance')
+                     if re.search(r'\b' + label + r'\b', company.legal_name, re.I)), 'general')
+    peers = tuple(sorted(eligible, key=lambda c: (
+        specialization(c) != specialization(target), not bool(c.verified_ir_domains), c.legal_name))[:limit])
+    return PeerSelection(peers, tuple(f"same routed profile: {profile.value}; business model: {specialization(c)}" for c in peers))

@@ -123,6 +123,12 @@ class Store:
             matches.sort(key=lambda r: (lowered not in [s.lower() for s in r.symbols], r.legal_name))
             return [company_schema(row) for row in matches[:20]]
 
+    def peer_candidates(self, profile) -> list[Company]:
+        """The complete classified directory, independent of autocomplete limits."""
+        with self.session_factory() as session:
+            rows = session.scalars(select(CompanyModel).order_by(CompanyModel.legal_name)).all()
+            return [company_schema(row) for row in rows if profile.value in (row.business_profiles or [])]
+
     def snapshot_age_days(self, source_url=None) -> int | None:
         with self.session_factory() as session:
             query = select(UniverseSnapshotModel)
@@ -219,6 +225,12 @@ class Store:
             return run_id
 
     def _add_event(self, session, run_id: str, stage: str, event_type: str, summary: str, error_code: str | None = None) -> None:
+        # Acquire the run's write lock before reading its last sequence. This
+        # serializes both runtime-agent threads and independent processes on
+        # SQLite/PostgreSQL; a Python-only mutex would not protect API writers.
+        session.execute(update(ResearchRunModel).where(ResearchRunModel.id == run_id)
+                        .values(fencing_token=ResearchRunModel.fencing_token))
+        session.flush()
         latest = session.scalar(select(RunEventModel).where(RunEventModel.run_id == run_id).order_by(RunEventModel.sequence.desc()))
         sequence = (latest.sequence + 1) if latest else 1
         session.add(RunEventModel(run_id=run_id, sequence=sequence, stage=stage, event_type=event_type, public_summary=summary, error_code=error_code))

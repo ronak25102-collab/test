@@ -19,6 +19,7 @@ from signal_research.domain.enums import (
     ResearchOutcome,
     VerificationStatus,
 )
+from signal_research.domain.errors import BudgetExceeded
 from signal_research.domain.schemas import (
     Calculation,
     Claim,
@@ -270,6 +271,14 @@ def derive_calculations(facts):
                 if current.unit_normalized == 'percent':
                     add('change_bps', [current, prior])
                 pairs.append((current, prior))
+        # Sparse history can still contain a valid adjacent quarter. A missing
+        # intervening year must not suppress reproducible sequential arithmetic.
+        for prior, current in zip(values, values[1:]):
+            if (prior.period_end and current.period_end
+                    and 70 <= (current.period_end - prior.period_end).days <= 110):
+                add('change_pp' if current.unit_normalized == 'percent' else 'period_change', [current, prior])
+                if current.unit_normalized == 'percent':
+                    add('change_bps', [current, prior])
     growth_relationships = {
         ('gross_advances', 'deposits'), ('advances_as_reported', 'deposits'),
         ('net_advances', 'deposits'), ('borrowings', 'deposits'),
@@ -316,12 +325,6 @@ def derive_calculations(facts):
         if len(complete) > 2:
             prior, current = complete[0][1], complete[-1][1]
             add('deposit_borrowing_mix_change', [current['deposits'], current['borrowings'], prior['deposits'], prior['borrowings']])
-    for series in comparable_series(facts):
-        if series['cadence'] == 'quarterly':
-            by_id = {f.id: f for f in facts}
-            ordered = [by_id[o['fact_id']] for o in series['observations']]
-            for prior, current in zip(ordered, ordered[1:]):
-                add('change_pp' if current.unit_normalized == 'percent' else 'period_change', [current, prior])
     return results
 
 
@@ -332,6 +335,13 @@ class LiveResearch:
         self.calls = DurableCalls(self.store, self.settings, run_id, budget)
         summary = self.store.get_summary(run_id)
         self.is_deep = bool(summary and summary.mode.value == 'deep')
+        self.calls.stage_deadline_reserves = {
+            'extracting': self.investigation_reserve(),
+            'normalizing': self.investigation_reserve(),
+            'hypothesizing': self.investigation_reserve(),
+            'challenging': self.publication_reserve(),
+            'composing': self.verification_reserve(),
+        }
         self.documents, self.passages, self.facts, self.calculations = [], [], [], []
         self.seen_urls, self.extracted, self.queries, self.limitations = set(), set(), [], []
         self.source_titles = []
@@ -350,6 +360,19 @@ class LiveResearch:
         self.peer_mode = False
         self.now_check = {'status': 'not_checked', 'passage_ids': [], 'reason': 'Current reconciliation review has not completed.'}
         self.peer_benchmark = {'status': 'inconclusive', 'comparisons': [], 'missing': ['Peer collection not completed.']}
+        self.peer_collection_attempted = False
+
+    def verification_reserve(self):
+        duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
+        return min(self.settings.stage_request_seconds.get('verifying', 40), duration * .15)
+
+    def publication_reserve(self):
+        duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
+        return min(sum(self.settings.stage_request_seconds.get(s, 40) for s in ('composing', 'verifying')),
+                   duration * .35)
+
+    def investigation_reserve(self):
+        return self.publication_reserve() + self.settings.stage_request_seconds.get('challenging', 35)
 
     def time_reserve(self, seconds):
         """Scale stage allowances to the configured total research deadline."""
@@ -615,6 +638,12 @@ class LiveResearch:
         self.calls.deadline_reserve_seconds = self.extraction_deadline_reserve
         try:
             return self.calls.model(schema, payload, *args)
+        except BudgetExceeded as exc:
+            if 'less than five seconds' not in str(exc):
+                raise
+            self.extraction_paused = True
+            self.limitations.append('Additional extraction deferred at its protected deadline; final research review retains its allowance.')
+            return None
         except (CodeCraftTimeout, NvidiaTimeout) as exc:
             if not self.facts:
                 raise
@@ -668,6 +697,10 @@ class LiveResearch:
         profile = self.company.business_profiles[0]
         metrics = metrics_for_profile(profile)
         focus = [metric for metric in metrics if metric.key in focus_metrics]
+        if self.peer_mode and focus:
+            # Peer requests must finish the exact comparison, not enumerate
+            # every financial metric in an annual report until JSON truncates.
+            metrics = focus
         def focus_score(passage):
             return sum(bool(re.search(r'\b' + re.escape(alias) + r'\b', passage.text, re.I))
                        for metric in focus for alias in (*metric.aliases, metric.key.replace('_', ' ')))
@@ -757,6 +790,8 @@ class LiveResearch:
             if batch is None:
                 dates = sorted(set(source_dates(passage.text)) | {period for _, period in month_end_columns(passage.text)}
                                | {p['period_end'] for p in abbreviated_quarter_periods(passage.text)})
+                if self.peer_mode and getattr(self, 'preferred_periods', None):
+                    dates = [d for d in dates if d in self.preferred_periods]
                 batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "source_period_columns": [{"label": label, "period_end": str(period)} for label, period in month_end_columns(passage.text)],
                                       "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text), *abbreviated_quarter_periods(passage.text)],
@@ -765,11 +800,15 @@ class LiveResearch:
                                       "research_focus_metrics": list(focus_metrics),
                                       "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in metrics],
                                       "passage_text": passage.text}, "extract", "extracting",
-                                      extraction_instruction(profile) + " Prefer research_focus_metrics where supplied, including their comparative periods, before unrelated balance rows. Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
+                                      extraction_instruction(profile) + " Return compact JSON only: no reasoning narrative or evidence_quote. Prefer research_focus_metrics where supplied, including their comparative periods, before unrelated balance rows. Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
                 if batch is None:
                     batch = ExtractedFactBatch(notes=['Incomplete extraction response; no candidates accepted.'])
             accepted, candidates, rejected = [], [], []
             for candidate in batch.facts:
+                if self.peer_mode and (candidate.metric_key not in {m.key for m in metrics}
+                        or (getattr(self, 'preferred_periods', None) and candidate.period_end not in self.preferred_periods)
+                        or (getattr(self, 'preferred_scope', None) and candidate.scope.value != self.preferred_scope)):
+                    continue
                 validation = validate_candidate(candidate, passage, self.company.id, profile)
                 if validation.fact and validation.fact.period_end <= self.cutoff:
                     accepted.append(validation.fact)
@@ -860,6 +899,13 @@ class LiveResearch:
             worker = LiveResearch(self.machine, self.run_id, self.company.model_copy(deep=True),
                                   self.cutoff, self.budget, settings=self.settings)
             worker.peer_mode = True
+            if historical or focus_metrics:
+                # The child skips issuer checkpoint writes, but it must retain
+                # the parent's optional-work deadline, not the shorter peer one.
+                reserve = self.analysis_reserve()
+                for stage in ('extracting', 'normalizing'):
+                    worker.calls.stage_deadline_reserves[stage] = max(
+                        worker.calls.stage_deadline_reserves[stage], reserve)
             worker.documents = [d.model_copy(deep=True) for d in self.documents]
             worker.passages = [p.model_copy(deep=True) for p in self.passages]
             worker.extracted = set(self.extracted)
@@ -997,7 +1043,8 @@ class LiveResearch:
         report.generation_metadata['cache_usage'] = {'cold_start': self.settings.cold_start, 'reused': sum(str(f.id) in reused_ids for f in self.facts), 'fresh': sum(str(f.id) not in reused_ids for f in self.facts)}
         report.generation_metadata['structural_breaks'] = self.structural_breaks
         report.generation_metadata['peer_benchmark'] = self.peer_benchmark
-        best = max(self.decisions, key=lambda d: d.get('score', 0), default=None)
+        # A later review supersedes the earlier in-progress entry at equal rank.
+        best = max(reversed(self.decisions), key=lambda d: d.get('score', 0), default=None)
         report.generation_metadata['best_candidate'] = {
             'label': 'Not established', 'text': best['candidate'] if best and supported_percentages(best['candidate'], self.facts, self.calculations)
             else f'Can comparable verified operating figures establish a non-obvious relationship for {self.company.legal_name}?',
@@ -1041,6 +1088,9 @@ class LiveResearch:
                     'proposed_falsification': hypothesis.falsification,
                     'opposing_query': hypothesis.opposing_query,
                     'label': 'Unverified research candidate; not a discovery'}
+        self.decisions = [previous for previous in self.decisions
+                          if (previous['candidate'], previous['fact_ids']) !=
+                             (decision['candidate'], decision['fact_ids'])]
         self.decisions.append(decision)
         self.store.artifact(self.run_id, 'research_decision', decision)
 
@@ -1136,7 +1186,7 @@ class LiveResearch:
             return
         observed = {f.metric_key for f in self.facts if f.metric_key in focus
                     and f.period_end and f.period_end >= self.cutoff - timedelta(days=400)}
-        if len(observed) >= 3 and self.angle_evidence_ready():
+        if self.angle_evidence_ready() and (not getattr(self, 'is_deep', False) or len(observed) >= 3):
             return
         self.stage('extracting', 'Seeking asset quality, funding composition and operating economics beyond headline growth')
         self.extract(limit=2, focus_metrics=focus)
@@ -1184,7 +1234,7 @@ class LiveResearch:
 
     def recover_context(self, hypothesis, force=False):
         """Search original independent reports before giving up on a candidate."""
-        if self.budget.search_calls >= self.budget.max_search_calls or self.budget.fetch_documents >= self.budget.max_fetch_documents or self.budget.remaining_seconds() <= self.time_reserve(120):
+        if self.budget.search_calls >= self.budget.max_search_calls or self.budget.fetch_documents >= self.budget.max_fetch_documents or self.budget.remaining_seconds() <= self.investigation_reserve() + 15:
             return
         context_texts = [" ".join(p.text.lower() for p in self.passages if p.document_id == d.id)
                          for d in self.documents if d.document_type == "public_context" and d.cutoff_eligibility == "eligible"]
@@ -1197,7 +1247,7 @@ class LiveResearch:
         query = self.focused_query(hypothesis.next_query) + f' rating rationale {self.cutoff.year}'
         hits = self.search(query, domains)
         self.stage("fetching", "Retrieving independent rating reports within the remaining source budget")
-        self.ingest(hits[:3], time_reserve=self.time_reserve(120), parse_limit=25)
+        self.ingest(hits[:2], time_reserve=self.investigation_reserve(), parse_limit=15)
 
     def challenge(self, hypothesis):
         payload = self.payload(hypothesis) | {"hypothesis": hypothesis.model_dump(mode="json"), "opposing_query": hypothesis.opposing_query}
@@ -1287,7 +1337,18 @@ class LiveResearch:
     def collect_peer_benchmark(self, hypothesis):
         selected = set(hypothesis.fact_ids) | {i for c in self.calculations if c.id in hypothesis.calculation_ids for i in c.input_fact_ids}
         facts = [f for f in self.facts if f.id in selected]
-        peers = select_peers(self.company, self.store.search_companies(''), self.company.business_profiles[0])
+        from signal_research.research.peers import comparison_targets
+        facts = comparison_targets(facts)
+        if self.peer_collection_attempted:
+            # Recompute on the current reviewed issuer state, never a stale
+            # candidate, and never repeat the same expensive peer collection.
+            from signal_research.domain.schemas import Fact
+            observations = [Fact.model_validate(f) for b in self.peer_benchmark.get('sources', []) for f in b['facts']]
+            self.peer_benchmark = self.peer_benchmark | compare_peers(facts, observations)
+            self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
+            return
+        self.peer_collection_attempted = True
+        peers = select_peers(self.company, self.store.peer_candidates(self.company.business_profiles[0]), self.company.business_profiles[0])
         from signal_research.research.agents import run_research_agents
         observations, bundles, errors = [], [], []
         def collect(peer):
@@ -1296,15 +1357,28 @@ class LiveResearch:
             from signal_research.research.peers import peer_search_query
             scopes = {f.scope.value for f in facts}
             research.preferred_scope = next(iter(scopes)) if len(scopes) == 1 else None
-            hits = research.search(peer_search_query(peer, facts), peer.verified_ir_domains or None)
-            if not hits and self.budget.remaining_seconds() > self.time_reserve(180):
+            research.preferred_periods = {f.period_end for f in facts if f.period_end}
+            # A scope plus three row labels can exclude the correct release
+            # from a web index. Retrieve broad original results; exact scope,
+            # periods and metrics are enforced by extraction, never search.
+            queries = [(peer_search_query(peer, facts, broad=True), peer.verified_ir_domains or None)]
+            if peer.isin:
+                queries.insert(0, (exchange_results_query(peer), ['nsearchives.nseindia.com']))
+            leads = research.search_many(queries)
+            hits = [hit for items in leads for hit in items
+                    if issuer_named(hit.title + ' ' + hit.snippet, peer)
+                    or any(domain_matches(urlparse(hit.url).hostname or '', d) for d in peer.verified_ir_domains)]
+            hits.sort(key=lambda hit: (
+                any(domain_matches(urlparse(hit.url).hostname or '', d) for d in peer.verified_ir_domains),
+                bool(re.search(r'\.pdf(?:[/?#]|$)', hit.url, re.I))), reverse=True)
+            if not hits and self.budget.remaining_seconds() > self.investigation_reserve() + 30:
                 hits = research.search(peer_search_query(peer, facts, broad=True), peer.verified_ir_domains or None)
-            research.ingest(hits[:2], time_reserve=self.time_reserve(150), parse_limit=25)
+            research.ingest(hits[:3], time_reserve=self.investigation_reserve(), parse_limit=20)
             research.extract(limit=1, focus_metrics=tuple({f.metric_key for f in facts}))
             return research
-        if self.budget.remaining_seconds() > self.time_reserve(180):
+        if self.budget.remaining_seconds() > self.investigation_reserve() + 30:
             results = run_research_agents([(f'Peer researcher · {peer.legal_name}', lambda peer=peer: collect(peer))
-                for peer in peers.peers], max_workers=self.settings.max_research_agents,
+                for peer in peers.peers], max_workers=max(1, min(2, self.settings.max_research_agents, self.settings.max_model_concurrency - 1)),
                 emit=lambda *args: self.agent_event(*args, stage='investigating'))
             for result in results:
                 if result.error:
@@ -1335,6 +1409,11 @@ class LiveResearch:
             queries[0] = (f'"{self.company.legal_name}" "financial results" {self.cutoff.year}', self.company.verified_ir_domains or None)
             if len(queries) > 1:
                 queries[1] = (f'"{self.company.legal_name}" "investor presentation" {self.cutoff.year}', self.company.verified_ir_domains or None)
+            # Long legal names may not appear in indexed presentation titles.
+            # The exchange symbol is an alternative retrieval lead only; full
+            # source-owned identity remains mandatory before any fact is used.
+            queries.append((f'"{self.company.symbols[0]}" "investor presentation" {self.cutoff.year}',
+                            self.company.verified_ir_domains or None))
         profile = self.company.business_profiles[0]
         if not self.company.verified_ir_domains:
             # Identity evidence comes from the exchange, not a guessed web domain.
@@ -1345,7 +1424,7 @@ class LiveResearch:
         if queries and profile.value == "bank":
             queries[0] = (f'"{self.company.legal_name}" financial results standalone deposits advances {self.cutoff.year}', self.company.verified_ir_domains or None)
         regulator = "RBI" if profile.value in {"bank", "nbfc"} else "IRDAI" if "insurer" in profile.value else "SEBI"
-        peers = select_peers(self.company, self.store.search_companies(""), profile)
+        peers = select_peers(self.company, self.store.peer_candidates(profile), profile)
         context_query = (f'"{self.company.legal_name}" "rating rationale" funding {self.cutoff.year}'
                          if profile.value in {'bank', 'nbfc'} else
                          f'"{self.company.legal_name}" {regulator} {CONTEXT_TERMS[profile]} sector context')
@@ -1414,22 +1493,47 @@ class LiveResearch:
                 requirement = "verified issuer facts with complete metric, value, period, unit and scope bindings" if eligible_issuer else "an accessible official financial disclosure with verified issuer identity and reporting periods"
                 return self.abstain([requirement])
             return self.abstain(["comparable verified facts for a relevant registered calculation"])
-        self.collect_operating_metrics()
-        self.collect_quarters()
-        self.collect_history()
-        self.collect_sector_context(peers)
-        self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
-        if any(b['status'].startswith('suspected') for b in self.structural_breaks) and self.budget.remaining_seconds() > self.analysis_reserve():
-            event_hits = self.search(self.focused_query('merger amalgamation acquisition scheme of arrangement reclassification restatement filings'), self.company.verified_ir_domains or None)
-            self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=self.peer_document_reserve())
+        # Start peer verification as soon as comparable issuer facts exist.
+        # Its isolated state cannot mutate the issuer's reviewed fact store.
+        from concurrent.futures import ThreadPoolExecutor
+        from copy import deepcopy
+        from types import SimpleNamespace
+        peer_research = LiveResearch(self.machine, self.run_id, self.company, self.cutoff, self.budget, settings=self.settings)
+        peer_research.facts, peer_research.calculations = deepcopy(self.facts), deepcopy(self.calculations)
+        from signal_research.research.planning import angle_planning_payload
+        ready_angles = route_angles(self.company, self.facts, self.calculations)
+        if ready_angles:
+            scoped = angle_planning_payload(self.payload(compact=True), ready_angles[0])
+            selected_ids = {str(f['id']) for f in scoped['facts']}
+            peer_research.facts = [f for f in peer_research.facts if str(f.id) in selected_ids]
+        with ThreadPoolExecutor(max_workers=1) as pool:
+            peer_future = pool.submit(peer_research.collect_peer_benchmark,
+                SimpleNamespace(fact_ids=[f.id for f in self.facts], calculation_ids=[c.id for c in self.calculations]))
+            self.collect_operating_metrics()
+            self.collect_quarters()
+            self.collect_history()
+            self.collect_sector_context(peers)
             self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
-        self.store.artifact(self.run_id, 'structural_breaks', {'events': self.structural_breaks})
-        self.calculations.extend(c for c in recovery_calculations(self.facts, self.structural_breaks) if c.id not in {v.id for v in self.calculations})
-        if not self.calculations:
-            return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
-        self.stage("hypothesizing", "Generating and ranking observation-led mechanisms within comparable reporting boundaries")
-        payload = self.payload(compact=True)
-        batch = self.angle_hypotheses(payload)
+            if any(b['status'].startswith('suspected') for b in self.structural_breaks) and self.budget.remaining_seconds() > self.analysis_reserve():
+                event_hits = self.search(self.focused_query('merger amalgamation acquisition scheme of arrangement reclassification restatement filings'), self.company.verified_ir_domains or None)
+                self.ingest(event_hits[:2], time_reserve=self.analysis_reserve(), parse_limit=15, document_reserve=self.peer_document_reserve())
+                self.structural_breaks = detect_breaks(self.facts, self.passages, self.documents)
+            self.store.artifact(self.run_id, 'structural_breaks', {'events': self.structural_breaks})
+            self.calculations.extend(c for c in recovery_calculations(self.facts, self.structural_breaks) if c.id not in {v.id for v in self.calculations})
+            if not self.calculations:
+                return self.abstain(['comparable verified arithmetic after historical-source reconciliation'])
+            # Peer collection must overlap planning too. Waiting for a slow
+            # peer first can consume the planner's entire protected allowance.
+            self.stage("hypothesizing", "Generating comparable research angles while peer verification continues")
+            payload = self.payload(compact=True)
+            batch = self.angle_hypotheses(payload)
+            try:
+                peer_future.result()
+                self.peer_benchmark = peer_research.peer_benchmark
+                self.peer_collection_attempted = peer_research.peer_collection_attempted
+            except Exception as exc:
+                self.peer_collection_attempted = True
+                self.limitations.append(f'Parallel peer collection incomplete ({type(exc).__name__}); missing comparison is disclosed.')
         self.store.artifact(self.run_id, "hypotheses", batch.model_dump(mode="json"))
         report = self.investigate_candidates(batch)
         if report:
@@ -1496,6 +1600,8 @@ class LiveResearch:
                 continue
             iteration = investigated
             investigated += 1
+            self.record_decision(hypothesis, 'investigating',
+                'The source-bound candidate is awaiting counterargument and independent publication review; it is not an established discovery.')
             self.collect_peer_benchmark(hypothesis)
             self.stage("investigating", f"Following candidate {iteration + 1} with a targeted evidence query")
             from signal_research.research.agents import run_research_agents
@@ -1511,8 +1617,9 @@ class LiveResearch:
             self.stage("fetching", "Retrieving targeted supporting and opposing sources")
             previous_documents = {d.id for d in self.documents}
             previously_revalidated = set(self.revalidated_documents)
-            self.ingest([*opposing[:3], *followup[:3]], time_reserve=self.time_reserve(120), parse_limit=25)
-            self.extract(limit=1, preferred_document_ids=({d.id for d in self.documents} - previous_documents) | (self.revalidated_documents - previously_revalidated))
+            self.ingest([*opposing[:2], *followup[:2]], time_reserve=self.investigation_reserve(), parse_limit=15)
+            if self.budget.remaining_seconds() > self.analysis_reserve():
+                self.extract(limit=1, preferred_document_ids=({d.id for d in self.documents} - previous_documents) | (self.revalidated_documents - previously_revalidated))
             if not self.current_candidate(hypothesis):
                 continue
             self.recover_context(hypothesis)
@@ -1563,6 +1670,9 @@ class LiveResearch:
                 self.limitations.append('Candidate did not establish additional supported synthesis beyond reported results or published explanations.')
                 continue
             self.stage("composing", "Drafting all eight required discovery fields from verified artifacts")
+            self.record_decision(hypothesis, 'awaiting_publication_review',
+                'Counterargument review retained the qualified candidate, but drafting and independent final verification must finish before publication.',
+                challenge.relevant_passage_ids)
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
             draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write exactly one plain-English, qualified discovery sentence of at most 35 words, naming the entity, the change, one or two verified key numbers with units, and the observed time span; then 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
@@ -1732,6 +1842,13 @@ class LiveResearch:
         if current_check:
             report.generation_metadata['falsification_tests']['conditions'][-1]['claim_id'] = str(claims[-2].id)
         report.generation_metadata['timeline_story'] = timeline_story(self.facts, self.calculations, self.passages, self.documents, self.structural_breaks)
+        for decision in reversed(self.decisions):
+            if decision['disposition'] == 'awaiting_publication_review':
+                decision.update(disposition='published', published=True,
+                    reason='The qualified discovery completed independent semantic and numerical review.',
+                    label='Published after independent review')
+                break
+        report.generation_metadata['research_decisions'] = self.decisions
         return attest_report(report)
 
     def write_plain_headline(self, report):

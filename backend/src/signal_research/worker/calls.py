@@ -9,7 +9,11 @@ from threading import Condition
 from time import monotonic, sleep
 
 from signal_research.providers.llm.base import ProviderNotConfigured
-from signal_research.providers.llm.codecraft_provider import CodeCraftCreditsExhausted
+from signal_research.providers.llm.codecraft_provider import (
+    CodeCraftCreditsExhausted,
+    CodeCraftError,
+    CodeCraftUnavailable,
+)
 from signal_research.providers.llm.factory import get_llm_provider
 from signal_research.providers.llm.gemini_provider import GeminiUnavailable
 from signal_research.providers.search.base import SearchHit
@@ -52,6 +56,9 @@ class DurableCalls:
             raise GeminiUnavailable(rejected[0]["payload"]["message"])
         if self.store.artifacts(self.run_id, f"rejected402:{identifier}"):
             raise CodeCraftCreditsExhausted("CodeCraft token allowance and balance exhausted (HTTP 402)")
+        access_rejection = self.store.artifacts(self.run_id, f'rejected_access:{identifier}')
+        if access_rejection:
+            raise CodeCraftUnavailable(access_rejection[0]['payload']['http_status'])
         if self.store.artifacts(self.run_id, f"reserved:{identifier}"):
             raise UncertainCall("A previous request may have been billed but has no durable result. It will not be repeated automatically; start a new run to retry it.")
         self.budget.check()
@@ -80,6 +87,9 @@ class DurableCalls:
             if isinstance(exc, CodeCraftCreditsExhausted):
                 self.store.artifact(self.run_id, f"rejected402:{identifier}", {"http_status": 402})
                 status = "rejected_http_402"
+            if isinstance(exc, CodeCraftUnavailable):
+                self.store.artifact(self.run_id, f'rejected_access:{identifier}', {'http_status': exc.http_status})
+                status = f'rejected_http_{exc.http_status}'
             self.store.record_provider_call(self.run_id, stage=stage, request_hash=digest, provider=str(key[0]), model=model, attempt=attempt, status=status, latency_ms=int((monotonic() - started) * 1000),
                 input_tokens=reported_usage.input_tokens if reported_usage else None,
                 output_tokens=reported_usage.output_tokens if reported_usage else None,
@@ -118,9 +128,9 @@ class DurableCalls:
             start = plans[0]["payload"]["start"]
         else:
             start = next((i for i, (slot, _) in enumerate(routes)
-                          if not self.store.artifacts(self.run_id, f"exhausted:{signature}:{slot}")), None)
+                          if not self.route_rejected(signature, slot)), None)
             if start is None:
-                raise CodeCraftCreditsExhausted("All configured CodeCraft credentials reported exhausted credits")
+                raise self.no_route_error(signature, routes)
             # Pin each logical operation before sending it. Even if another
             # operation exhausts this credential, an uncertain request must not
             # be resubmitted elsewhere on resume.
@@ -145,7 +155,27 @@ class DurableCalls:
                     label = f"CodeCraft backup key {index + 1}" if next_slot.startswith("codecraft:") else "NVIDIA"
                     self.store.append_event(self.run_id, stage, "provider_fallback",
                         f"CodeCraft reported exhausted credits; continuing with {label} ({next_settings.model_for_role(role)}).")
-        raise CodeCraftCreditsExhausted("All configured CodeCraft credentials reported exhausted credits")
+            except CodeCraftUnavailable as exc:
+                self.mark_unavailable(signature, slot, exc, stage)
+        raise self.no_route_error(signature, routes)
+
+    def no_route_error(self, signature, routes):
+        if any(self.store.artifacts(self.run_id, f'unavailable:{signature}:{slot}') for slot, _ in routes):
+            error = CodeCraftError('No configured CodeCraft route is available after explicit provider rejections; this does not establish exhausted credits.')
+            error.code = 'CODECRAFT_ROUTES_UNAVAILABLE'
+            return error
+        return CodeCraftCreditsExhausted('All configured CodeCraft credentials reported exhausted credits')
+
+    def route_rejected(self, signature, slot):
+        return (self.store.artifacts(self.run_id, f'exhausted:{signature}:{slot}') or
+                self.store.artifacts(self.run_id, f'unavailable:{signature}:{slot}'))
+
+    def mark_unavailable(self, signature, slot, error, stage):
+        kind = f'unavailable:{signature}:{slot}'
+        if not self.store.artifacts(self.run_id, kind):
+            self.store.artifact(self.run_id, kind, {'slot': slot, 'http_status': error.http_status})
+            self.store.append_event(self.run_id, stage, 'provider_fallback',
+                f'CodeCraft explicitly rejected a request (HTTP {error.http_status}); checking the next authorized route. This is not recorded as exhausted credits.')
 
     def _acquire_credential(self, routes, signature, operation=None, preferred=None):
         """Lease one slot, persisting its operation plan before any network request.
@@ -166,12 +196,12 @@ class DurableCalls:
                 else:
                     eligible = [i for i, (slot, settings) in enumerate(routes)
                                 if settings.llm_provider == 'codecraft' and not
-                                self.store.artifacts(self.run_id, f'exhausted:{signature}:{slot}')]
+                                self.route_rejected(signature, slot)]
                     if not eligible:
                         eligible = [i for i, (_, settings) in enumerate(routes)
                                     if settings.llm_provider == 'nvidia']
                     if not eligible:
-                        raise CodeCraftCreditsExhausted('All configured CodeCraft credentials reported exhausted credits')
+                        raise self.no_route_error(signature, routes)
                 available = [i for i in eligible if not self._active_credentials.get(routes[i][0], 0)]
                 if available and sum(self._active_credentials.values()) < self.settings.max_model_concurrency:
                     index = min(available, key=lambda i: (i - self._credential_pool['cursor']) % len(routes))
@@ -208,7 +238,7 @@ class DurableCalls:
         for position, index in enumerate(order):
             slot, settings = routes[index]
             if position:
-                if self.store.artifacts(self.run_id, f'exhausted:{signature}:{slot}'):
+                if self.route_rejected(signature, slot):
                     continue
                 self._acquire_credential(routes, signature, preferred=index)
             try:
@@ -227,11 +257,17 @@ class DurableCalls:
                     if position + 1 < len(order):
                         self.store.append_event(self.run_id, stage, 'provider_fallback',
                             'CodeCraft reported exhausted credits; continuing with the next configured route.')
+            except CodeCraftUnavailable as exc:
+                self.mark_unavailable(signature, slot, exc, stage)
             finally:
                 self._release_credential(slot)
-        raise CodeCraftCreditsExhausted('All configured CodeCraft credentials reported exhausted credits')
+        raise self.no_route_error(signature, routes)
 
     def _model(self, schema, payload, role, stage, instruction, settings, credential_slot=None):
+        # Stage reserves are immutable during parallel research. A late optional
+        # request cannot borrow the window reserved for composition and review.
+        deadline_reserve = max(self.deadline_reserve_seconds,
+                               getattr(self, 'stage_deadline_reserves', {}).get(stage, 0))
         model = settings.model_for_role(role)
         provider = settings.llm_provider
         adapter = get_llm_provider(settings)
@@ -284,7 +320,7 @@ class DurableCalls:
         def request():
             try:
                 output, usage = adapter.generate(schema, messages, role, timedelta(seconds=min(settings.model_request_timeout_seconds,
-                    settings.stage_request_seconds.get(stage, settings.model_request_timeout_seconds), max(.1, self.budget.remaining_seconds() - self.deadline_reserve_seconds))), outputs)
+                    settings.stage_request_seconds.get(stage, settings.model_request_timeout_seconds), max(.1, self.budget.remaining_seconds() - deadline_reserve))), outputs)
             except CodeCraftCreditsExhausted:
                 self.budget.release_rejected_model(inputs, outputs, cost)
                 raise
@@ -310,7 +346,7 @@ class DurableCalls:
                 def reserve():
                     from signal_research.domain.errors import BudgetExceeded
 
-                    if self.budget.deadline and self.budget.remaining_seconds() - self.deadline_reserve_seconds < 5:
+                    if self.budget.deadline and self.budget.remaining_seconds() - deadline_reserve < 5:
                         raise BudgetExceeded("less than five seconds remain for a complete structured response; no request sent")
                     if (self.budget.input_tokens + inputs > self.budget.max_input_tokens - input_reserve
                             or self.budget.output_tokens + outputs > self.budget.max_output_tokens - output_reserve

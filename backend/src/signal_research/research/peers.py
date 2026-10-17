@@ -8,6 +8,30 @@ from signal_research.finance.registry import METRICS
 from signal_research.research.context import exact_excerpt
 
 
+def comparison_targets(facts):
+    """Request only the latest exact pair needed by each comparable metric.
+
+    Older issuer observations remain in its timeline. Peer extraction does not
+    need to reproduce its entire history to establish a current comparison.
+    """
+    selected = []
+    lanes = {}
+    for fact in facts:
+        if fact.status == FactStatus.VERIFIED and fact.period_end:
+            key = (fact.metric_key, fact.scope, fact.segment, fact.currency, fact.definition_id)
+            lanes.setdefault(key, []).append(fact)
+    for values in lanes.values():
+        current = max(values, key=lambda f: f.period_end)
+        if current.unit_normalized == 'percent':
+            selected.append(current)
+            continue
+        prior = next((f for f in sorted(values, key=lambda f: f.period_end, reverse=True)
+                      if 350 <= (current.period_end - f.period_end).days <= 380), None)
+        if prior:
+            selected.extend([current, prior])
+    return selected
+
+
 def peer_search_query(company, target_facts, *, broad=False):
     """Use public filing language; exact matching belongs to verification."""
     ends = [fact.period_end for fact in target_facts if fact.period_end]

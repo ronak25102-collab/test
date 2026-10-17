@@ -204,7 +204,10 @@ class ResearchMachine:
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
         except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
-            report = research.abstain(["Provider access recovery and additional independently verified evidence"])
+            reason = ('The model response timed out before publication review completed; verified figures are retained.'
+                      if 'TIMEOUT' in getattr(exc, 'code', '') else
+                      'The model provider did not return a valid completed response; verified figures are retained.')
+            report = research.abstain([reason, 'A completed independent publication review of the candidate.'])
             report.outcome = ResearchOutcome.PARTIAL
             report.limitations.append(f"Provider work stopped: {exc}. Previously verified evidence was preserved; no discovery was substituted.")
             report.generation_metadata['provider_failure'] = getattr(exc, 'code', type(exc).__name__)
