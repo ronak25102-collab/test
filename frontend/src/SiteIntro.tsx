@@ -4,6 +4,19 @@ import './site-intro.css'
 const shouldPlay = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   && new URLSearchParams(location.search).get('print') !== '1'
 
+const logoBodyPath = 'M7 5v22h9a8 8 0 1 0 0-16h-3V5H7ZM13 17h3a2 2 0 1 1 0 4h-3v-4Z'
+
+// Custom lettering follows the logo's six-unit stems and compact round counters.
+const wordmarkGlyphs = [
+  { letter: 'b', width: 22, path: logoBodyPath, transform: 'translate(-5 0)' },
+  { letter: 'e', width: 22, path: 'M20 20H8C8.5 23 12 24 15 21L19 24C16 28 9 29 4 24C-1 18 3 11 10 11C17 10 21 14 20 20ZM8 16H14C13 13 9 13 8 16Z' },
+  { letter: 'y', width: 24, path: 'M1 11h7l4 9 3-9h7L11 34H4l4-9Z' },
+  { letter: 'o', width: 22, path: 'M20 19a9 8 0 1 1-18 0 9 8 0 1 1 18 0ZM8 19a3 3 0 1 0 6 0 3 3 0 1 0-6 0Z' },
+  { letter: 'n', width: 24, path: 'M2 11h6v2c2-3 12-4 12 5v9h-6v-8c0-3-6-3-6 0v8H2V11Z' },
+  { letter: 'd', width: 22, path: logoBodyPath, transform: 'translate(27 0) scale(-1 1)' },
+  { letter: '.', width: 10, path: 'M2 21h6v6H2Z' },
+]
+
 /** A fresh intro for each document visit; in-app navigation keeps the app mounted. */
 export function SiteIntro({ children }: { children: ReactNode }) {
   const [playing, setPlaying] = useState(shouldPlay)
@@ -67,8 +80,8 @@ export function SiteIntro({ children }: { children: ReactNode }) {
     }}>
       <button className="intro-skip" type="button" onClick={finish}>Skip intro <span aria-hidden="true">↗</span></button>
       <div className="intro-final-brand" aria-hidden="true">
-        <span className="intro-final-logo" ref={logoRef}><svg viewBox="0 0 32 32" fill="none"><path d="M7 5v22h9a8 8 0 1 0 0-16h-3V5H7ZM13 17h3a2 2 0 1 1 0 4h-3v-4Z" fill="currentColor" fillRule="evenodd" /><path d="m20 3 6 6m0-6-6 6" stroke="currentColor" strokeWidth="2" /></svg></span>
-        <span className="intro-final-name">{'beyond.'.split('').map((letter, index) => <span className="intro-name-letter" style={{ '--letter': index } as CSSProperties} key={index}>{letter}</span>)}</span>
+        <span className="intro-final-logo" ref={logoRef}><svg viewBox="0 0 32 32" fill="none"><path d={logoBodyPath} fill="currentColor" fillRule="evenodd" /><path d="m20 3 6 6m0-6-6 6" stroke="currentColor" strokeWidth="2" /></svg></span>
+        <span className="intro-final-name">{wordmarkGlyphs.map((glyph, index) => <span className="intro-name-letter" style={{ '--letter': index, width: `${glyph.width / 32}em` } as CSSProperties} key={glyph.letter}><svg viewBox={`0 0 ${glyph.width} 32`} fill="currentColor"><path d={glyph.path} transform={glyph.transform} fillRule="evenodd" /></svg></span>)}</span>
       </div>
       <div className="intro-character-stage" ref={stageRef} aria-hidden="true">
         <svg className="intro-character" viewBox="0 0 120 120" fill="none">

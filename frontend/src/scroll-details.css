@@ -1,0 +1,25 @@
+/* Small scroll accents surround the main journey without moving controls. */
+.scroll-heading-line { display: block; overflow: clip; padding-bottom: .14em; margin-bottom: -.14em; }
+.scroll-heading-text { display: block; transform: translateY(105%); transition: transform .8s var(--ease-out); }
+.scroll-heading-line:nth-child(2) .scroll-heading-text { transition-delay: .09s; }
+.is-revealed .scroll-heading-text { transform: translateY(0); }
+.why-heading h2 .scroll-heading-line, .why-heading h2 .scroll-heading-text { color: inherit; }
+.why-heading h2 .scroll-heading-line.is-muted { color: #8a9e7f; }
+
+.label-source { translate: 0 var(--badge-shift, 0px); }
+.label-review { translate: 0 calc(var(--badge-shift, 0px) * .55); }
+.why-section { position: relative; isolation: isolate; overflow: clip; }
+.why-section::before { content: ''; position: absolute; z-index: -1; right: -180px; top: 35px; width: 420px; height: 420px; border: 1px solid #b9cea617; border-radius: 50%; box-shadow: 0 0 0 52px #b9cea605; translate: 0 var(--section-drift, 0px); pointer-events: none; }
+.belief::after { content: ''; position: absolute; inset: -1px 0 auto; height: 1px; background: #bacd9c70; transform: scaleX(0); transform-origin: left; transition: transform .9s var(--ease-out) var(--reveal-delay, 0ms); pointer-events: none; }
+.belief.is-revealed::after { transform: scaleX(1); }
+.end-watermark { translate: calc(var(--section-drift, 0px) * -1.4) var(--section-drift, 0px); }
+
+.motion-paused .scroll-heading-text { transform: none; }
+.motion-paused .label-source, .motion-paused .label-review, .motion-paused .end-watermark, .motion-paused .why-section::before { translate: none; }
+.motion-paused .belief::after { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) {
+ .landing .scroll-heading-text { transform: none; }
+ .label-source, .label-review, .end-watermark, .why-section::before { translate: none; }
+ .belief::after { transform: scaleX(1); }
+}
+@media print { .landing .scroll-heading-text { transform: none; } .why-section::before { display: none; } .end-watermark { translate: none; } }

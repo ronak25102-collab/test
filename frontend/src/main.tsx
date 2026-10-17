@@ -7,6 +7,7 @@ import './styles.css'
 import './experience.css'
 import './research-progress.css'
 import './research-results.css'
+import './scroll-details.css'
 
 async function start() {
   let reload = false

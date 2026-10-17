@@ -250,7 +250,7 @@ main.app-main { width: 100%; margin: 0; }
 .topbar nav a:after { width: 100%; transform: scaleX(0); transform-origin: left; transition: transform .4s var(--ease-out); }
 .topbar nav a:hover:after, .topbar nav a[aria-current='location']:after { transform: scaleX(1); }
 .topbar nav a[aria-current='location'] { color: var(--green); }
-.hero-finance { transform: translate3d(0, var(--hero-shift, 0px), 0) scale(1.14); transform-origin: center bottom; animation: scenery-reveal 1.8s var(--ease-out) both; }
+.hero-finance { transform: translate3d(0, var(--hero-shift, 0px), 0) scale(var(--hero-scale, 1.14)); transform-origin: center bottom; animation: scenery-reveal 1.8s var(--ease-out) both; }
 .hero-copy { animation: none; }
 .hero-copy h1 > .hero-line { display: block; overflow: clip; padding-bottom: .12em; margin-bottom: -.12em; color: #173626; }
 .hero-copy h1 > .hero-line-muted { color: #92998a; }
@@ -303,7 +303,7 @@ main.app-main { width: 100%; margin: 0; }
 .method-nodes > div { position: relative; animation: node-arrive .6s var(--ease-out) both; }
 .method-nodes > div span:last-child { transition: transform .35s var(--ease-out); }
 .method-visual:hover .method-nodes > div span:last-child { transform: translate(2px, -2px); }
-.reveal { transform: translateY(30px); transition: opacity .85s var(--ease-out) var(--reveal-delay, 0ms), transform .85s var(--ease-out) var(--reveal-delay, 0ms); }
+.reveal { transform: translateY(18px); transition: opacity .85s var(--ease-out) var(--reveal-delay, 0ms), transform .85s var(--ease-out) var(--reveal-delay, 0ms); }
 .belief { position: relative; isolation: isolate; padding-bottom: 20px; }
 .belief:before { content: ''; position: absolute; inset: -1px -16px 0; border-radius: 10px; background: linear-gradient(145deg, #d4e8b30d, transparent 75%); opacity: 0; transition: opacity .4s; pointer-events: none; z-index: -1; }
 .belief:hover:before { opacity: 1; }
