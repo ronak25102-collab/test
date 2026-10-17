@@ -1,10 +1,14 @@
-/* The cross introduces the wordmark, which resolves into the centered Beyond logo. */
+/* A full-screen geometric mosaic in the site palette shifts in place, its letter tiles resolve into "beyond.",
+   then the "b" becomes the b× logo, which settles in the centre before the website appears. */
 .site-content[data-intro-playing="true"] *,
 .site-content[data-intro-playing="true"] *::before,
 .site-content[data-intro-playing="true"] *::after { animation-play-state: paused !important; }
+/* The page stays mounted under the intro, but its costly first layout and paint wait until the mosaic holds still. */
+.site-content[data-deferred] { content-visibility: hidden; }
 
 .site-intro {
-  --intro-duration: 4.15s;
+  --intro-duration: 5.4s;   /* whole intro, including the b× logo */
+  --mosaic-duration: 3.7s;  /* mosaic and "beyond." assembly; holds its final frame afterwards */
   position: fixed;
   inset: 0;
   z-index: 1000;
@@ -18,93 +22,115 @@
   position: absolute;
   top: max(4vh, 24px);
   right: max(4.5vw, 24px);
-  z-index: 2;
+  z-index: 3;
   border: 1px solid #f6f5ef35;
   border-radius: 30px;
   padding: 9px 14px;
-  background: transparent;
+  background: #172c24b0;
   color: var(--paper);
   font: inherit;
   font-size: 10px;
   letter-spacing: .03em;
 }
-.intro-skip:hover { background: #f6f5ef15; }
+.intro-skip:hover { background: #254f39; }
 .intro-skip:focus-visible { outline: 2px solid var(--paper); outline-offset: 4px; }
 .intro-skip span { margin-left: 14px; }
-.intro-character-stage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(168px, 24vw, 260px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-.intro-character { display: block; width: 100%; height: 100%; overflow: visible; animation: intro-character-flight var(--intro-duration) linear both; }
-.intro-character-body { fill: var(--paper); }
-.intro-final-brand {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  display: block;
-  transform: translate(-50%, -50%);
-  font-size: clamp(50px, 8vw, 108px);
-  font-weight: 750;
-  letter-spacing: -.065em;
-  line-height: 1.15;
-  pointer-events: none;
-  animation: intro-wordmark var(--intro-duration) linear both;
-}
-.intro-final-logo { position: absolute; left: -.1453em; top: .0078em; display: block; width: .95em; height: .95em; }
-.intro-final-logo svg { display: block; width: 100%; height: 100%; overflow: visible; animation: intro-logo-focus var(--intro-duration) cubic-bezier(.3, 0, .2, 1) both; }
-.intro-final-logo svg path:first-child { animation: intro-logo-body var(--intro-duration) ease both; }
-.intro-final-logo svg path:last-child { opacity: 0; animation: intro-logo-cross var(--intro-duration) linear both; }
-.intro-final-name { display: inline-flex; align-items: flex-start; white-space: nowrap; letter-spacing: 0; animation: intro-name-exit var(--intro-duration) ease both; }
-.intro-name-letter { display: block; height: 1em; flex-shrink: 0; animation: intro-letter-reveal .45s calc(1.95s + var(--letter) * .065s) cubic-bezier(.2, .8, .3, 1) both; }
-.intro-name-letter svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.intro-name-letter:last-child { color: #b3c59b; }
-.intro-dust { position: absolute; left: -20px; bottom: 25px; display: flex; gap: 9px; animation: intro-dust var(--intro-duration) linear both; }
-.intro-dust i { width: 4px; height: 4px; background: #c7d2ad; border-radius: 50%; }
-.intro-dust i:nth-child(2) { transform: translateY(-7px); width: 3px; height: 3px; }
-.intro-dust i:last-child { transform: translateY(3px); width: 2px; height: 2px; }
 .intro-announcement { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
-@keyframes intro-lifetime { 0%, 91% { opacity: 1; } 100% { opacity: 0; } }
-@keyframes intro-character-flight {
-  0%, 4% { opacity: 0; transform: translate(-65vw, 0) rotate(-18deg) scale(1); }
-  5% { opacity: 1; transform: translate(-60vw, 0) rotate(-18deg) scale(1); }
-  14% { transform: translate(-35px, 0) rotate(-12deg) scale(.94, 1.08); animation-timing-function: cubic-bezier(.16, .7, .3, 1); }
-  20% { transform: translate(0, 0) rotate(8deg) scale(1.05, .95); }
-  25%, 30% { transform: translate(0, 0) rotate(0) scale(1); }
-  36% { transform: translate(0, 8px) rotate(12deg) scale(1.13, .85); animation-timing-function: cubic-bezier(.4, 0, .6, 1); }
-  42% { transform: translate(0, -14px) rotate(-9deg) scale(.87, 1.14); }
-  49% { transform: translate(calc(var(--dock-x) * .35), calc(var(--dock-y) - 140px)) rotate(-32deg) scale(.52); }
-  55% { transform: translate(var(--dock-x), calc(var(--dock-y) - 25px)) rotate(8deg) scale(calc(var(--dock-scale) * 1.25)); }
-  59% { transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
-  62% { transform: translate(var(--dock-x), calc(var(--dock-y) - 3px)) rotate(-8deg) scale(var(--dock-scale)); }
-  65% { opacity: 1; transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
-  66%, 100% { opacity: 0; transform: translate(var(--dock-x), var(--dock-y)) rotate(0) scale(var(--dock-scale)); }
+/* Every tile is placed from the centre of the screen; one em is one letter height (set inline from the viewport). */
+.intro-mosaic { position: absolute; inset: 0; pointer-events: none; }
+.intro-tile {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1.1em;
+  height: 1.1em;
+  margin: -.55em 0 0 -.55em;
+  transform: translate(var(--x), var(--y));
+  animation: intro-tile-leave var(--mosaic-duration) cubic-bezier(.5, 0, .75, 0) both;
 }
-@keyframes intro-wordmark { 0%, 49% { opacity: 0; } 57%, 100% { opacity: 1; } }
-@keyframes intro-letter-reveal {
-  0% { opacity: 0; transform: translateY(.3em) scale(.88, 1.12); }
-  75% { opacity: 1; transform: translateY(-.025em) scale(1.02, .98); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
+.intro-tile-letter { z-index: 1; animation: intro-tile-travel var(--mosaic-duration) linear both, intro-letter-exit var(--intro-duration) ease both; }
+.intro-tile-letter.is-b { animation: intro-tile-travel var(--mosaic-duration) linear both, intro-b-handoff var(--intro-duration) linear both; }
+.intro-tile-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background-color: var(--bg);
+  animation: intro-tile-pop .55s calc(.08s + var(--order) * .75s) cubic-bezier(.2, .8, .3, 1.2) both;
 }
-@keyframes intro-name-exit {
-  0%, 75% { opacity: 1; transform: translateY(0); }
-  83%, 100% { opacity: 0; transform: translateY(-12px); }
+.intro-tile-letter .intro-tile-face {
+  animation: intro-tile-pop .55s calc(.08s + var(--order) * .75s) cubic-bezier(.2, .8, .3, 1.2) both,
+    intro-face-clear var(--mosaic-duration) linear both;
 }
-@keyframes intro-logo-focus {
-  0%, 76% { transform: translate(0, 0) scale(1); }
-  86%, 100% { transform: translate(var(--logo-center-x), var(--logo-center-y)) scale(1.55); }
+.intro-tile-shape { position: absolute; inset: 0; width: 100%; height: 100%; animation: intro-shape-turn var(--mosaic-duration) cubic-bezier(.65, 0, .35, 1) both; }
+.intro-tile-letter .intro-tile-shape { animation: intro-shape-turn var(--mosaic-duration) cubic-bezier(.65, 0, .35, 1) both, intro-shape-dissolve var(--mosaic-duration) linear both; }
+.intro-tile-glyph { position: absolute; left: 50%; top: 50%; translate: -50% -50%; display: block; height: 1em; overflow: visible; color: var(--paper); opacity: 0; animation: intro-glyph-reveal var(--mosaic-duration) linear both; }
+.intro-tile-glyph.is-dot { color: #b3c59b; }
+
+/* The b× logo sits exactly over the wordmark's "b", so the hand-over is seamless. */
+.intro-logo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  display: block;
+  width: 1em;
+  height: 1em;
+  margin: -.5em 0 0 -.5em;
+  overflow: visible;
+  color: var(--paper);
+  opacity: 0;
+  animation: intro-logo-center var(--intro-duration) linear both;
 }
-@keyframes intro-logo-cross { 0%, 65% { opacity: 0; } 66%, 100% { opacity: 1; } }
-@keyframes intro-logo-body { 0%, 76% { opacity: 0; } 86%, 100% { opacity: 1; } }
-@keyframes intro-dust {
-  0%, 17% { opacity: 0; transform: translateX(-25px); }
-  20% { opacity: .75; }
-  30%, 100% { opacity: 0; transform: translateX(-45px); }
+.intro-logo-cross { transform-box: fill-box; transform-origin: center; animation: intro-logo-cross var(--intro-duration) linear both; }
+
+@keyframes intro-lifetime { 0%, 89.8% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes intro-tile-pop {
+  0% { opacity: 0; transform: scale(.2) rotate(-90deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+/* Ambient motion: each shape turns a quarter at a time, alternating direction across the grid. */
+@keyframes intro-shape-turn {
+  0%, 14% { rotate: 0deg; }
+  22%, 28% { rotate: calc(var(--spin) * 90deg); }
+  36%, 100% { rotate: calc(var(--spin) * 180deg); }
+}
+/* Tiles that are not letters fall away once the mosaic starts to solve. */
+@keyframes intro-tile-leave {
+  0%, 42% { opacity: 1; transform: translate(var(--x), var(--y)) scale(1) rotate(0); }
+  54%, 100% { opacity: 0; transform: translate(var(--x), calc(var(--y) + .35em)) scale(.2) rotate(calc(var(--spin) * 60deg)); }
+}
+/* Letter tiles slide into a row, become letters, then close up into the wordmark spacing. */
+@keyframes intro-tile-travel {
+  0%, 44% { transform: translate(var(--x), var(--y)); }
+  57%, 64% { transform: translate(var(--rx), 0); animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+  76%, 100% { transform: translate(calc(var(--fx) * var(--ws, 1)), 0) scale(var(--ws, 1)); }
+}
+/* Faces clear before the letters grow and overlap while closing up. */
+@keyframes intro-face-clear { 0%, 58% { background-color: var(--bg); } 65%, 100% { background-color: transparent; } }
+@keyframes intro-shape-dissolve { 0%, 58% { opacity: 1; scale: 1; } 66%, 100% { opacity: 0; scale: .3; } }
+@keyframes intro-glyph-reveal {
+  0%, 59% { opacity: 0; transform: scale(.4) rotate(-12deg); }
+  67% { opacity: 1; transform: scale(1.08) rotate(0); }
+  72%, 100% { opacity: 1; transform: scale(1); }
+}
+/* After "beyond." holds (2.8s to 3.25s), "eyond." lifts away while the "b" hands over to the logo. */
+@keyframes intro-letter-exit {
+  0%, 60.2% { opacity: 1; translate: 0 0; }
+  67.6%, 100% { opacity: 0; translate: 0 -.3em; }
+}
+@keyframes intro-b-handoff { 0%, 60.1% { opacity: 1; } 60.2%, 100% { opacity: 0; } }
+/* The × drops onto the "b" with a small bounce, like the original logo intro. */
+@keyframes intro-logo-cross {
+  0%, 60.2% { opacity: 0; transform: translateY(-12px) rotate(-120deg) scale(.3); }
+  64.8% { opacity: 1; transform: translateY(1px) rotate(12deg) scale(1.15); }
+  66.7%, 100% { opacity: 1; transform: none; }
+}
+/* The finished b× logo moves to the centre of the screen and grows before the website appears. */
+@keyframes intro-logo-center {
+  0%, 60.1% { opacity: 0; transform: translate(calc(var(--bx) * var(--ws, 1)), 0) scale(var(--ws, 1)); }
+  60.2%, 68.5% { opacity: 1; transform: translate(calc(var(--bx) * var(--ws, 1)), 0) scale(var(--ws, 1)); animation-timing-function: cubic-bezier(.65, 0, .35, 1); }
+  81.5%, 100% { opacity: 1; transform: translate(0, 0) scale(var(--ls, 1.6)); }
 }
 @media (max-width: 480px) { .intro-skip { font-size: 9px; } }
 @media (prefers-reduced-motion: reduce), print { .site-intro { display: none; } }

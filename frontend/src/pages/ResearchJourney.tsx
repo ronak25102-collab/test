@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import './research-journey.css'
+import { isPageDeferred, PAGE_REVEALED_EVENT } from '../pageReveal'
 
 const chapters = [
   { title: 'Find the original evidence.', text: 'Start with a listed financial business and a cutoff date. Beyond searches issuer disclosures, exchange filings and independent context.', label: 'DISCOVER', caption: 'Every investigation starts with an original source.', tags: ['Issuer disclosures', 'Exchange filings', 'Independent context'] },
@@ -22,6 +23,7 @@ export function ResearchJourney({ motionPaused }: { motionPaused: boolean }) {
     let frame = 0
     const update = () => {
       frame = 0
+      if (isPageDeferred()) return
       const bounds = track.getBoundingClientRect()
       const inset = Number.parseFloat(getComputedStyle(stage).top) || 0
       const travel = Math.max(1, bounds.height - stage.offsetHeight)
@@ -39,12 +41,14 @@ export function ResearchJourney({ motionPaused }: { motionPaused: boolean }) {
     resize.observe(stage)
     window.addEventListener('scroll', schedule, { passive: true })
     window.addEventListener('resize', schedule, { passive: true })
+    window.addEventListener(PAGE_REVEALED_EVENT, update)
     update()
     return () => {
       cancelAnimationFrame(frame)
       resize.disconnect()
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
+      window.removeEventListener(PAGE_REVEALED_EVENT, update)
     }
   }, [motionPaused])
 

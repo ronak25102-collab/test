@@ -5,7 +5,7 @@ test('intro plays on every document visit and releases the usable website', asyn
   await page.goto('/')
   await expect(page.getByTestId('site-intro')).toBeVisible()
   await expect(page.locator('.site-content')).toHaveAttribute('inert', '')
-  await expect(page.getByTestId('site-intro')).toHaveCount(0, { timeout: 4500 })
+  await expect(page.getByTestId('site-intro')).toHaveCount(0, { timeout: 6500 })
   await expect(page.locator('.site-content')).not.toHaveAttribute('inert', '')
   await expect(page.locator('html')).not.toHaveCSS('overflow', 'hidden')
   await page.getByRole('button', { name: 'Launch workspace', exact: true }).click()

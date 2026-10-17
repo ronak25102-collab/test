@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isPageDeferred, PAGE_REVEALED_EVENT } from './pageReveal'
 
 /** Scroll work is event-driven and batched into one frame, never an idle loop. */
 export function usePageMotion(paused: boolean, landingVisible: boolean) {
@@ -15,6 +16,7 @@ export function usePageMotion(paused: boolean, landingVisible: boolean) {
     let frame = 0
     const update = () => {
       frame = 0
+      if (isPageDeferred()) return
       const range = document.documentElement.scrollHeight - innerHeight
       const progress = range > 0 ? Math.min(1, Math.max(0, scrollY / range)) : 0
       shell.style.setProperty('--page-progress', String(progress))
@@ -44,12 +46,14 @@ export function usePageMotion(paused: boolean, landingVisible: boolean) {
     resize.observe(document.documentElement)
     window.addEventListener('scroll', schedule, { passive: true })
     window.addEventListener('resize', schedule, { passive: true })
+    window.addEventListener(PAGE_REVEALED_EVENT, update)
     update()
     return () => {
       cancelAnimationFrame(frame)
       resize.disconnect()
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
+      window.removeEventListener(PAGE_REVEALED_EVENT, update)
       shell.style.removeProperty('--hero-shift')
       shell.style.removeProperty('--hero-scale')
       shell.style.removeProperty('--badge-shift')
