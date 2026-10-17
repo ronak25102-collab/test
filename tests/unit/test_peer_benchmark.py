@@ -1,6 +1,7 @@
 from decimal import Decimal
 from uuid import uuid4
 
+from pydantic import HttpUrl
 from signal_research.domain.schemas import Fact
 from signal_research.research.peers import compare_peers, peer_model_context
 
@@ -53,3 +54,43 @@ def test_peer_query_uses_source_labels_and_month_not_internal_names_or_iso_dates
     assert 'as reported' not in query and '2026-06-30' not in query
     broad = peer_search_query(peer, facts, broad=True)
     assert broad == '"Quartz Bank" financial results June 2026'
+
+
+def test_used_peer_passages_are_citable_without_becoming_issuer_facts(store, settings):
+    from datetime import date
+    from types import SimpleNamespace
+
+    from signal_research.domain.enums import RunMode
+    from signal_research.research.live import LiveResearch, cited_draft_schema
+    from signal_research.research.report_builder import build_synthetic_report
+    from signal_research.worker.budgets import Budget
+    company = store.search_companies('SYNTHBANK')[0]
+    rid = store.create_run(company, date(2026,10,15), RunMode.LIVE)
+    fixture = build_synthetic_report(rid, company, date(2026,10,15))
+    research = LiveResearch(SimpleNamespace(store=store,settings=settings), rid, company,
+                            fixture.cutoff, Budget(50,50,100,0))
+    research.documents, research.passages = list(fixture.documents), list(fixture.passages)
+    research.facts, research.calculations = list(fixture.facts), list(fixture.calculations)
+    source = fixture.documents[0].model_copy(update={'id':uuid4(),'origin_family_id':'issuer:peer',
+        'canonical_url':HttpUrl('https://peer.example/result'),'final_url':HttpUrl('https://peer.example/result')})
+    passage = fixture.passages[0].model_copy(update={'id':uuid4(),'document_id':source.id,
+        'text':'Peer standalone deposits 123 INR crore at 30 June 2026.'})
+    fact = fixture.facts[0].model_copy(update={'id':uuid4(),'entity_id':uuid4(),'passage_id':passage.id,
+        'value_raw':'123','value_decimal':Decimal(123)})
+    unused = passage.model_copy(update={'id':uuid4(),'text':'Unverified unrelated peer narrative.'})
+    research.peer_benchmark = {'status':'verified','comparisons':[{'peers':{'peer':{'fact_ids':[str(fact.id)]}}}],
+        'sources':[{'company':{'legal_name':'Peer Bank'},'facts':[fact.model_dump(mode='json')],
+                    'passages':[p.model_dump(mode='json') for p in [passage,unused]],
+                    'documents':[source.model_dump(mode='json')]}]}
+    before = [f.model_dump() for f in research.facts]
+    research.attach_peer_context()
+    research.attach_peer_context()  # Safe on candidate recomputation.
+    payload = research.payload()
+    assert before == [f.model_dump() for f in research.facts]
+    assert [p.id for p in research.passages].count(passage.id) == 1
+    assert unused.id not in {p.id for p in research.passages}
+    context = next(p for p in payload['passages'] if p['id']==passage.id)
+    assert '123' in context['text'] and context['source_role']=='verified_peer_figure_span'
+    assert next(d for d in research.documents if d.id==source.id).document_type=='peer_disclosure'
+    schema = cited_draft_schema(payload).model_json_schema()
+    assert str(passage.id) in str(schema)

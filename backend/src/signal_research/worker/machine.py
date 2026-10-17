@@ -189,6 +189,7 @@ class ResearchMachine:
         from signal_research.providers.llm.codecraft_provider import CodeCraftError
         from signal_research.providers.llm.nvidia_provider import NvidiaRequestError
         from signal_research.providers.search.account import FreeQuotaUnavailable
+        from signal_research.providers.search.tavily_provider import SearchQuotaExceeded
         from signal_research.research.live import LiveResearch
         from signal_research.worker.calls import UncertainCall
         run_settings = self.settings.model_copy(update={'cold_start': self.settings.cold_start or self.store.get_summary(run_id).cold_start})
@@ -203,8 +204,10 @@ class ResearchMachine:
             report.limitations.append(f"Research stopped at its configured limit: {exc}. Verified evidence was preserved.")
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
-        except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, UncertainCall, httpx.HTTPError) as exc:
-            reason = ('The model response timed out before publication review completed; verified figures are retained.'
+        except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, SearchQuotaExceeded, UncertainCall, httpx.HTTPError) as exc:
+            reason = ('The Tavily search allowance is unavailable; restore search access before starting new research.'
+                      if isinstance(exc, (SearchQuotaExceeded, FreeQuotaUnavailable)) else
+                      'The model response timed out before publication review completed; verified figures are retained.'
                       if 'TIMEOUT' in getattr(exc, 'code', '') else
                       'The model provider did not return a valid completed response; verified figures are retained.')
             report = research.abstain([reason, 'A completed independent publication review of the candidate.'])

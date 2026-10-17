@@ -14,6 +14,10 @@ class SearchNotConfigured(RuntimeError):
     code = "PROVIDER_NOT_CONFIGURED"
 
 
+class SearchQuotaExceeded(RuntimeError):
+    code = 'SEARCH_PLAN_LIMIT'
+
+
 class TavilySearchProvider(SearchProvider):
     endpoint = "https://api.tavily.com/search"
 
@@ -33,6 +37,10 @@ class TavilySearchProvider(SearchProvider):
         # Finance-only results repeatedly returned unrelated blocked news pages.
         topic = "general"
         response = httpx.post(self.endpoint, json={"api_key": self.settings.tavily_api_key, "query": query, "include_domains": domains or [], "max_results": min(max_results, 10), "search_depth": self.settings.tavily_search_depth, "topic": topic, "end_date": as_of.isoformat(), "include_published_date": True}, timeout=self.settings.source_request_timeout_seconds)
+        if response.status_code in {432, 433}:
+            raise SearchQuotaExceeded(
+                f'Tavily search allowance rejected the request (HTTP {response.status_code}); '
+                'check the key/account usage limit or configure an authorized key with available search credits')
         response.raise_for_status()
         payload = response.json()
         hits = []

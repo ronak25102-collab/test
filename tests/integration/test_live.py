@@ -206,6 +206,23 @@ def test_provider_timeout_before_first_verified_fact_still_saves_not_established
     assert report.generation_metadata['best_candidate']['missing']
 
 
+def test_search_quota_rejection_is_not_reported_as_model_failure(store, tmp_path, monkeypatch):
+    from signal_research.providers.search.tavily_provider import (
+        SearchQuotaExceeded,
+        TavilySearchProvider,
+    )
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    def unavailable(*args, **kwargs):
+        raise SearchQuotaExceeded('Tavily search allowance rejected the request (HTTP 432)')
+    monkeypatch.setattr(TavilySearchProvider, 'search', unavailable)
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert report.outcome.value == 'partial' and not report.discoveries
+    assert report.generation_metadata['provider_failure'] == 'SEARCH_PLAN_LIMIT'
+    assert any('Tavily search allowance is unavailable' in note for note in report.abstention.next_evidence_needed)
+    assert not any('model provider did not return' in note for note in report.limitations)
+
+
 def test_source_only_prose_cannot_replace_the_required_verified_fact_anchor(store, tmp_path, monkeypatch):
     settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
     generate = OpenAIProvider.generate

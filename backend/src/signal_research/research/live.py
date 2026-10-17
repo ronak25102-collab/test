@@ -999,14 +999,20 @@ class LiveResearch:
                      re.search(r'cost of (?:funds|deposits)|repric|maturit|sell.down|securiti[sz]|co.lend|slippage|write.off|funding mix|liability mix|management|strategy|persistency|distribution mix|underwriting|fee yield|product mix', p.text, re.I)]
         narrative = diverse_context(narrative, documents, identities, question, limit=3)
         required = [p for p in self.passages if p.id in required_passage_ids and p.document_id in documents]
-        selected = list({p.id: p for p in [*([] if compact else supporting), *qualifiers[:2], *narrative, *bounded_context, *required]}.values())
+        peer_context = [p for p in self.passages if p.document_id in documents
+                        and documents[p.document_id].document_type == 'peer_disclosure']
+        selected = list({p.id: p for p in [*([] if compact else supporting), *qualifiers[:2], *narrative, *bounded_context, *peer_context, *required]}.values())
         source_spans = []
         for passage in selected:
             anchors = [f.value_raw for f in selected_facts if f.passage_id == passage.id] if not compact else []
+            if documents[passage.document_id].document_type == 'peer_disclosure':
+                anchors = [f.get('value_raw') or str(f['value_decimal'])
+                           for bundle in self.peer_benchmark.get('sources', []) for f in bundle['facts']
+                           if f['passage_id'] == str(passage.id)]
             excerpt = exact_excerpt(passage.text, anchors, question,
                                     limit=max(2000, len(passage.text)) if anchors else 1200 if compact else 2000)
             source_spans.append({"id": passage.id, "document_id": passage.document_id,
-                                 'source_role': 'verified_figure_span' if anchors else 'issuer_explanation' if documents[passage.document_id].document_type.startswith('issuer') else 'independent_context',
+                                 'source_role': 'verified_peer_figure_span' if documents[passage.document_id].document_type == 'peer_disclosure' else 'verified_figure_span' if anchors else 'issuer_explanation' if documents[passage.document_id].document_type.startswith('issuer') else 'independent_context',
                                  **excerpt})
         selected_documents = {p.document_id for p in selected} | used_documents
         required_calculations = set(hypothesis.calculation_ids) if hypothesis else set()
@@ -1364,6 +1370,7 @@ class LiveResearch:
             from signal_research.domain.schemas import Fact
             observations = [Fact.model_validate(f) for b in self.peer_benchmark.get('sources', []) for f in b['facts']]
             self.peer_benchmark = self.peer_benchmark | compare_peers(facts, observations)
+            self.attach_peer_context()
             self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
             return
         self.peer_collection_attempted = True
@@ -1415,7 +1422,29 @@ class LiveResearch:
         else:
             errors.append('Peer collection deferred to preserve final review allowance.')
         self.peer_benchmark = compare_peers(facts, observations) | {'sources': bundles, 'limitations': errors}
+        self.attach_peer_context()
         self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
+
+    def attach_peer_context(self):
+        """Make actually used peer passages citable without mixing issuer balances."""
+        from signal_research.domain.schemas import Passage, SourceDocument
+        used = {identifier for row in self.peer_benchmark.get('comparisons', [])
+                for peer in row['peers'].values() for identifier in peer['fact_ids']}
+        document_ids, passage_ids = {d.id for d in self.documents}, {p.id for p in self.passages}
+        for bundle in self.peer_benchmark.get('sources', []):
+            source_passages = {f['passage_id'] for f in bundle['facts'] if str(f['id']) in used}
+            selected = [Passage.model_validate(p) for p in bundle['passages'] if p['id'] in source_passages]
+            source_documents = {p.document_id for p in selected}
+            for item in bundle['documents']:
+                document = SourceDocument.model_validate(item)
+                if document.id in source_documents and document.id not in document_ids:
+                    # Context only: these documents cannot enter issuer extraction.
+                    self.documents.append(document.model_copy(update={'document_type': 'peer_disclosure'}))
+                    document_ids.add(document.id)
+            for passage in selected:
+                if passage.id not in passage_ids:
+                    self.passages.append(passage)
+                    passage_ids.add(passage.id)
 
     def run(self, plan):
         self.plan_questions = [task.query for task in plan]
