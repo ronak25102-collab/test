@@ -1342,7 +1342,7 @@ class LiveResearch:
                     missing.append(f'Angle {futures[future]["key"]} did not complete: {type(exc).__name__}')
         unique = {(h.statement, tuple(h.calculation_ids)): h for h in candidates}
         if not selected:
-            missing.append('At least two profile-native metric groups with source-bound facts for a routed Track A angle.')
+            missing.append('At least two profile-native metric groups with source-bound facts for a routed angle.')
         return HypothesisBatch(candidates=sorted(unique.values(), key=lambda h: h.significance + h.novelty, reverse=True)[:3], missing_evidence=[m[:200] for m in list(dict.fromkeys(missing))[:6]])
 
     def collect_quarters(self):

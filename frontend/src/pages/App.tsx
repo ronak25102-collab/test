@@ -217,7 +217,7 @@ export function App() {
       {reportVisible && report && activeClaim && <EvidenceDrawer report={report} claim={activeClaim} evidence={activeEvidence} onClose={() => setClaimId(null)} />}
       </div>
     </main>
-    <footer className="site-footer"><a className="brand" href="/">beyond.</a><span>Evidence first · No investment recommendations</span><span>{run ? `${run.mode.toUpperCase()} RUN ${run.id.slice(0, 8)}` : 'TRACK A / FINANCIAL SERVICES'}</span></footer>
+    <footer className="site-footer"><a className="brand" href="/">beyond.</a><span>Evidence first · No investment recommendations</span><span>EVIDENCE-BOUND FINANCIAL RESEARCH</span></footer>
   </div>
 }
 
