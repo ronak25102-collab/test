@@ -17,7 +17,7 @@ export function ResearchAudit({ report, onFact }: { report: Report; onFact?: (fa
     {!!report.generation_metadata?.historical_cache?.length && <details className="history-cache-note"><summary>Historical source cache was used</summary><p>Historical observations came from earlier live runs after source-hash checks. Original retrieval dates remain visible. Conclusions were not reused; searches and discovery review belong to this run.</p>{report.generation_metadata.historical_cache.map((cache, index) => <p key={index}>{cache.fact_ids.length} historical facts · source run {cache.source_run_id}</p>)}</details>}
     {!report.facts.length && <p>Retrieved documents have not established verified financial figures. Availability alone does not establish issuer identity, relevance or support for a finding.</p>}
     <FactHistory report={report} onFact={onFact} />
-    {report.generation_metadata?.novelty_rationale && <div><h3>Why this adds insight</h3><p>{report.generation_metadata.novelty_rationale}</p></div>}
+    {report.generation_metadata?.novelty_rationale && <div className="audit-insight"><h3>Why this adds insight</h3><p>{report.generation_metadata.novelty_rationale}</p></div>}
     {!!decisions.length && <details><summary>Candidate decisions ({decisions.length})</summary>
       <p>These investigation candidates were not published as findings.</p>
       <ol>{decisions.map((decision, index) => <li key={index}>

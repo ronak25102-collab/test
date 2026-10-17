@@ -44,6 +44,19 @@
 .report-page .report-hero .best-candidate p { margin: 6px 0; }
 .report-page .report-hero .best-candidate small { font-size: 13.5px; }
 .report-page .report-hero .best-candidate ul { margin: 6px 0; padding-left: 20px; }
+.report-page .report-hero .hero-finding h3 { margin: 6px 0; font-size: 14.5px; font-weight: 400; line-height: 1.5; letter-spacing: 0; color: #203d2e; }
+.report-page .report-hero .best-candidate details { margin: 10px 0 0; padding: 9px 0 0; border: 0; border-top: 1px solid #20372a1f; border-radius: 0; font-size: 13px; color: #203d2e; }
+.report-page .report-hero .best-candidate details > summary { font-size: 13px; font-weight: 600; color: #203d2e; cursor: pointer; }
+.report-page .report-hero .best-candidate details :is(p, li, small) { font-size: 13px; color: #203d2e; }
+.report-page .report-hero .best-candidate details ul { margin: 6px 0; padding-left: 0; }
+.report-page .report-hero .best-candidate details button { margin-top: 4px; padding: 6px 10px; border: 1px solid #20372a40; border-radius: 6px; background: transparent; color: #203d2e; font-size: 12px; }
+.report-dashboard .research-audit > .audit-insight { margin-top: 24px; }
+.report-dashboard .research-audit > .audit-insight > h3 { color: #6c805b; font-size: 12px; }
+.report-dashboard .research-audit > .audit-insight > p { font-size: 12px; color: #869376; line-height: 1.75; }
+.report-temporal > p { font-size: 12px; line-height: 1.65; color: #536e46; }
+.report-temporal > p.muted { color: #869376; }
+.report-temporal > button { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; border: 0; border-bottom: 1px solid #bcc9ad; background: none; color: #47643a; font-size: 11px; cursor: pointer; }
+.report-temporal > button > svg { width: 14px; height: 14px; }
 @media (max-width: 760px) {
  .report-page-turner { gap: 10px; }
  .report-page-turner a { padding: 10px 14px; }
@@ -58,3 +71,44 @@
  .research-queue-note { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .research-loading-line { animation: none; } }
+
+/* Single reporting date in the "How the relationship developed" cards. */
+.story-sparklines .spark-single { display: grid; gap: 4px; height: 60px; align-content: center; }
+.story-sparklines .spark-single strong { font-size: 18px; font-weight: 400; color: #315b3e; font-variant-numeric: tabular-nums; }
+.story-sparklines .spark-single small { font-size: 10px; color: #68795c; }
+.story-sparklines .spark-single span { font-size: 10px; color: #8a9a7c; }
+
+/* Source passage in the figure inspector. */
+.inspector-passage blockquote { line-height: 1.65; font-variant-numeric: tabular-nums; }
+.inspector-passage blockquote .passage-fragment { display: none; }
+.inspector-passage blockquote.show-fragments .passage-fragment { display: inline; color: #a8b79a; }
+.inspector-passage blockquote .passage-match { display: inline-block; width: 100%; margin: 2px -6px; padding: 2px 6px; border-radius: 4px; background: #e2ebd2; color: #254f39; font-weight: 600; }
+.inspector-passage blockquote mark { background: #c9dab0; color: inherit; border-radius: 3px; padding: 0 2px; }
+.inspector-passage .passage-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 10px; color: #8a9a7c; }
+.inspector-passage .passage-note button { flex-shrink: 0; padding: 5px 9px; border: 1px solid #c9d4bb; border-radius: 6px; background: transparent; color: #4e6d40; font-size: 10px; cursor: pointer; }
+
+/* Compact live-progress page: the stage progress bar is visible without scrolling.
+   The page heading stays in the DOM for screen readers and focus, but is hidden visually. */
+.research-page.progress-page:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; align-items: start; padding-block: 16px 60px; }
+.research-page.progress-page > * { grid-column: 1 / -1; }
+.research-page.progress-page > .research-breadcrumbs { grid-column: 1; grid-row: 1; margin: 6px 0 0; }
+.research-page.progress-page > .workspace-heading { grid-column: 2; grid-row: 1; margin: 0; }
+.research-page.progress-page .workspace-heading > div:not(.queue-controls) > :is(.section-kicker, h1, p) { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.research-page.progress-page .progress-card { margin-top: 12px; padding: 22px 30px; }
+.research-page.progress-page .progress-card .section-head h2 { font-size: clamp(22px, 2.1vw, 28px); margin-bottom: 0; }
+.research-page.progress-page .money-journey { margin-top: 14px; padding: 20px 30px 0; }
+.research-page.progress-page .progress-card .journey-heading h3 { font-size: clamp(22px, 2.2vw, 28px); margin-top: 8px; }
+.research-page.progress-page .journey-live-metrics { padding: 8px 0; margin: 8px 0 0; }
+.research-page.progress-page .journey-caption { margin-top: 6px; }
+.research-page.progress-page .finance-scene { max-width: 700px; margin-top: 0; }
+.research-page.progress-page .journey-phases { max-width: 700px; margin-bottom: 14px; }
+.research-page.progress-page .journey-phases button { padding-block: 8px; }
+.research-page.progress-page .journey-counters { margin-inline: -30px; }
+@media (max-width: 760px) {
+ .research-page.progress-page:not([hidden]) { display: block; padding-block: 16px 45px; }
+ .research-page.progress-page > .research-breadcrumbs { margin: 0 0 14px; }
+ .research-page.progress-page > .workspace-heading { margin-bottom: 4px; }
+ .research-page.progress-page .progress-card { padding: 20px 16px; }
+ .research-page.progress-page .money-journey { padding: 18px 16px 0; }
+ .research-page.progress-page .journey-counters { margin-inline: -16px; }
+}

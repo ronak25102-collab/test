@@ -1,5 +1,5 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
-import type { Fact, Report } from '../api/generated'
+import type { Fact, Passage, Report } from '../api/generated'
 import { type ReportSection, routeHref } from '../appRoute'
 import { TimelineStory } from './TimelineStory'
 import { PeerComparison } from './PeerComparison'
@@ -8,6 +8,42 @@ import { Arrow } from './Landing'
 import { ResearchAudit } from './ResearchAudit'
 import { ChallengeTrail, SubmissionBrief } from './SubmissionBrief'
 import { calculationFormulas, displayMetric, displayNumber, displayUnit } from './format'
+
+// Slide PDFs extract rotated side labels as stray letters ("s", "t if", "c n t e Total Assets").
+// The quote stays verbatim in the DOM; fragments are only hidden from view until requested.
+const FRAGMENT_LINE = /^[A-Za-z]{1,2}(?: [A-Za-z]{1,2})*$/
+const FRAGMENT_PREFIX = /^((?:[A-Za-z]{1,2} )+)(?=[A-Z][A-Za-z])/
+
+function SourcePassage({ passage, figure }: { passage: Passage; figure?: string }) {
+  const [showFragments, setShowFragments] = useState(false)
+  const lines = passage.text.split('\n')
+  // Only slide pages with several stray-letter lines are treated as having rotated labels.
+  const slideLayout = lines.filter(line => FRAGMENT_LINE.test(line.trim())).length >= 3
+  let fragments = 0
+  const mark = (text: string) => {
+    if (!figure || !text.includes(figure)) return text
+    const [before, ...rest] = text.split(figure)
+    return <>{before}<mark>{figure}</mark>{rest.join(figure)}</>
+  }
+  const rendered = lines.map((line, index) => {
+    const newline = index < lines.length - 1 ? '\n' : ''
+    if (slideLayout && FRAGMENT_LINE.test(line.trim())) {
+      fragments++
+      return <span key={index} className="passage-fragment">{line}{newline}</span>
+    }
+    const prefix = slideLayout ? FRAGMENT_PREFIX.exec(line)?.[1] : undefined
+    if (prefix) fragments++
+    return <span key={index} className={figure && line.includes(figure) ? 'passage-match' : undefined}>{prefix && <span className="passage-fragment">{prefix}</span>}{mark(prefix ? line.slice(prefix.length) : line)}{newline}</span>
+  })
+  const hashName = /^[0-9a-f]{64}\.pdf$/i.test(passage.section || '')
+  const meta = [hashName ? undefined : passage.section, passage.page_index != null ? `Page ${passage.page_index + 1}` : undefined, passage.row_label, passage.column_label].filter(Boolean).join(' · ')
+  return <section className="inspector-passage">
+    <h3>Exact source passage</h3>
+    {meta && <p>{meta}</p>}
+    <blockquote className={showFragments ? 'show-fragments' : undefined}>{rendered}</blockquote>
+    {fragments > 0 && <div className="passage-note"><span>Extracted verbatim from the PDF page. Rotated slide labels leave stray letters, hidden here.</span><button type="button" aria-pressed={showFragments} onClick={() => setShowFragments(value => !value)}>{showFragments ? 'Hide layout fragments' : `Show layout fragments (${fragments})`}</button></div>}
+  </section>
+}
 
 function SourceInspector({ fact, report, onClose }: { fact: Fact; report: Report; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null)
@@ -19,7 +55,7 @@ function SourceInspector({ fact, report, onClose }: { fact: Fact; report: Report
     <h2>{displayMetric(fact.metric_key)}</h2><div className="inspector-number">{displayNumber(fact.value_decimal)}<span>{displayUnit(fact.unit_normalized)}</span></div>
     <div className="inspector-metadata"><span>Reporting date<strong>{fact.period_end || 'Not specified'}</strong></span><span>Scope<strong>{fact.scope} · {fact.segment || 'all'}</strong></span><span>Definition<strong>{fact.definition_id || 'Issuer reported'}</strong></span><span>Original unit<strong>{fact.unit_raw || 'Not specified'}</strong></span></div>
     {source && <div className="inspector-source"><span className="section-kicker">ORIGINAL DOCUMENT</span><h3>{source.title}</h3><p>{source.publisher} · {source.published_at ? `Published ${source.published_at.slice(0, 10)}` : source.cutoff_eligibility_basis === 'verified_retrieval' ? `Public availability verified ${source.retrieved_at?.slice(0, 10) || 'by retrieval receipt'}` : 'Publication date unknown'}</p><a href={source.canonical_url} target="_blank" rel="noreferrer">Open original source{passage?.page_index != null ? ` · page ${passage.page_index + 1}` : ''}<Arrow diagonal /></a></div>}
-    {passage ? <section className="inspector-passage"><h3>Exact source passage</h3><p>{[passage.section, passage.row_label, passage.column_label].filter(Boolean).join(' · ')}</p><blockquote>{passage.text}</blockquote></section> : <p>No source passage is available for this figure.</p>}
+    {passage ? <SourcePassage passage={passage} figure={fact.value_raw} /> : <p>No source passage is available for this figure.</p>}
   </dialog>
 }
 
@@ -73,16 +109,23 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
     return () => { observer.disconnect(); resize.disconnect() }
   }, [report.run_id, section])
 
+  // Strength trace and arithmetic sit inside the finding card so every run shares one hero layout.
+  const heroDetails = <>
+    {report.generation_metadata?.strength_trace && <details className="strength-trace"><summary>{report.generation_metadata.strength_trace.rating} · evidence strength rule trace</summary><ul>{Object.entries(report.generation_metadata.strength_trace.rules).map(([rule, passed]) => <li key={rule}>{passed ? '✓' : '○'} {rule.replaceAll('_', ' ')}</li>)}</ul>{report.generation_metadata.strength_trace.caps.map(cap => <p key={cap}>{cap}</p>)}<small>{report.generation_metadata.strength_trace.note}</small></details>}
+    {report.generation_metadata?.headline && <details className="technical-detail"><summary>Technical detail and arithmetic</summary><p>{report.generation_metadata.headline.technical_detail}</p><button onClick={() => onClaim(report.generation_metadata!.headline!.technical_claim_id)}>Inspect technical evidence ↗</button></details>}
+  </>
   return <section className={`result-card report-dashboard ${discovery ? 'report-published' : 'report-withheld'}`} ref={root} data-report-page={section} aria-label={`${report.company.legal_name} research report`} tabIndex={-1}>
     <div className="report-export-slot"><ReportExport report={report} /></div>
     <nav className="report-navigation" aria-label="Report sections">{nav.map(([key, label], index) => <a key={key} href={routeHref({ view: 'report', runId: report.run_id, section: key })} aria-current={section === key ? 'page' : undefined} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><span>0{index + 1}</span>{label}</a>)}</nav>
     {section === 'overview' && <>
     <header className="report-hero"><div className="report-hero-top"><span className="report-eyebrow">{discovery ? 'PRIMARY DISCOVERY' : report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}<span> / {String(report.source_coverage.mode || 'mode unrecorded').toUpperCase()}</span></span></div>
       <div className="report-company"><span>{report.company.symbols.join(' · ')}</span><span>Cutoff {report.cutoff}</span>{report.source_coverage.synthetic === true && <span>Synthetic replay</span>}</div>
-      <h2>{discovery?.discovery_sentence || (report.facts.length ? 'Verified evidence collected' : report.outcome === 'partial' ? 'Investigation incomplete' : 'More evidence needed')}</h2>
-      {!discovery && report.generation_metadata?.best_candidate && <section className="best-candidate"><strong>Not established · best research candidate</strong><p>{report.generation_metadata.best_candidate.text}</p><p>{report.generation_metadata.best_candidate.reason}</p><ul>{report.generation_metadata.best_candidate.missing.map(item => <li key={item}>{item}</li>)}</ul><small>This is an unverified candidate, not a published finding.</small></section>}
-      {report.generation_metadata?.strength_trace && <details className="strength-trace"><summary>{report.generation_metadata.strength_trace.rating} · evidence strength rule trace</summary><ul>{Object.entries(report.generation_metadata.strength_trace.rules).map(([rule, passed]) => <li key={rule}>{passed ? '✓' : '○'} {rule.replaceAll('_', ' ')}</li>)}</ul>{report.generation_metadata.strength_trace.caps.map(cap => <p key={cap}>{cap}</p>)}<small>{report.generation_metadata.strength_trace.note}</small></details>}
-      {report.generation_metadata?.headline && <details className="technical-detail"><summary>Technical detail and arithmetic</summary><p>{report.generation_metadata.headline.technical_detail}</p><button onClick={() => onClaim(report.generation_metadata!.headline!.technical_claim_id)}>Inspect technical evidence ↗</button></details>}
+      <h2>{discovery ? 'Discovery published' : report.facts.length ? 'Verified evidence collected' : report.outcome === 'partial' ? 'Investigation incomplete' : 'More evidence needed'}</h2>
+      {discovery
+        ? <section className="best-candidate hero-finding"><strong>Published discovery · {discovery.evidence_strength} evidence</strong><h3>{discovery.discovery_sentence}</h3>{heroDetails}</section>
+        : report.generation_metadata?.best_candidate
+          ? <section className="best-candidate"><strong>Not established · best research candidate</strong><p>{report.generation_metadata.best_candidate.text}</p><p>{report.generation_metadata.best_candidate.reason}</p><ul>{report.generation_metadata.best_candidate.missing.map(item => <li key={item}>{item}</li>)}</ul><small>This is an unverified candidate, not a published finding.</small>{heroDetails}</section>
+          : heroDetails}
       <p className="report-hero-description">{discovery?.strength_rationale || (report.facts.length ? `${report.facts.length} verified facts from ${report.documents.length} documents. A primary discovery remains withheld until independent evidence supports it.` : report.outcome === 'partial' ? 'Research ended before verification finished. No verified financial figures were established; this incomplete investigation does not support a conclusion about the company.' : 'The available sources did not establish a supported finding.')}</p>
       <div className="report-verdict"><span className={`report-verdict-mark ${discovery ? '' : 'verdict-withheld'}`}>{discovery ? '↗' : '◌'}</span><span><span>{discovery ? `${discovery.evidence_strength} evidence` : 'Finding withheld'}</span><small>{discovery ? 'Open the evidence behind the finding' : report.facts.length ? 'Verified figures remain available for inspection' : 'No verified figures were established'}</small></span><span className="report-run-id">{report.company.legal_name}<small>Cutoff {report.cutoff}</small></span></div>
     </header>
@@ -97,7 +140,7 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
         <ResearchAudit report={report} onFact={setSelectedFact} />
         <PeerComparison report={report} />
         <TimelineStory report={report} onFact={setSelectedFact} />
-        {report.generation_metadata?.temporal_reasoning && <section className="report-why"><h3>When the relationship emerged</h3><p>{report.generation_metadata.temporal_reasoning.text}</p><p className="muted">Onset: {report.generation_metadata.temporal_reasoning.onset_status}</p><button onClick={() => onClaim(report.generation_metadata!.temporal_reasoning!.claim_id)}>Inspect timeline evidence <Arrow diagonal /></button></section>}
+        {report.generation_metadata?.temporal_reasoning && <section className="report-why report-temporal"><h3>When the relationship emerged</h3><p>{report.generation_metadata.temporal_reasoning.text}</p><p className="muted">Onset: {report.generation_metadata.temporal_reasoning.onset_status}</p><button onClick={() => onClaim(report.generation_metadata!.temporal_reasoning!.claim_id)}>Inspect timeline evidence <Arrow diagonal /></button></section>}
       </section>
       </>}
       {section === 'figures' && <>

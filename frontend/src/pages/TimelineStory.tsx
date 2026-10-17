@@ -10,7 +10,7 @@ export function TimelineStory({ report, onFact }: { report: Report; onFact: (fac
     <div className="story-sparklines">{groups.map(key => {
       const points = story.events.filter(e => `${e.metric}|${e.scope}` === key)
       const values = points.map(p => Number(p.value)), min = Math.min(...values), range = Math.max(...values) - min || 1
-      return <figure key={key}><figcaption>{displayMetric(points[0].metric)} · {points[0].scope}</figcaption><svg viewBox="0 0 240 60" role="img" aria-label={`${displayMetric(points[0].metric)} observed history`}><polyline fill="none" stroke="#315b3e" strokeWidth="2" points={values.map((v, i) => `${5 + i * 230 / Math.max(1, values.length - 1)},${55 - (v - min) * 45 / range}`).join(' ')} /></svg></figure>
+      return <figure key={key}><figcaption>{displayMetric(points[0].metric)} · {points[0].scope}</figcaption>{values.length > 1 ? <svg viewBox="0 0 240 60" role="img" aria-label={`${displayMetric(points[0].metric)} observed history`}><polyline fill="none" stroke="#315b3e" strokeWidth="2" points={values.map((v, i) => `${5 + i * 230 / Math.max(1, values.length - 1)},${55 - (v - min) * 45 / range}`).join(' ')} /></svg> : <div className="spark-single"><strong>{displayNumber(points[0].value)} <small>{displayUnit(points[0].unit)}</small></strong><span>One reporting date · {points[0].date}</span></div>}</figure>
     })}</div>
     {story.onsets.map(item => <p key={`${item.metric}|${item.scope}`}><strong>{displayMetric(item.metric)} onset · </strong>{item.estimate ? `${item.estimate.date} · ${item.estimate.confidence} confidence. ${item.estimate.reason}` : `Not established. Needed: ${item.missing.join(' ')}`}</p>)}
     {story.missing.map(text => <p className="muted" key={text}>Onset not established: {text}</p>)}

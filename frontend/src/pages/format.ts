@@ -9,7 +9,7 @@ export function displayUnit(value?: string) {
 }
 
 export function displayMetric(value: string) {
-  const known: Record<string, string> = { nim: 'NIM', nii: 'Net interest income', casa: 'CASA', ape: 'APE', vnb: 'VNB' }
+  const known: Record<string, string> = { nim: 'NIM', nii: 'Net interest income', casa: 'CASA', ape: 'APE', vnb: 'VNB', gnpa: 'GNPA', nnpa: 'NNPA' }
   return known[value] || value.replaceAll('_', ' ').replace(/^./, letter => letter.toUpperCase())
 }
 

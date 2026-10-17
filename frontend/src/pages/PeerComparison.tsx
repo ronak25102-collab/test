@@ -1,4 +1,4 @@
-import type { Report } from '../api/generated'
+import type { Fact, Report } from '../api/generated'
 import { displayMetric, displayNumber } from './format'
 
 export function PeerComparison({ report }: { report: Report }) {
@@ -12,7 +12,7 @@ export function PeerComparison({ report }: { report: Report }) {
   const barValues = snapshot.flatMap(r => [Number(r.company_value), Number(r.peer_median)])
   const barHigh = Math.max(...barValues, 0), barLow = Math.min(...barValues, 0), barRange = barHigh - barLow || 1
   const zeroY = 30 + barHigh * 100 / barRange + (barHigh > 0 ? 14 : 0)
-  return <section className="peer-comparison"><h3>Company story or sector story?</h3>{benchmark.status !== 'verified' ? <p>Inconclusive: matching figures from at least two peers could not be verified. Evidence strength is capped at Weak. {benchmark.missing?.join(' ')}</p> : <>
+  return <section className="peer-comparison"><h3>Company story or sector story?</h3>{benchmark.status !== 'verified' ? <><article className="peer-inconclusive"><p>Inconclusive: matching figures from at least two peers could not be verified. Evidence strength is capped at Weak. {benchmark.missing?.join(' ')}</p></article><CompanyGrowth report={report} /></> : <>
     <p>{snapshot.length > 1 ? 'Compared metrics' : displayMetric(first.metric)} · {first.scope} · {first.comparison === 'annual_growth' ? 'Annual growth (%)' : 'Reported ratio (%)'}</p>
     {rows.length < 2 ? <>
       <svg viewBox="0 0 600 200" role="img" aria-label={`Company and peer median comparison on ${first.period_end}`}>
@@ -31,4 +31,44 @@ export function PeerComparison({ report }: { report: Report }) {
     {benchmark.comparisons.map(row => <article key={row.id}><strong>{displayMetric(row.metric)} · {row.period_end} · {row.classification}</strong><p>Company {displayNumber(row.company_value)}% · Peer median {displayNumber(row.peer_median)}% · Gap {displayNumber(row.gap)} percentage points · {row.scope}</p></article>)}
     <details><summary>Peer figures and exact source passages</summary>{benchmark.sources?.map(bundle => <section key={bundle.company.id}><h4>{bundle.company.legal_name}</h4>{bundle.facts.map(f => { const p = bundle.passages.find(p => p.id === f.passage_id); const d = bundle.documents.find(d => d.id === p?.document_id); return <details key={f.id}><summary>{displayMetric(f.metric_key)}: {displayNumber(f.value_decimal)} · {f.period_end} · {f.scope}</summary>{d && <a href={d.canonical_url} target="_blank" rel="noreferrer">Original peer disclosure ↗</a>}<blockquote>{p?.text}</blockquote><small>Fact ID {f.id}</small></details>})}</section>)}</details>
   </>}</section>
+}
+
+// Without verified peers there is no sector median, but the company's own verified
+// annual growth (registered yoy_growth calculations) can still be charted honestly.
+function CompanyGrowth({ report }: { report: Report }) {
+  const facts = new Map(report.facts.map(fact => [fact.id, fact]))
+  const latest = new Map<string, { metric: string; scope: string; period: string; value: number }>()
+  for (const calc of report.calculations) {
+    if (calc.formula_id !== 'yoy_growth' || calc.output_value == null || !Number.isFinite(Number(calc.output_value))) continue
+    const inputs = calc.input_fact_ids.map(id => facts.get(id)).filter((fact): fact is Fact => Boolean(fact?.period_end))
+    if (!inputs.length) continue
+    const current = inputs.reduce((a, b) => (a.period_end! >= b.period_end! ? a : b))
+    const key = `${current.metric_key}|${current.scope}`
+    const previous = latest.get(key)
+    if (!previous || current.period_end! > previous.period) latest.set(key, { metric: current.metric_key, scope: current.scope, period: current.period_end!, value: Number(calc.output_value) })
+  }
+  const bars = [...latest.values()].sort((a, b) => a.scope.localeCompare(b.scope) || a.metric.localeCompare(b.metric))
+  if (!bars.length) return null
+  const scopes = new Set(bars.map(bar => bar.scope))
+  const periods = [...new Set(bars.map(bar => bar.period))]
+  const high = Math.max(...bars.map(bar => bar.value), 0), low = Math.min(...bars.map(bar => bar.value), 0), span = high - low || 1
+  const plot = 110, top = 24
+  const zeroY = top + high * plot / span
+  const width = 600, slot = (width - 80) / bars.length, barWidth = Math.min(48, slot * .45)
+  return <div className="company-growth">
+    <p>Company only · verified annual growth (%){scopes.size === 1 ? ` · ${[...scopes][0]}` : ''}</p>
+    <svg viewBox={`0 0 ${width} 190`} role="img" aria-label={`Verified annual growth for ${report.company.legal_name}; no verified peer median`}>
+      <line x1="40" x2={width - 40} y1={zeroY} y2={zeroY} stroke="#ccd7d4" />
+      {bars.map((bar, index) => {
+        const cx = 40 + (index + .5) * slot
+        const h = Math.max(2, Math.abs(bar.value) * plot / span), y = bar.value >= 0 ? zeroY - h : zeroY
+        return <g key={`${bar.metric}|${bar.scope}`}>
+          <rect x={cx - barWidth / 2} y={y} width={barWidth} height={h} fill="#315b3e" />
+          <text x={cx} y={bar.value >= 0 ? y - 6 : y + h + 14} textAnchor="middle" fontSize="11">{displayNumber(String(bar.value))}%</text>
+          <text x={cx} y="182" textAnchor="middle" fontSize="11">{displayMetric(bar.metric)}{scopes.size > 1 ? ` · ${bar.scope}` : ''}</text>
+        </g>
+      })}
+    </svg>
+    <p>Green: company · No verified peer median to compare · {periods.length === 1 ? periods[0] : `latest of ${periods.join(', ')}`}</p>
+  </div>
 }
