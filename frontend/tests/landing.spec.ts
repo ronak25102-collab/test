@@ -83,7 +83,9 @@ test('mobile landing and workspace fit the viewport and respect reduced motion',
 })
 
 test('section navigation follows the reading position and process panels stay accessible', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.goto('/')
+  await page.getByRole('button', { name: 'Skip intro' }).click()
   const navigation = page.getByRole('navigation', { name: 'Main navigation' })
   await expect(navigation.getByRole('link', { name: 'Platform', exact: true })).toHaveAttribute('aria-current', 'location')
   await navigation.getByRole('link', { name: 'How it works', exact: true }).click()
@@ -109,6 +111,7 @@ test('section navigation follows the reading position and process panels stay ac
 test('changing motion preferences stops motion immediately without disabling interactions', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await page.goto('/')
+  await page.getByRole('button', { name: 'Skip intro' }).click()
   await expect(page.locator('.floating-label').first()).toHaveCSS('animation-play-state', 'running')
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(page.locator('.shell')).toHaveClass(/motion-paused/)
