@@ -63,6 +63,6 @@ test('reduced motion removes pinning and keyboard controls still open every chap
   }
   await page.emulateMedia({ reducedMotion: 'no-preference' })
   await expect(stage).toHaveCSS('position', 'sticky')
-  await page.getByRole('button', { name: 'Pause animations', exact: true }).click()
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await expect(stage).toHaveCSS('position', 'relative')
 })

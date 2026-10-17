@@ -112,3 +112,8 @@
  .research-page.progress-page .money-journey { padding: 18px 16px 0; }
  .research-page.progress-page .journey-counters { margin-inline: -16px; }
 }
+
+/* Research workspace: less space above the page label so the start button sits higher on screen. */
+@media (min-width: 761px) {
+ .research-page.setup-page { padding-top: 8px; }
+}
