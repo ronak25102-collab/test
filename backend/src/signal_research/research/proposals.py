@@ -16,7 +16,7 @@ def verified_proposals(company, facts, calculations, structural_breaks):
     blocked |= {c.id for c in calculations if not c.formula_id.startswith('recovery_ratio')
                 and any(set(event['fact_ids']) <= {str(i) for i in c.input_fact_ids}
                         for event in structural_breaks)}
-    rank = {'recovery_ratio_funding_mix': 0, 'recovery_ratio': 0,
+    rank = {'segment_dependency_gap':0, 'recovery_ratio_funding_mix': 0, 'recovery_ratio': 0,
             'deposit_borrowing_mix_change': 1, 'growth_gap': 2}
     results = []
     by_id = {f.id: f for f in facts}
@@ -30,12 +30,24 @@ def verified_proposals(company, facts, calculations, structural_breaks):
         identifiers = list(dict.fromkeys(i for c in selected for i in c.input_fact_ids))
         inputs = [by_id[i] for i in identifiers]
         ends = sorted({f.period_end for f in inputs if f.period_end})
-        if len(ends) < 2 or len(identifiers) > 12:
-            return
         c = selected[0]
+        if not ends or (len(ends) < 2 and c.formula_id != 'segment_dependency_gap') or len(identifiers) > 12:
+            return
         scope = inputs[0].scope.value
         span = f'from {ends[0].isoformat()} to {ends[-1].isoformat()}'
-        if c.formula_id == 'growth_gap':
+        if c.formula_id == 'segment_dependency_gap':
+            if abs(c.output_value) < 10:
+                return  # Descriptive ranking heuristic, not a materiality claim.
+            half = len(c.input_fact_ids) // 2
+            shares = [next((other for other in calculations if other.input_fact_ids == c.input_fact_ids[start:end]
+                            and other.formula_id == formula), None)
+                      for start,end,formula in [(0,half,'segment_revenue_share'),(half,len(c.input_fact_ids),'segment_profit_share')]]
+            if not all(shares):
+                return
+            selected = [c,*shares]
+            detail = f'reported {inputs[0].segment} contributing {number(shares[1])} of reported segment results versus {number(shares[0])} of gross segment revenue'
+            span = f'during {inputs[0].period_start.isoformat()} to {ends[-1].isoformat()}'
+        elif c.formula_id == 'growth_gap':
             detail = f'recorded a {number(c)} growth difference between {label(inputs[0].metric_key)} and {label(inputs[2].metric_key)}'
         elif c.formula_id == 'deposit_borrowing_mix_change':
             detail = f'recorded a {number(c)} change in deposits as a share of deposits plus borrowings'

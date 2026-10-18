@@ -55,6 +55,15 @@ def _share(values: list[Decimal], _: dict) -> Decimal:
     return component / total * Decimal("100")
 
 
+def _segment_share(values, parameters):
+    return _share([values[0], values[-1]], parameters)
+
+
+def _segment_dependency(values, parameters):
+    half = len(values) // 2
+    return _segment_share(values[half:], parameters) - _segment_share(values[:half], parameters)
+
+
 def _change_pp(values: list[Decimal], _: dict) -> Decimal:
     return values[0] - values[1]
 
@@ -112,6 +121,9 @@ def _recovery_mix(values: list[Decimal], parameters: dict) -> Decimal:
 
 
 FORMULAS: dict[str, tuple[str, Formula, str]] = {
+    'segment_revenue_share': ('1.0', _segment_share, 'percent'),
+    'segment_profit_share': ('1.0', _segment_share, 'percent'),
+    'segment_dependency_gap': ('1.0', _segment_dependency, 'percentage_points'),
     'recovery_ratio': ('1.0', _recovery_ratio, 'percent'),
     'recovery_ratio_funding_mix': ('1.0', _recovery_mix, 'percent'),
     "yoy_growth": ("1.0", _positive_growth, "percent"),
@@ -134,14 +146,21 @@ FORMULAS: dict[str, tuple[str, Formula, str]] = {
 
 
 def comparable(formula_id: str, facts: list[NumericFact]) -> list[str]:
-    expected = 6 if formula_id == 'recovery_ratio_funding_mix' else 3 if formula_id == 'recovery_ratio' else 4 if formula_id in {"growth_gap", "ldr_change", 'deposit_borrowing_mix_change'} else 2
+    from .segments import SEGMENT_FORMULAS, validate_segment_inputs
+    segment_formula = formula_id in SEGMENT_FORMULAS
+    expected = len(facts) if segment_formula else 6 if formula_id == 'recovery_ratio_funding_mix' else 3 if formula_id == 'recovery_ratio' else 4 if formula_id in {"growth_gap", "ldr_change", 'deposit_borrowing_mix_change'} else 2
     if len(facts) != expected:
         raise ValueError(f"{formula_id} requires {expected} facts")
-    for field_name in ("entity_id", "unit", "scope", "segment", "currency", "period_type"):
+    fields = ("entity_id", "unit", "scope", "currency", "period_type") if segment_formula else ("entity_id", "unit", "scope", "segment", "currency", "period_type")
+    for field_name in fields:
         if len({str(getattr(f, field_name)) for f in facts}) != 1:
             raise ValueError(f"incomparable {field_name}")
     if any(not isinstance(f.value, Decimal) or not f.value.is_finite() for f in facts):
         raise ValueError("non-finite input")
+    if segment_formula:
+        if any(f.unit != 'INR_crore' or f.currency != 'INR' for f in facts):
+            raise ValueError('segment shares require consistently normalized source currency and scale')
+        return validate_segment_inputs(formula_id, facts)
     if formula_id.startswith('recovery_ratio'):
         levels = facts
         if formula_id == 'recovery_ratio_funding_mix':

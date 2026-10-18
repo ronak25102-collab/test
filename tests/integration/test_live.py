@@ -240,6 +240,28 @@ def test_source_only_prose_cannot_replace_the_required_verified_fact_anchor(stor
     assert any('fact or calculation anchor' in limitation for limitation in report.limitations)
 
 
+@pytest.mark.parametrize('reject', [False,True])
+def test_optional_context_cleanup_still_requires_fresh_independent_review(store,tmp_path,monkeypatch,reject):
+    from signal_research.research.live import Statement
+    settings,rid,_=live_fixture(store,tmp_path,monkeypatch,reject_claim=reject)
+    settings.fast_verified_proposals=True
+    original=OpenAIProvider.generate
+    def with_orphan(self,schema,*args,**kwargs):
+        output,usage=original(self,schema,*args,**kwargs)
+        if schema.__name__=='DiscoveryDraft':
+            output.why_it_matters.append(Statement(text='Unrelated index context adds no verified financial relationship.',
+                kind='observed',fact_ids=[],calculation_ids=[],passage_ids=[]))
+        return output,usage
+    monkeypatch.setattr(OpenAIProvider,'generate',with_orphan)
+    ResearchMachine(store,settings).process(rid)
+    report=verify_report(store.get_report(rid))
+    assert bool(report.discoveries) is not reject
+    if not reject:
+        assert len(report.discoveries[0].why_it_matters)==3
+        assert store.artifacts(rid,'semantic_review')
+        assert store.artifacts(rid,'draft_coverage_repair')
+
+
 def test_primary_origin_arithmetic_can_publish_only_a_non_causal_weak_observation(store, tmp_path, monkeypatch):
     from uuid import UUID
 

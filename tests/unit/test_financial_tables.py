@@ -14,7 +14,6 @@ from signal_research.extraction.validate import validate_candidate
     (Profile.GENERAL_INSURER, 'Combined ratio (%) | 95 | 100\nClaims ratio (%) | 65 | 70', 'Year ended '),
     (Profile.EXCHANGE, 'Transaction fees | 120 | 100\nTotal revenue | 200 | 180', 'Year ended '),
     (Profile.ASSET_MANAGER, 'Average AUM | 1000 | 900\nManagement fees | 30 | 25', 'Year ended '),
-    (Profile.DIVERSIFIED, 'Segment profit | 120 | 100\nSegment revenue | 200 | 180', 'Year ended '),
 ])
 def test_explicit_tables_bind_each_business_type(profile, rows, duration):
     company = SimpleNamespace(id=uuid4(), legal_name='Quartz Financial Limited')
@@ -26,6 +25,18 @@ def test_explicit_tables_bind_each_business_type(profile, rows, duration):
     for candidate in batch.facts:
         result = validate_candidate(candidate, passage, company.id, profile)
         assert result.fact, result.reason
+
+
+def test_unnamed_segment_columns_are_candidates_but_cannot_pass_binding_gates():
+    company=SimpleNamespace(id=uuid4(),legal_name='Quartz Financial Limited')
+    passage=Passage(id=uuid4(),document_id=uuid4(),text=(
+        'Quartz Financial Limited\nConsolidated results\nINR crore\nYear ended '
+        '31 March 2026 | 31 March 2025\nSegment profit | 120 | 100\nSegment revenue | 200 | 180'))
+    batch=financial_table_batch(passage,company,Profile.DIVERSIFIED)
+    assert batch and len(batch.facts)==4
+    for candidate in batch.facts:
+        result=validate_candidate(candidate,passage,company.id,Profile.DIVERSIFIED)
+        assert result.fact is None and result.reason=='segment components require a named reporting segment'
 
 
 @pytest.mark.parametrize('replacement', [

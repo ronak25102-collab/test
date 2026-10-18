@@ -17,6 +17,20 @@ test.beforeEach(async ({ page }) => {
   })
 })
 
+test('missing evidence uses readable financial labels and dates while preserving the finding status', async ({ page }) => {
+  const incomplete = { ...result, generation_metadata: { ...result.generation_metadata,
+    best_candidate: { text: 'A research question awaiting verification.', label: 'Not established', reason: 'No discovery passed review.',
+      missing: ['segment_revenue breakdown for 2026-04-01 to 2026-06-30 consolidated', 'segment_profit breakdown for the same period'] } } }
+  await page.route('**/api/v1/runs/*/report', route => route.fulfill({ json: incomplete }))
+  await page.goto(`/?view=report&run=${report.run_id}&section=overview`)
+  const candidate = page.locator('.best-candidate')
+  await expect(candidate).toContainText('Not established')
+  await expect(candidate).toContainText('Segment revenue breakdown for 1 Apr 2026 to 30 Jun 2026 consolidated')
+  await expect(candidate).toContainText('Reported segment result breakdown for the same period')
+  await expect(candidate).not.toContainText('segment_revenue')
+  await expect(candidate).toContainText('not a published finding')
+})
+
 test('completed output prioritizes the report and filters source-bound figures without changing research', async ({ page }) => {
   const mutations: string[] = []
   page.on('request', request => { if (request.method() === 'POST') mutations.push(request.url()) })

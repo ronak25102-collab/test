@@ -19,7 +19,7 @@ ANGLES = (
     Angle('insurance_distribution', ('life_insurer',), (('ape', 'vnb', 'new_business_premium'), ('persistency_13m', 'persistency_61m', 'renewal_premium', 'vnb_margin')), 'Does new-business growth conceal a change in customer retention or distribution economics?'),
     Angle('underwriting_mix', ('general_insurer',), (('gross_written_premium', 'earned_premium'), ('combined_ratio', 'loss_ratio', 'expense_ratio')), 'Does premium growth diverge from underwriting quality or product mix?'),
     Angle('flow_fee_mix', ('asset_manager',), (('aum', 'average_aum', 'net_flows'), ('fee_revenue', 'net_profit', 'revenue')), 'Does asset growth conceal a shift in flows, customer mix or realised fee yield?'),
-    Angle('segment_dependency', ('diversified', 'exchange'), (('segment_revenue', 'transaction_revenue', 'revenue'), ('segment_profit', 'net_profit', 'trading_turnover')), 'Is headline growth dependent on one segment or revenue source?'),
+    Angle('segment_dependency', ('diversified', 'exchange'), (('segment_revenue', 'segment_revenue_total', 'transaction_revenue', 'revenue'), ('segment_profit', 'segment_profit_total', 'net_profit', 'trading_turnover')), 'Are reported earnings disproportionately dependent on one segment or revenue source?'),
 )
 
 

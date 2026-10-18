@@ -170,7 +170,7 @@ Copy-Item .\config\model-rates.codecraft.example.json .\config\model-rates.json 
 ```
 
 In WSL, use `cp config/model-rates.codecraft.example.json config/model-rates.json`
-and restart the API and worker. The example covers `claude-opus-5.5` and
+and restart the API and worker. The example covers `gemini-3.7-flash` and
 `nvidia/nemotron-3.5-lightning-30b-a3b`; keep the model IDs consistent with `.env`.
 It records the shared demo account's pricing snapshot, not universal provider
 prices. Check rates if using another account. CodeCraft also requires
@@ -472,3 +472,5 @@ See [implementation status](docs/implementation-status.md),
 [configured Windows setup](docs/LOCAL_SETUP.md),
 [fix handoff](docs/FIX_HANDOFF.md), [validation](docs/evaluation-report.md) and
 [the product specification](docs/TRACK_A_PRD_AND_IMPLEMENTATION.md).
+
+Segment-reporting extraction and its evidence controls are described in [the segment research repair](docs/SEGMENT-RESEARCH.md).

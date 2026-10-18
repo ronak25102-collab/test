@@ -29,3 +29,10 @@ def test_unverified_context_bullet_can_only_be_replaced_with_existing_formula_co
     # It cannot manufacture a missing financial headline, or fill multiple gaps.
     assert coverage_repair(draft.model_copy(update={'headline':bad}), facts, calculations) is None
     assert coverage_repair(draft.model_copy(update={'why_it_matters':[bad,bad,s]}), facts, calculations) is None
+    orphan=s.model_copy(update={'text':'Independent index context does not establish this financial relationship.',
+                                'fact_ids':[],'calculation_ids':[]})
+    trimmed=coverage_repair(draft.model_copy(update={'why_it_matters':[s,s,s,orphan]}),facts,calculations)
+    assert trimmed is not None and len(trimmed.why_it_matters)==3
+    assert trimmed.headline==draft.headline and trimmed.counterargument==draft.counterargument
+    mixed=coverage_repair(draft.model_copy(update={'why_it_matters':[s,s,bad,orphan]}),facts,calculations)
+    assert mixed is not None and len(mixed.why_it_matters)==3 and '99%' not in mixed.model_dump_json()

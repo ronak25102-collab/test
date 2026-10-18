@@ -49,14 +49,18 @@ def validate_headline(text, entity, facts, calculations):
 
 def template_headline(company, facts, calculations):
     available = [c for c in calculations if c.available and c.output_value is not None]
-    c = next((c for c in available if c.formula_id.startswith('recovery_ratio')), None) or next(
+    c = next((c for c in available if c.formula_id == 'segment_dependency_gap'), None) or next(
+        (c for c in available if c.formula_id.startswith('recovery_ratio')), None) or next(
         (c for c in available if c.formula_id == 'deposit_borrowing_mix_change'), None) or next(
         (c for c in available if c.formula_id == 'growth_gap'), available[0])
     inputs = [f for f in facts if f.id in c.input_fact_ids]
     ends = sorted({f.period_end for f in inputs if f.period_end})
     span = f'from {ends[0]:%B %Y} to {ends[-1]:%B %Y}'
     value = f'{c.output_value:,.2f}'.rstrip('0').rstrip('.')
-    if c.formula_id.startswith('recovery_ratio'):
+    if c.formula_id == 'segment_dependency_gap':
+        span = f'during {inputs[0].period_start:%B %Y} to {ends[-1]:%B %Y}'
+        detail = f"reported a {value} percentage point difference between {inputs[0].segment}'s shares of segment results and gross segment revenue"
+    elif c.formula_id.startswith('recovery_ratio'):
         detail = f'restored {value}% of its pre-event ' + ('funding mix' if c.formula_id.endswith('funding_mix') else inputs[0].metric_key.replace('_', ' '))
     elif c.formula_id == 'deposit_borrowing_mix_change':
         detail = f'recorded a {value} percentage point change in deposits as a share of deposits plus borrowings'
@@ -66,5 +70,5 @@ def template_headline(company, facts, calculations):
         unit = '%' if c.unit == 'percent' else ' percentage points' if c.unit == 'percentage_points' else ' times'
         label = {'yoy_growth': 'annual growth', 'cagr': 'annual compounded growth'}.get(c.formula_id, c.formula_id.replace('_', ' '))
         detail = f'recorded {value}{unit} for {label} in {inputs[0].metric_key.replace("_", " ")}'
-    scope = f' on a {inputs[0].scope.value} basis' if c.formula_id == 'deposit_borrowing_mix_change' else ''
+    scope = f' on a {inputs[0].scope.value} basis' if c.formula_id in {'deposit_borrowing_mix_change','segment_dependency_gap'} else ''
     return f'{company.legal_name} {detail} {span}{scope}.', c

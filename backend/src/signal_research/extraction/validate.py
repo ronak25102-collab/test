@@ -78,6 +78,12 @@ def validate_candidate(
             return FactValidation(None, "evidence quote is not an exact source span")
         text = candidate.evidence_quote
     lowered = text.lower()
+    if candidate.metric_key in {'segment_revenue', 'segment_profit'} and candidate.segment == 'all':
+        return FactValidation(None, 'segment components require a named reporting segment')
+    if candidate.metric_key in {'segment_revenue_total', 'segment_profit_total'} and candidate.segment != 'all':
+        return FactValidation(None, 'reported segment totals cannot be labelled as one component')
+    if candidate.metric_key == 'segment_profit_total' and not re.search(r'\bsegment\s+(?:results?|profit)\b', lowered):
+        return FactValidation(None, 'segment-result total requires its own segment-results section, not consolidated P&L')
     if subsidiary_only(text):
         return FactValidation(None, "passage reports a subsidiary or sponsored bank, not issuer totals")
     if candidate.metric_key == "advances_as_reported" and not re.search(r"(?im)^\s*(?:total\s+)?advances\s+[^\n]*\d", text):

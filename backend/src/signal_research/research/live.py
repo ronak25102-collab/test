@@ -260,7 +260,8 @@ def derive_calculations(facts):
                                        input_fact_ids=result.input_fact_ids, output_value=result.output_value, unit=result.unit,
                                        period=" / ".join(str(f.period_end) for f in inputs), scope=inputs[0].scope,
                                        comparability_checks=result.comparability_checks,
-                                       limitations=(['Denominator includes deposits and borrowings only, not all liabilities or all funding. Reporting-boundary changes may affect comparisons; this calculation does not prove a causal mechanism.'] if formula.startswith('deposit_borrowing_mix') else [])))
+                                       limitations=(['Denominator includes deposits and borrowings only, not all liabilities or all funding. Reporting-boundary changes may affect comparisons; this calculation does not prove a causal mechanism.'] if formula.startswith('deposit_borrowing_mix') else
+                                                    ['Segment components reconcile exactly to their own reported total. Gross segment revenue may include intersegment activity. Reported segment results are not consolidated net profit; one reporting window does not establish a trend or a causal mechanism.'] if formula.startswith('segment_') else [])))
     pairs = []
     for values in groups.values():
         values = sorted(values, key=lambda f: f.period_end)
@@ -309,6 +310,18 @@ def derive_calculations(facts):
                 for b in facts:
                     if b.metric_key == denominator:
                         add(formula, [a, b])
+    from signal_research.finance.segments import segment_groups
+    for revenues, revenue_total, profits, profit_total in segment_groups(facts):
+        for components, total, formula in ((revenues, revenue_total, 'segment_revenue_share'),
+                                           (profits, profit_total, 'segment_profit_share')):
+            if total:
+                for component in components:
+                    add(formula, [component, *[f for f in components if f.id != component.id], total])
+        if revenue_total and profit_total and {f.segment.casefold() for f in revenues} == {f.segment.casefold() for f in profits}:
+            for component in revenues:
+                ordered_revenues = [component, *[f for f in revenues if f.id != component.id]]
+                ordered_profits = [next(f for f in profits if f.segment.casefold() == revenue.segment.casefold()) for revenue in ordered_revenues]
+                add('segment_dependency_gap', [*ordered_revenues, revenue_total, *ordered_profits, profit_total])
     mix_groups = {}
     for fact in facts:
         if fact.metric_key in {'deposits', 'borrowings'}:
@@ -831,7 +844,7 @@ class LiveResearch:
                 review = self.extraction_model(passage, fact_review_schema(len(candidates)), {"entity": self.company.legal_name, "source_text": passage.text,
                                            "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages],
                                            "candidates": [c.model_dump(mode="json", exclude={'evidence_quote', 'extraction_confidence', 'notes'}) | {"index": i} for i, c in enumerate(candidates)]}, "extract", "normalizing",
-                                           f"Independently check every indexed candidate. A value appearing somewhere in a passage is insufficient. source_text is the complete evidence passage; evidence_quote=null means review source_text, not missing evidence. document_identity_passages establish issuer identity only, never a financial date or value. Verify exact metric/value/date/column binding, issuer identity (reject peer/subsidiary values), scope, unit, currency, period type, segment and definition. Comparative balance-sheet headers Jun 25 and Dec 25 mean the last calendar day of June and December 2025, respectively. Target-issuer SOLO columns denote standalone scope and GROUP columns consolidated scope; keep the two column groups separate and never treat net advances as gross advances. supported=false for ambiguity. Return exactly {len(candidates)} verdicts, one per explicit candidate index from 0 to {len(candidates) - 1}. Preserve those indices. Compare against each candidate's own current or prior period_end column. Each reason must be one brief sentence of at most 300 characters. Do not repeat candidates or add verdicts.")
+                                           f"Independently check every indexed candidate. A value appearing somewhere in a passage is insufficient. source_text is the complete evidence passage; evidence_quote=null means review source_text, not missing evidence. document_identity_passages establish issuer identity only, never a financial date or value. Verify exact metric/value/date/column binding, issuer identity (reject peer/subsidiary values), scope, unit, currency, period type, segment and definition. Comparative balance-sheet headers Jun 25 and Dec 25 mean the last calendar day of June and December 2025, respectively. Named segment candidates must match their own revenue/result section and exact segment name. Reported segment-result totals are not consolidated net profit. Target-issuer SOLO columns denote standalone scope and GROUP columns consolidated scope; keep the two column groups separate and never treat net advances as gross advances. supported=false for ambiguity. Return exactly {len(candidates)} verdicts, one per explicit candidate index from 0 to {len(candidates) - 1}. Preserve those indices. Compare against each candidate's own current or prior period_end column. Each reason must be one brief sentence of at most 300 characters. Do not repeat candidates or add verdicts.")
                 verdicts = {v.index: v for v in review.verdicts} if review else {}
                 if len(verdicts) != len(candidates) or set(verdicts) != set(range(len(candidates))):
                     accepted = []
@@ -1138,7 +1151,7 @@ class LiveResearch:
         structured = any(p.extraction_method == 'exchange_table' for p in self.passages)
         # Comparative annual filings usually contain two endpoints. Three bounded
         # searches cover a five-year window without demanding twenty PDFs up front.
-        for offset in (0, 2, 4):
+        for offset in ((1, 0, 2, 4) if structured and len(years) < 2 else (0, 2, 4)):
             if (self.budget.search_calls >= self.budget.max_search_calls - 5
                     or self.budget.fetch_documents >= self.budget.max_fetch_documents - 4
                     or self.budget.model_calls >= self.budget.max_model_calls - 8
@@ -1146,7 +1159,7 @@ class LiveResearch:
                 self.limitations.append('Historical expansion stopped to preserve opposing-search and final-review allowances; five-year coverage is not assumed.')
                 break
             year = self.cutoff.year - offset
-            query = (f'"{self.company.legal_name}" "INTEGRATED FILING" {year}' if structured else
+            query = (f'{exchange_results_query(self.company)} "{year}"' if structured else
                      f'"{self.company.legal_name}" "annual report" {year - 1} {year} filetype:pdf')
             hits = self.search(query, ['nsearchives.nseindia.com'] if structured else self.company.verified_ir_domains or None,
                                search_depth='advanced')
@@ -1374,6 +1387,12 @@ class LiveResearch:
             self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
             return
         self.peer_collection_attempted = True
+        if not facts:
+            self.peer_benchmark = {'status':'inconclusive','comparisons':[],'sources':[],
+                'missing':['The selected observations do not contain a matching growth pair or reported ratio for numeric peer comparison.'],
+                'limitations':['Numeric peer retrieval was skipped because no comparable target series was available; missing peers cap evidence strength at Weak.']}
+            self.store.artifact(self.run_id,'peer_benchmark',self.peer_benchmark)
+            return
         peers = select_peers(self.company, self.store.peer_candidates(self.company.business_profiles[0]), self.company.business_profiles[0])
         from signal_research.research.agents import run_research_agents
         observations, bundles, errors = [], [], []
@@ -1724,17 +1743,18 @@ class LiveResearch:
                 'Counterargument review retained the qualified candidate, but drafting and independent final verification must finish before publication.',
                 challenge.relevant_passage_ids)
             draft_payload = self.payload(hypothesis, challenge.relevant_passage_ids) | {"hypothesis": hypothesis.model_dump(mode="json"), "challenge": challenge.model_dump(mode="json")}
-            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write exactly one plain-English, qualified discovery sentence of at most 35 words, naming the entity, the change, one or two verified key numbers with units, and the observed time span; then 3–5 significance statements and the strongest counterargument. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
+            draft = self.calls.model(cited_draft_schema(draft_payload), draft_payload, stage="composing", instruction="Write exactly one plain-English, qualified discovery sentence of at most 35 words, naming the entity, the change, one or two verified key numbers with units, and the observed time span; then exactly three concise significance statements and the strongest counterargument. Every significance statement, including limitations, must bind to at least one supplied issuer fact ID. Avoid unrelated index weights or raw context figures not verified in the supplied facts or calculations. timeline_analysis must explain when the relationship first appears in the verified observations and how it developed, citing its actual fact/passage/calculation IDs. Distinguish a bounded observation window from true onset. Set onset_status=unknown and explicitly say onset is not established if only two snapshots or no evidence of emergence exists; never claim a multi-year trend from two endpoints. Every factual statement must cite supplied supporting fact/passage IDs and calculation IDs where numerical. Use full IDs verbatim from the corresponding facts, passages and calculations arrays. Every inferred headline or significance claim needs directly relevant support from at least two independent origin families. With fewer origins, use only source-observed or reproducibly derived claims and disclose that independent corroboration is missing; exchange reposts of issuer material are the same origin. Pure reported figures may use primary source facts. Include independently originated relevant context. State an observable future condition identifying the metric or event, comparison direction, observation window and expected source that would falsify the relationship, with no invented historical numbers or arbitrary numeric threshold. Use the challenged qualification. No investment advice.")
             report = self.compose(draft, challenge, hypothesis.opposing_query)
             if report:
                 return report
             if (getattr(self.settings, 'fast_verified_proposals', False) and self.draft_feedback
-                    and self.draft_feedback.get('validation_stage') == 'local_numerical_gates'):
+                    and self.draft_feedback.get('validation_stage') in {'local_numerical_gates','local_evidence_anchors'}):
                 from signal_research.research.draft_repair import coverage_repair
                 corrected = coverage_repair(draft, self.facts, self.calculations)
                 if corrected is not None:
                     self.store.artifact(self.run_id, 'draft_coverage_repair', {
-                        'reason': 'One unsupported numeric-context bullet replaced by the linked formula coverage limitation.',
+                        'reason': 'Unsupported significance context removed or replaced by one linked formula coverage limitation; at least three supported bullets retained.',
+                        'before_bullets':len(draft.why_it_matters),'after_bullets':len(corrected.why_it_matters),
                         'fresh_independent_review_required': True})
                     report = self.compose(corrected, challenge, hypothesis.opposing_query)
                     if report:
@@ -1752,6 +1772,17 @@ class LiveResearch:
                 report = self.compose(revised_draft, challenge, hypothesis.opposing_query)
                 if report:
                     return report
+                if (self.settings.fast_verified_proposals and self.draft_feedback
+                        and self.draft_feedback.get('validation_stage') in {'local_numerical_gates','local_evidence_anchors'}):
+                    from signal_research.research.draft_repair import coverage_repair
+                    corrected=coverage_repair(revised_draft,self.facts,self.calculations)
+                    if corrected is not None:
+                        self.store.artifact(self.run_id,'draft_coverage_repair',{
+                            'reason':'Unsupported significance context removed after bounded draft correction.',
+                            'fresh_independent_review_required':True})
+                        report=self.compose(corrected,challenge,hypothesis.opposing_query)
+                        if report:
+                            return report
             self.record_decision(hypothesis, 'withheld', 'The drafted conclusion failed independent final verification.', challenge.relevant_passage_ids)
         return None
 
@@ -1788,6 +1819,8 @@ class LiveResearch:
             statement = statement.model_copy(update={'calculation_ids': complete_calculation_lineage(
                 statement.text, statement.fact_ids, statement.calculation_ids, self.calculations)})
             if not (statement.fact_ids or statement.calculation_ids):
+                self.draft_feedback={'repairable':True,'validation_stage':'local_evidence_anchors',
+                    'reason':'Every statement must relate to verified issuer facts or registered arithmetic. Remove irrelevant source-only context, keeping at least three supported significance statements; preserve headline and counterargument.'}
                 self.limitations.append('A financial statement lacked a verified fact or calculation anchor; source-only prose was withheld.')
                 return None
             if not set(statement.fact_ids) <= facts.keys() or not set(statement.passage_ids) <= passages.keys() or not set(statement.calculation_ids) <= calculations.keys() or not (statement.fact_ids or statement.passage_ids):
@@ -1810,7 +1843,7 @@ class LiveResearch:
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
-        review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(finding_boundary.model_copy(update={"calculation_ids": list({i for c in claims for i in c.calculation_ids})}), required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
+        review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(finding_boundary.model_copy(update={"calculation_ids": list({i for c in claims for i in c.calculation_ids})}), required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. A reconciled segment contribution gap is a cross-sectional observation for one disclosed interval; do not require a growth trend to verify it, and reject claims of onset, persistence or causality without history. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
         complete_review = len(review.verdicts) == len(claims) and set(verdicts) == {c.id for c in claims}
         self.store.artifact(self.run_id, 'semantic_review', {'claims': [c.model_dump(mode='json') for c in claims],
@@ -1832,7 +1865,8 @@ class LiveResearch:
         used_passages = {facts[i].passage_id for i in used_facts} | {l.passage_or_fact_id for c in claims for l in c.evidence_links if l.passage_or_fact_id in passages}
         used_docs = {passages[i].document_id for i in used_passages}
         documents = [d for d in self.documents if d.id in used_docs]
-        if len({f.period_end for f in self.facts if f.id in used_facts}) < 2:
+        reconciled_snapshot = any(c.id in used_calcs and c.formula_id == 'segment_dependency_gap' for c in self.calculations)
+        if len({f.period_end for f in self.facts if f.id in used_facts}) < 2 and not reconciled_snapshot:
             self.limitations.append("Candidate lacked comparable multi-period evidence; candidate withheld.")
             return None
         from signal_research.evidence.claim_origins import supporting_origins

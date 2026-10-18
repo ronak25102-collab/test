@@ -30,7 +30,7 @@ METRICS: dict[str, MetricDefinition] = {
     "combined_ratio": MetricDefinition("combined_ratio", ("combined ratio",), "percent", "duration", (Profile.GENERAL_INSURER,), "annual report"),
     "transaction_revenue": MetricDefinition("transaction_revenue", ("transaction fees", "transaction charges"), "INR_crore", "duration", (Profile.EXCHANGE,), "quarterly results"),
     "average_aum": MetricDefinition("average_aum", ("average AUM",), "INR_crore", "duration", (Profile.ASSET_MANAGER,), "quarterly results"),
-    "segment_profit": MetricDefinition("segment_profit", ("segment profit",), "INR_crore", "duration", COMMON, "segment disclosure"),
+    "segment_profit": MetricDefinition("segment_profit", ("segment profit", "segment result", "segment results"), "INR_crore", "duration", COMMON, "segment disclosure", ("reported segment result is not consolidated net profit",)),
 }
 
 # Profile-native measures are registered centrally, never added for a specific issuer.
@@ -48,7 +48,9 @@ for key, aliases, unit, kind, profiles in (
     ("co_lending_aum", ("co-lending AUM", "co lending assets"), "INR_crore", "stock", (Profile.NBFC,)),
     ("bank_borrowings", ("borrowings from banks", "bank borrowings"), "INR_crore", "stock", (Profile.NBFC, Profile.DIVERSIFIED)),
     ("bond_borrowings", ("debt securities", "bonds and debentures"), "INR_crore", "stock", (Profile.NBFC, Profile.DIVERSIFIED)),
-    ("segment_revenue", ("segment revenue",), "INR_crore", "duration", (Profile.DIVERSIFIED,)),
+    ("segment_revenue", ("segment revenue",), "INR_crore", "duration", COMMON),
+    ("segment_revenue_total", ("total segment revenue",), "INR_crore", "duration", COMMON),
+    ("segment_profit_total", ("total segment results", "total segment profit", "total profit before tax"), "INR_crore", "duration", COMMON),
     ("funding_cost", ("cost of funds", "funding cost"), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("credit_cost", ("credit cost",), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("nnpa", ("% of Net NPAs to Net Advances", "net non-performing assets ratio", "net NPA ratio", "net NPAs", "net NPA"), "percent", "stock", (Profile.BANK, Profile.NBFC)),

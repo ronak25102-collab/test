@@ -132,6 +132,15 @@ def test_housing_developer_is_not_an_nbfc_peer_even_in_an_old_directory():
     assert select_peers(target, [builder, lender], Profile.NBFC).peers == (lender,)
 
 
+def test_bare_holdings_name_does_not_authorize_a_financial_peer():
+    from signal_research.db.repositories import infer_profile
+    assert infer_profile('Quartz Land Holdings Limited') is None
+    target = Company(id=uuid4(),legal_name='Quartz Financial Services',business_profiles=[Profile.DIVERSIFIED])
+    land = Company(id=uuid4(),legal_name='Aardvark Land Holdings',business_profiles=[Profile.DIVERSIFIED])
+    financial = Company(id=uuid4(),legal_name='Birch Financial Holdings',business_profiles=[Profile.DIVERSIFIED])
+    assert select_peers(target,[land,financial],Profile.DIVERSIFIED).peers==(financial,)
+
+
 def test_peer_page_without_requested_period_never_calls_extraction_model(store, settings):
     from signal_research.domain.schemas import Passage
     rid = store.create_run(store.search_companies('AXISBANK')[0], date(2026, 10, 17), RunMode.LIVE)

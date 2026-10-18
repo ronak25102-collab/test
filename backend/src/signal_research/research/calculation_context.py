@@ -5,7 +5,12 @@ def calculation_context(calculation, facts):
     by_id = {fact.id: fact for fact in facts}
     inputs = [by_id[identifier] for identifier in calculation.input_fact_ids]
     formula = calculation.formula_id
+    segment_roles = (['selected_revenue_component', *['other_revenue_component']*(len(inputs)//2-2), 'reported_segment_revenue_total',
+                      'selected_result_component', *['other_result_component']*(len(inputs)//2-2), 'reported_segment_result_total']
+                     if formula == 'segment_dependency_gap' else
+                     ['selected_component', *['other_component']*(len(inputs)-2), 'reported_segment_total'])
     roles = (['current', 'post_break_trough', 'pre_break'] if formula == 'recovery_ratio' else
+             segment_roles if formula.startswith('segment_') else
              ['current_deposits', 'current_borrowings', 'trough_deposits', 'trough_borrowings', 'pre_break_deposits', 'pre_break_borrowings'] if formula == 'recovery_ratio_funding_mix' else
              ['first_current', 'first_prior', 'second_current', 'second_prior']
              if formula in {'growth_gap', 'ldr_change'} else
@@ -36,4 +41,7 @@ def calculation_context(calculation, facts):
     elif formula.startswith('deposit_borrowing_mix'):
         result['reading'] = ('Deposits as a share of deposits plus borrowings; excludes capital and other liabilities. '
                              + ('Current share minus prior share in percentage points.' if formula.endswith('_change') else 'Not a share of all funding.'))
+    elif formula.startswith('segment_'):
+        result['reading'] = ('Components reconcile exactly to their separately disclosed segment total. Gross segment revenue may include intersegment activity; segment results are not consolidated net profit. '
+                             + ('Result contribution minus revenue contribution for the same named segment; this is a single reporting window, not a growth trend.' if formula.endswith('_gap') else 'A contribution within the reported segment schedule.'))
     return result

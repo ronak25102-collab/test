@@ -1,5 +1,5 @@
 import type { Calculation, Document, Fact, Report } from '../api/generated'
-import { displayMetric, displayNumber, displayUnit } from './format'
+import { displayMetric, displayNumber, displayResearchGap, displayUnit } from './format'
 import './report-print.css'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -336,7 +336,7 @@ export function ReportPrint({ report }: { report: Report }) {
           {limitationGroups.map(group => (
             <div className="pr-limitation-group" key={group.title}>
               <h3>{group.title}</h3>
-              <ul>{group.items.map(item => <li key={item}>{item}</li>)}</ul>
+              <ul>{group.items.map(item => <li key={item}>{displayResearchGap(item)}</li>)}</ul>
             </div>
           ))}
         </section>

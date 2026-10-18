@@ -19,7 +19,9 @@ def select_peers(target: Company, candidates: list[Company], profile: Profile, l
         # A housing label alone cannot establish a financial peer, including
         # in existing caches created before the inference correction.
         name = company.legal_name.lower()
-        return profile == Profile.NBFC and 'housing' in name and not re.search(r'finance|financial|lending|nbfc', name)
+        housing_developer = profile == Profile.NBFC and 'housing' in name and not re.search(r'finance|financial|lending|nbfc', name)
+        unclassified_holding = profile == Profile.DIVERSIFIED and 'holdings' in name and not re.search(r'finance|financial|finserv|investments?|securities|capital markets', name)
+        return housing_developer or unclassified_holding
     eligible = [candidate for candidate in candidates if candidate.id != target.id and "SYNTHBANK" not in candidate.symbols
                 and profile in candidate.business_profiles and not legacy_housing_false_positive(candidate)]
     def specialization(company):

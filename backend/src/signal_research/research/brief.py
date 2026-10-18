@@ -70,6 +70,18 @@ def compatible_candidate(hypothesis, facts, calculations):
     bound = [f for f in facts if f.id in selected]
     for attribute in ('entity_id', 'scope', 'segment'):
         if len({str(getattr(f, attribute)) for f in bound}) > 1:
+            if attribute == 'segment':
+                from signal_research.finance.calculations import calculate, numeric_fact
+                from signal_research.finance.segments import SEGMENT_FORMULAS
+                by_id = {f.id:f for f in facts}
+                covered = set()
+                for c in calculations:
+                    if c.id in hypothesis.calculation_ids and c.available and c.formula_id in SEGMENT_FORMULAS and set(c.input_fact_ids) <= by_id.keys():
+                        result = calculate(c.formula_id, [numeric_fact(by_id[i]) for i in c.input_fact_ids])
+                        if result.available and result.output_value == c.output_value:
+                            covered.update(c.input_fact_ids)
+                if covered and all(f.id in covered for f in bound if f.segment != 'all'):
+                    continue  # Only explicit, reproduced component/total reconciliation.
             return False, f'Candidate mixes {attribute}; separately reported boundaries need a sourced reconciliation before comparison.'
     currencies = {f.currency for f in bound if f.currency}
     if len(currencies) > 1:
@@ -82,8 +94,17 @@ def research_lanes(facts, calculations):
     for fact in facts:
         key = (str(fact.entity_id), fact.scope.value, fact.segment)
         lanes.setdefault(key, []).append(fact)
-    return [{'entity_id': key[0], 'scope': key[1], 'segment': key[2],
+    result = [{'entity_id': key[0], 'scope': key[1], 'segment': key[2],
              'fact_ids': [f.id for f in values],
              'calculation_ids': [c.id for c in calculations if set(c.input_fact_ids) <= {f.id for f in values}],
              'rule': 'Compare within this reporting boundary. Stock and flow periods still require explicit alignment.'}
             for key, values in lanes.items()]
+    by_id = {f.id:f for f in facts}
+    for c in calculations:
+        if c.available and c.formula_id == 'segment_dependency_gap':
+            first = by_id[c.input_fact_ids[0]]
+            result.append({'entity_id':str(first.entity_id), 'scope':first.scope.value,
+                'segment':'reconciled components: '+first.segment, 'fact_ids':list(c.input_fact_ids),
+                'calculation_ids':[other.id for other in calculations if set(other.input_fact_ids) <= set(c.input_fact_ids)],
+                'rule':'Named segment components reconcile exactly to disclosed segment totals; no unrestricted segment mixing.'})
+    return result

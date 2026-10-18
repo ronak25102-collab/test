@@ -64,15 +64,21 @@ def exchange_table_passages(document_id, soup):
                       f'Reporting scope | {scope}\n'
                       f'Date of start of reporting period | {start}\n'
                       f'Date of end of reporting period | {end}\nReporting interval: {start} to {end}')
-            body = []
+            body, section = [], ''
             for row in content:
+                heading = re.sub(r'^\d+\s+', '', ' '.join(row).strip())
+                if re.fullmatch(r'Segment\s+(?:Revenue(?:\s*\(Income\))?|Results?|Assets?|Liabilities)', heading, re.I):
+                    section = heading
+                    continue
                 if len(row) < len(starts) + 1:
                     continue
                 label = ' '.join(row[:-len(starts)]).strip()
                 value = row[-len(starts) + column]
                 if parse_numeric(value).value is None or any(field in label for field in fields):
                     continue
-                body.append(f'{label} | {value}')
+                # Repeated segment names are ambiguous without their original
+                # section. Repeat the exact heading per row, including chunks.
+                body.append(f'{section + " :: " if section else ""}{label} | {value}')
             if not body:
                 continue
             # Repeat binding metadata when a large table needs multiple passages.
@@ -116,7 +122,28 @@ def exchange_table_batch(passage, company, profile):
         return re.sub(r'[^a-z]', '', re.sub(r'^\s*\d+\s+', '', value).lower())
     rows = [line.rsplit('|', 1) for line in passage.text.splitlines() if '|' in line]
     facts = []
+    for line in passage.text.splitlines():
+        match = re.fullmatch(r'(Segment\s+[^:]+) :: (.+)\|\s*(.+)', line, re.I)
+        if not match or parse_numeric(match[3]).value is None:
+            continue
+        section, label, value = match[1].lower(), match[2].strip(), match[3].strip()
+        metric = ('segment_revenue' if re.match(r'segment\s+revenue', section) else
+                  'segment_profit' if re.fullmatch(r'segment\s+results?', section) else None)
+        if metric is None or metric not in {m.key for m in metrics_for_profile(profile)}:
+            continue
+        component = re.fullmatch(r'\d+\s+(.+)', label)
+        total = (re.fullmatch(r'Total Segment Revenue', label, re.I) if metric == 'segment_revenue' else
+                 re.fullmatch(r'Total (?:Profit before tax|Segment (?:Results?|Profit))', label, re.I))
+        if not component and not total:
+            continue
+        facts.append(ExtractedFactCandidate(metric_key=metric + ('_total' if total else ''),
+            value_raw=value, unit_raw='INR ' + unit[1], currency='INR', scope=scopes[0].lower(),
+            segment='all' if total else component[1].strip(), period_start=intervals[0]['period_start'],
+            period_end=intervals[0]['period_end'], period_type='duration', passage_id=passage.id,
+            extraction_confidence=Decimal('1')))
     for metric in metrics_for_profile(profile):
+        if metric.key.startswith('segment_'):
+            continue  # Segment values require their section and named boundary.
         labels = {normalized(alias) for alias in metric.aliases}
         matches = [(label, value.strip()) for label, value in rows if normalized(label) in labels]
         if len(matches) != 1 or parse_numeric(matches[0][1]).value is None or metric.unit != 'INR_crore':

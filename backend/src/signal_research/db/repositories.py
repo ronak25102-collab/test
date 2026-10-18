@@ -691,7 +691,7 @@ def infer_profile(industry: str) -> str | None:
         return "asset_manager"
     if "bank" in industry:
         return "bank"
-    if "finserv" in industry or "financial services" in industry or "holdings" in industry:
+    if "finserv" in industry or "financial services" in industry or "financial holdings" in industry:
         return "diversified"
     if "nbfc" in industry or "finance" in industry or "lending" in industry:
         return "nbfc"

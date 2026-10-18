@@ -47,7 +47,7 @@ def filing_cadence(facts, passages, documents, cutoff):
 
 def observable_tests(facts, calculations, passages, documents, cutoff, now_check):
     cadence = filing_cadence(facts, passages, documents, cutoff)
-    usable = [c for c in calculations if c.available and c.output_value is not None and c.formula_id in {'growth_gap', 'change_pp', 'deposit_borrowing_mix_change', 'period_change'}]
+    usable = [c for c in calculations if c.available and c.output_value is not None and c.formula_id in {'growth_gap', 'change_pp', 'deposit_borrowing_mix_change', 'period_change', 'segment_dependency_gap'}]
     c = max(usable, key=lambda c: c.period or '') if usable else next((c for c in calculations if c.available), None)
     tests = []
     if c:
