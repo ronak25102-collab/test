@@ -16,7 +16,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  configuration: () => request<{ ready: boolean; issues: string[]; demo_time_warning: boolean }>('/health/configuration'),
+  configuration: () => request<{ ready: boolean; issues: string[]; warnings?: string[]; demo_time_warning: boolean }>('/health/configuration'),
   companies: (q: string) => request<{ items: Company[] }>(`/companies?q=${encodeURIComponent(q)}`),
   resolve: (query: string) => request<{ resolved: Company }>('/companies/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) }),
   createRun: (company_id: string, as_of: string, mode: string, idempotencyKey: string = crypto.randomUUID(), cold_start = false) => request<{ run_id: string }>('/runs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey }, body: JSON.stringify({ company_id, as_of, mode, cold_start }) }),

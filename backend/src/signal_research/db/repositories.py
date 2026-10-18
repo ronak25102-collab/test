@@ -384,11 +384,8 @@ class Store:
             self._save_evidence(session, report)
             self._add_event(session, str(report.run_id), RunStatus.COMPLETED.value, "run_completed", f"Run completed with outcome {report.outcome.value}")
             session.commit()
-        path = self.data_dir / "exports" / f"{report.run_id}.report.json"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        temporary = path.with_suffix(".tmp")
-        temporary.write_bytes(encoded)
-        temporary.replace(path)
+        # No export files are written here. PDF, HTML, JSON and CSV are generated from the
+        # stored report only when a user requests them (see api/exports.py).
 
     def get_report(self, run_id: UUID | str) -> ResearchReport | None:
         with self.session_factory() as session:
@@ -575,6 +572,34 @@ class Store:
             if kind:
                 query = query.where(ArtifactModel.kind == kind)
             return [{"id": a.id, "kind": a.kind, "payload": a.payload} for a in session.scalars(query).all()]
+
+    def provider_rejections(self, run_id) -> dict:
+        """Distinct CodeCraft credentials explicitly rejected during a run, grouped by reason.
+
+        Read from the run's durable routing artifacts (``exhausted:`` = HTTP 402,
+        ``unavailable:`` = other explicit rejections). Keys are never stored, only slot names.
+        """
+        from .models import ArtifactModel
+        with self.session_factory() as session:
+            rows = session.scalars(select(ArtifactModel).where(
+                ArtifactModel.run_id == str(run_id),
+                or_(ArtifactModel.kind.like('exhausted:%'), ArtifactModel.kind.like('unavailable:%')))).all()
+        exhausted, rejected = set(), {}
+        for row in rows:
+            slot = (row.payload or {}).get('slot') or row.kind.rsplit(':', 1)[-1]
+            if row.kind.startswith('exhausted:'):
+                exhausted.add(slot)
+            else:
+                rejected[slot] = (row.payload or {}).get('http_status')
+        for slot in exhausted:
+            rejected.pop(slot, None)
+        return {'exhausted': sorted(exhausted), 'rejected': dict(sorted(rejected.items()))}
+
+    def latest_live_run_id(self):
+        with self.session_factory() as session:
+            return session.scalar(select(ResearchRunModel.id).where(
+                ResearchRunModel.mode.in_(['live', 'deep'])).order_by(
+                ResearchRunModel.created_at.desc(), ResearchRunModel.id.desc()).limit(1))
 
     def _save_evidence(self, session, report):
         from .models import (

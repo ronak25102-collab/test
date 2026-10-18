@@ -63,6 +63,18 @@ def test_report_and_terminal_state_commit_together(store):
     assert evidence["evidence"][0]["passage"] and evidence["evidence"][0]["document"]
 
 
+def test_publication_writes_no_export_files(store, tmp_path):
+    """Exports (PDF, HTML, JSON, CSV) are generated only on request, never when a run completes."""
+    company = store.search_companies("SYNTHBANK")[0]
+    run_id = store.create_run(company, date(2026, 10, 8), RunMode.REPLAY)
+    store.lease_next("worker")
+    store.update_run(run_id, status=RunStatus.COMPOSING)
+    store.save_report(build_synthetic_report(run_id, company, date(2026, 10, 8)))
+    assert store.get_summary(run_id).status == RunStatus.COMPLETED
+    exports = tmp_path / "exports"
+    assert not exports.exists() or not any(exports.iterdir())
+
+
 def test_identical_repeated_passages_and_facts_do_not_break_publication(store):
     from signal_research.research.integrity import attest_report
 

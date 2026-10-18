@@ -9,8 +9,15 @@ router = APIRouter(prefix="/health", tags=["health"])
 
 @router.get("/configuration")
 def configuration(request: Request):
-    from signal_research.research.readiness import live_readiness
-    return live_readiness(request.app.state.settings)
+    from signal_research.research.readiness import live_readiness, provider_warnings
+    settings = request.app.state.settings
+    result = live_readiness(settings)
+    try:
+        result["warnings"] = provider_warnings(request.app.state.store, settings)
+    except Exception:
+        # Warnings are advisory; a database hiccup must not hide readiness itself.
+        result["warnings"] = []
+    return result
 
 
 @router.get("/live")

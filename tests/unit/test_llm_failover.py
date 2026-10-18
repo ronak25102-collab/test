@@ -346,3 +346,22 @@ def test_hybrid_explicit_review_fallback_preserves_evidence_checks(pipeline, mon
     assert len(sent) == 3
     assert pipeline.store.provider_calls(pipeline.run_id)[-1]['provider'] == 'nvidia'
     assert any(e.event_type == 'provider_fallback' for e in pipeline.store.get_events(pipeline.run_id))
+
+
+def test_refused_keys_are_recorded_and_warned_about_before_the_next_run(pipeline, monkeypatch):
+    from signal_research.research.readiness import provider_warnings
+    assert provider_warnings(pipeline.store, pipeline.settings) == []
+    statuses = iter([402, 401, 402])
+    install_http(monkeypatch, lambda _: httpx.Response(next(statuses)))
+    monkeypatch.setattr(NvidiaProvider, 'generate', lambda self, schema, *args:
+                        (schema(value=42), ProviderUsage(input_tokens=120, output_tokens=80)))
+    assert pipeline.model(Result, {'operation': 'extract'}).value == 42
+    assert pipeline.store.provider_rejections(pipeline.run_id) == {
+        'exhausted': ['codecraft:0', 'codecraft:2'], 'rejected': {'codecraft:1': 401}}
+    warnings = provider_warnings(pipeline.store, pipeline.settings)
+    assert len(warnings) == 1
+    assert 'CodeCraft refused all 3 configured keys (2 out of credits (HTTP 402), 1 rejected (HTTP 401))' in warnings[0]
+    assert 'use only the NVIDIA fallback' in warnings[0]
+    # Advisory only: readiness still allows the run, and no key text is exposed.
+    assert live_readiness(pipeline.settings)['ready']
+    assert not any(key in warnings[0] for key in ('primary-test', 'backup-one-test', 'backup-two-test'))

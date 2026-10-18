@@ -22,6 +22,7 @@ class CostPolicyError(RuntimeError):
     code = "COST_POLICY_UNCONFIGURED"
 
 
+
 class ResearchMachine:
     def __init__(self, store: Store, settings: Settings):
         self.store = store
@@ -194,8 +195,41 @@ class ResearchMachine:
         from signal_research.worker.calls import UncertainCall
         run_settings = self.settings.model_copy(update={'cold_start': self.settings.cold_start or self.store.get_summary(run_id).cold_start})
         research = LiveResearch(self, run_id, company, as_of, budget, settings=run_settings)
+
+        def provider_stop(exc):
+            """Partial report naming the actual provider cause, from durable routing records."""
+            from signal_research.research.readiness import provider_cause
+            search_failure = isinstance(exc, (SearchQuotaExceeded, FreeQuotaUnavailable))
+            rejections = self.store.provider_rejections(run_id)
+            cause = None if search_failure else provider_cause(rejections, run_settings, exc)
+            retained = ('verified figures are retained' if research.facts else
+                        'no figures had been verified yet, so nothing could be retained')
+            reason = ('The Tavily search allowance is unavailable; restore search access before starting new research.'
+                      if search_failure else
+                      f'{cause}; {retained}.' if cause else
+                      f'The model response timed out; {retained}.'
+                      if 'TIMEOUT' in getattr(exc, 'code', '') else
+                      f'The model provider did not return a valid completed response; {retained}.')
+            reasons = [reason]
+            if rejections['exhausted'] or rejections['rejected']:
+                reasons.append('Restore model access (add CodeCraft credits or replace the rejected keys in .env), then start a new run.')
+            reasons.append('A completed independent publication review of the candidate.')
+            report = research.abstain(reasons)
+            report.outcome = ResearchOutcome.PARTIAL
+            preserved = 'Previously verified evidence was preserved' if research.facts else 'No verified evidence existed yet'
+            report.limitations.append(f"Provider work stopped: {str(exc).rstrip('.')}. {preserved}; no discovery was substituted.")
+            report.generation_metadata['provider_failure'] = getattr(exc, 'code', type(exc).__name__)
+            if rejections['exhausted'] or rejections['rejected']:
+                report.generation_metadata['provider_rejections'] = rejections
+            return report
+
         try:
-            return research.run(plan)
+            report = research.run(plan)
+            # Skipped timeouts let the run keep reading other sources. If none of them
+            # yielded a figure, the gap is a provider failure, not an absence of evidence.
+            if research.last_extraction_timeout and not report.facts and not report.discoveries:
+                return provider_stop(research.last_extraction_timeout)
+            return report
         except BudgetExceeded as exc:
             # Stop all provider work, then locally verify and save what has
             # already been independently checked. A limit is not a discovery.
@@ -205,16 +239,7 @@ class ResearchMachine:
             report.generation_metadata["stopped_by_limit"] = str(exc)
             return report
         except (CodeCraftError, NvidiaRequestError, FreeQuotaUnavailable, SearchQuotaExceeded, UncertainCall, httpx.HTTPError) as exc:
-            reason = ('The Tavily search allowance is unavailable; restore search access before starting new research.'
-                      if isinstance(exc, (SearchQuotaExceeded, FreeQuotaUnavailable)) else
-                      'The model response timed out before publication review completed; verified figures are retained.'
-                      if 'TIMEOUT' in getattr(exc, 'code', '') else
-                      'The model provider did not return a valid completed response; verified figures are retained.')
-            report = research.abstain([reason, 'A completed independent publication review of the candidate.'])
-            report.outcome = ResearchOutcome.PARTIAL
-            report.limitations.append(f"Provider work stopped: {exc}. Previously verified evidence was preserved; no discovery was substituted.")
-            report.generation_metadata['provider_failure'] = getattr(exc, 'code', type(exc).__name__)
-            return report
+            return provider_stop(exc)
 
     def _check_live_cost_policy(self):
         if not self.settings.llm_configured:

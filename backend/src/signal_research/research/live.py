@@ -131,6 +131,10 @@ from signal_research.retrieval.passages import (
 from signal_research.retrieval.quality import format_prose, sane_publication
 from signal_research.worker.calls import DurableCalls
 
+# Before any figure is verified, one timed-out passage is skipped and the next is read;
+# the second timeout ends provider work (the provider is then treated as unavailable).
+MAX_EXTRACTION_TIMEOUTS_WITHOUT_FACTS = 2
+
 
 class FactVerdict(StrictModel):
     index: int = Field(ge=0, le=19)
@@ -365,6 +369,8 @@ class LiveResearch:
         self.context_searches = []
         self.draft_feedback = None
         self.extraction_paused = False
+        self.extraction_timeouts = 0
+        self.last_extraction_timeout = None
         self.extraction_deadline_reserve = 0
         self.history_cache = []
         self.plan_questions = []
@@ -663,7 +669,20 @@ class LiveResearch:
             return None
         except (CodeCraftTimeout, NvidiaTimeout) as exc:
             if not self.facts:
-                raise
+                # One slow response must not end the run while time remains. Skip this
+                # passage (its uncertain request is never repeated) and let the next,
+                # distinct passage try. A repeat timeout means the provider is unwell: stop.
+                self.extraction_timeouts += 1
+                self.last_extraction_timeout = exc
+                if self.extraction_timeouts >= MAX_EXTRACTION_TIMEOUTS_WITHOUT_FACTS:
+                    raise
+                self.store.artifact(self.run_id, 'extraction_failure', {
+                    'passage_id': passage.id, 'schema': schema.__name__, 'error_code': exc.code,
+                    'reason': str(exc), 'action': 'passage skipped; uncertain request not retried; next passage attempted'})
+                self.store.append_event(self.run_id, 'extracting', 'provider_timeout',
+                    'A model response timed out; that passage was skipped (not retried) and the next source passage is being read.')
+                self.limitations.append(f'One source passage was skipped after an uncertain provider response: {exc} The request was not retried.')
+                return None
             # Do not repeat an uncertain request. Existing approved facts can
             # still support distinct hypothesis/challenge requests while optional
             # extraction is paused for the rest of this run.
@@ -951,10 +970,14 @@ class LiveResearch:
             for passage, result in zip(wave, results, strict=True):
                 self.extracted.add(passage.id)
                 if result.error:
+                    if 'TIMEOUT' in (getattr(result.error, 'code', '') or ''):
+                        self.last_extraction_timeout = result.error
                     self.limitations.append(f'Research agent incomplete: {result.name} ({getattr(result.error, "code", type(result.error).__name__)}); no unreviewed figures accepted.')
                     # An uncertain provider request is never repeated on another key.
                     continue
                 worker = result.value
+                if worker.last_extraction_timeout:
+                    self.last_extraction_timeout = worker.last_extraction_timeout
                 self.facts.extend(worker.facts)
                 self.extracted.update(worker.extracted)
                 self.limitations.extend(note for note in worker.limitations if note not in self.limitations)

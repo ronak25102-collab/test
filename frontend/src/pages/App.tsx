@@ -32,7 +32,7 @@ export function App() {
   const [events, setEvents] = useState<{ sequence: number; stage: string; public_summary: string }[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
-  const [configuration, setConfiguration] = useState<{ ready: boolean; issues: string[]; demo_time_warning: boolean } | null>(null)
+  const [configuration, setConfiguration] = useState<{ ready: boolean; issues: string[]; warnings?: string[]; demo_time_warning: boolean } | null>(null)
   const [pollVersion, setPollVersion] = useState(0)
   const [claimId, setClaimId] = useState<string | null>(null)
   const restoredFormRun = useRef<string | null>(null)
@@ -204,6 +204,7 @@ export function App() {
         <div className="company-results">{companies.slice(0, 5).map((company) => <button key={company.id} className={selected?.id === company.id ? 'company selected' : 'company'} onClick={() => setSelected(company)}><strong>{company.legal_name}</strong><span>{company.symbols.join(' · ')} · {company.business_profiles.join(', ')}</span></button>)}</div>
         <div className="resolve-line"><button className="quiet" disabled={busy || !query.trim()} onClick={resolveCompany}>Resolve from exchange directory</button><span>Search by company name or NSE symbol.</span></div>
         {mode !== 'replay' && configuration?.ready === false && <div className="error" role="status"><strong>Live research needs configuration.</strong> {configuration.issues.join(' ')} Replay remains available for SYNTHBANK.</div>}
+        {mode !== 'replay' && configuration?.ready !== false && !!configuration?.warnings?.length && <div className="research-warning" role="status"><strong>Model access may be limited.</strong> {configuration.warnings.join(' ')}</div>}
         {mode !== 'replay' && <label className="cold-start-control"><input type="checkbox" checked={coldStart} onChange={e => setColdStart(e.target.checked)} /> Cold start rehearsal · disable historical fact reuse</label>}
         <div className="research-launch"><button className="primary" disabled={!selected || busy || runPending || (mode !== 'replay' && configuration?.ready === false)} onClick={() => start()}>{busy ? 'Preparing research…' : 'Start autonomous research'} <Arrow /></button><span>Original sources. Visible reasoning.<br />Conclusions that earn their place.</span></div>
       </section>

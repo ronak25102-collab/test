@@ -7,6 +7,9 @@
 .research-page .workspace-heading p { max-width: 680px; line-height: 1.7; }
 .research-page.progress-page { width: min(1160px, 90vw); }
 .research-page.progress-page .progress-card { margin-top: 20px; }
+/* Advisory, non-blocking notice (e.g. provider credits refused in the last run). */
+.research-warning { margin: 0 0 20px; padding: 14px 18px; border: 1px solid #e6d3a8; border-radius: 8px; background: #fbf4e2; color: #7a5a24; font-size: 12px; line-height: 1.6; }
+.research-warning strong { color: #5f4316; }
 .research-queue-note { margin: 20px 0; padding: 15px 18px; border: 1px solid #dce4cf; border-radius: 8px; background: #edf2e5; color: #627750; font-size: 12px; line-height: 1.6; }
 .research-page-loading { padding: 36px; margin-block: 24px; border: 1px solid #dce4cf; border-radius: 12px; background: #fbfcf7; color: #6d7e5c; font-size: 12px; line-height: 1.7; }
 .research-loading-line { display: block; width: 140px; height: 3px; margin-bottom: 18px; border-radius: 3px; background: linear-gradient(90deg, #99b078, #dce6ce, #99b078); background-size: 200% 100%; animation: research-loading 1.8s ease-in-out infinite; }

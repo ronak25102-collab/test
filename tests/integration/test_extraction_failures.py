@@ -72,7 +72,6 @@ def test_incomplete_response_withholds_entire_page_then_checks_another_source(st
 
 @pytest.mark.parametrize('error', [NvidiaRequestError('NVIDIA authentication failed'),
                                   NvidiaRequestError('NVIDIA quota exceeded'),
-                                  NvidiaTimeout('Uncertain response timeout'),
                                   CodeCraftError('CodeCraft authentication failed'),
                                   CodeCraftError('Uncertain response timeout')])
 def test_access_and_uncertain_transport_errors_stop_provider_work(store, settings, monkeypatch, error):
@@ -85,6 +84,26 @@ def test_access_and_uncertain_transport_errors_stop_provider_work(store, setting
     with pytest.raises(type(error)):
         research.extract()
     assert not research.facts and not store.artifacts(research.run_id, 'extraction_failure')
+
+
+def test_first_timeout_skips_its_passage_and_a_second_timeout_stops_provider_work(store, settings, monkeypatch):
+    research, document = research_fixture(store, settings)
+    research.settings = research.settings.model_copy(update={'max_research_agents': 1})
+    research.passages = [Passage(id=uuid4(), document_id=document.id, page_index=page,
+        text=research.company.legal_name + f' standalone deposits INR {100 + page} crore at 31 March 2026.')
+        for page in range(3)]
+    sent = []
+    def fail(schema, payload, *args):
+        sent.append(payload['passage_id'])
+        raise NvidiaTimeout('Uncertain response timeout')
+    monkeypatch.setattr(research.calls, 'model', fail)
+    with pytest.raises(NvidiaTimeout):
+        research.extract()
+    # Two distinct passages were tried; the timed-out request itself was never resent.
+    assert len(sent) == 2 and len(set(sent)) == 2
+    failures = store.artifacts(research.run_id, 'extraction_failure')
+    assert len(failures) == 1 and failures[0]['payload']['action'].startswith('passage skipped')
+    assert research.last_extraction_timeout is not None and not research.facts
 
 
 def test_parent_report_on_verified_portal_cannot_supply_target_financial_facts(store, settings, tmp_path, monkeypatch):

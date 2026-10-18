@@ -4,6 +4,7 @@ import io
 import json
 from datetime import date
 from decimal import Decimal
+from uuid import uuid4
 
 import pytest
 from reportlab.pdfgen import canvas
@@ -203,7 +204,68 @@ def test_provider_timeout_before_first_verified_fact_still_saves_not_established
     report = verify_report(store.get_report(rid))
     assert report.outcome.value == 'partial' and not report.facts and not report.discoveries
     assert report.generation_metadata['best_candidate']['label'] == 'Not established'
-    assert report.generation_metadata['best_candidate']['missing']
+    missing = report.generation_metadata['best_candidate']['missing']
+    assert missing
+    # With zero facts the report must not claim figures were retained.
+    assert 'no figures had been verified yet' in missing[0]
+    assert not any('verified figures are retained' in item for item in missing)
+    assert not any('retry..' in note for note in report.limitations)
+
+
+def test_extraction_timeout_skips_one_passage_and_reads_the_next(store, tmp_path, monkeypatch):
+    """A single slow response must not end the run: the next distinct passage is still read."""
+    from signal_research.providers.llm.nvidia_provider import NvidiaTimeout
+    from signal_research.research.live import LiveResearch
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    settings.max_research_agents = 1
+    generated = OpenAIProvider.generate
+    sent = []
+    def first_extraction_times_out(self, schema, messages, *args, **kwargs):
+        payload = json.loads(messages[1]['content'])
+        if 'passage_text' in payload:
+            sent.append(payload['passage_id'])
+            if len(sent) == 1:
+                raise NvidiaTimeout('Controlled NVIDIA timeout; no real request was made.')
+        return generated(self, schema, messages, *args, **kwargs)
+    monkeypatch.setattr(OpenAIProvider, 'generate', first_extraction_times_out)
+    # Give the fixture a second, distinct issuer passage carrying the same figures.
+    extract = LiveResearch.extract
+    def with_second_passage(self, *args, **kwargs):
+        issuer = [p for p in self.passages if 'gross advances' in p.text]
+        if len(issuer) == 1:
+            self.passages.append(issuer[0].model_copy(update={'id': uuid4(), 'text': issuer[0].text + ' Restated view.',
+                                                              'page_index': (issuer[0].page_index or 0) + 1}))
+        return extract(self, *args, **kwargs)
+    monkeypatch.setattr(LiveResearch, 'extract', with_second_passage)
+    # The uncertain request keeps its token reservation charged; allow room for the next one.
+    settings.max_output_tokens = 200000
+    ResearchMachine(store, settings).process(rid)
+    report = verify_report(store.get_report(rid))
+    assert len(sent) >= 2 and len(set(sent)) == len(sent), 'the timed-out request is never resent'
+    assert report.facts, 'the next passage was read after the skipped one'
+    failures = store.artifacts(rid, 'extraction_failure')
+    assert failures and failures[0]['payload']['action'].startswith('passage skipped')
+    assert any(e.event_type == 'provider_timeout' for e in store.get_events(rid))
+
+
+def test_exhausted_codecraft_keys_are_named_as_the_cause(store, tmp_path, monkeypatch):
+    from signal_research.providers.llm.nvidia_provider import NvidiaTimeout
+    settings, rid, _ = live_fixture(store, tmp_path, monkeypatch)
+    # Durable routing records exactly as DurableCalls writes them on HTTP 402 and 401.
+    store.artifact(rid, 'exhausted:sig:codecraft:0', {'slot': 'codecraft:0', 'reason': 'HTTP 402'})
+    store.artifact(rid, 'unavailable:sig:codecraft:1', {'slot': 'codecraft:1', 'http_status': 401})
+    def timeout(*args, **kwargs):
+        raise NvidiaTimeout('NVIDIA did not complete its response within 90 seconds; the request may have been processed. Start a new run to retry.')
+    monkeypatch.setattr(OpenAIProvider, 'generate', timeout)
+    ResearchMachine(store, settings).process(rid)
+    report = store.get_report(rid)
+    missing = report.generation_metadata['best_candidate']['missing']
+    assert report.outcome.value == 'partial' and not report.facts
+    assert report.generation_metadata['provider_rejections'] == {'exhausted': ['codecraft:0'], 'rejected': {'codecraft:1': 401}}
+    assert missing[0] == ('CodeCraft refused 2 keys (1 out of credits (HTTP 402), 1 rejected (HTTP 401)), then the NVIDIA '
+                          'fallback did not finish its response in time; no figures had been verified yet, so nothing could be retained.')
+    assert any('add CodeCraft credits' in item for item in missing)
+    assert any(note.startswith('Provider work stopped: NVIDIA did not complete') and 'retry..' not in note for note in report.limitations)
 
 
 def test_search_quota_rejection_is_not_reported_as_model_failure(store, tmp_path, monkeypatch):
