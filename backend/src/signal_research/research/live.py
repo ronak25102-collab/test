@@ -1827,15 +1827,17 @@ class LiveResearch:
         if not compatible:
             self.limitations.append('The discovery and its timeline/significance use incompatible reporting boundaries. ' + reason)
             return None
-        claims = []
+        claims, local_rejections = [], []
         for statement in statements:
             statement = statement.model_copy(update={'calculation_ids': complete_calculation_lineage(
                 statement.text, statement.fact_ids, statement.calculation_ids, self.calculations)})
             if not (statement.fact_ids or statement.calculation_ids):
                 self.draft_feedback={'repairable':True,'validation_stage':'local_evidence_anchors',
+                    'rejected_statement': statement.text,
                     'reason':'Every statement must relate to verified issuer facts or registered arithmetic. Remove irrelevant source-only context, keeping at least three supported significance statements; preserve headline and counterargument.'}
                 self.limitations.append('A financial statement lacked a verified fact or calculation anchor; source-only prose was withheld.')
-                return None
+                local_rejections.append(self.draft_feedback)
+                continue
             if not set(statement.fact_ids) <= facts.keys() or not set(statement.passage_ids) <= passages.keys() or not set(statement.calculation_ids) <= calculations.keys() or not (statement.fact_ids or statement.passage_ids):
                 self.limitations.append("Draft referenced missing evidence and was withheld.")
                 return None
@@ -1848,7 +1850,8 @@ class LiveResearch:
                     'allowed_fact_ids': [str(f.id) for f in bound_facts],
                     'allowed_calculation_ids': [str(c.id) for c in bound_calcs]}
                 self.limitations.append('Draft introduced numerical detail without its own linked verified inputs; publication withheld pending a fresh corrected draft and independent review.')
-                return None
+                local_rejections.append(self.draft_feedback)
+                continue
             compatible, reason = compatible_candidate(statement, self.facts, self.calculations)
             if not compatible:
                 self.limitations.append(reason)
@@ -1856,6 +1859,11 @@ class LiveResearch:
             identifier = uuid5(self.run_id, f"claim:{len(claims)}:{statement.text}")
             claims.append(Claim(id=identifier, run_id=self.run_id, text=statement.text, kind=statement.kind,
                                 evidence_links=[EvidenceLink(claim_id=identifier, passage_or_fact_id=i, relation=EvidenceRelation.SUPPORTING, reason="Reviewed source support") for i in [*statement.fact_ids, *statement.passage_ids]], calculation_ids=statement.calculation_ids))
+        if local_rejections:
+            # A single correction must see every locally rejected statement.
+            # Nothing reaches semantic review or publication until all pass.
+            self.draft_feedback = local_rejections[0] | {'rejected_statements': local_rejections}
+            return None
         review = self.calls.model(semantic_review_schema([claim.id for claim in claims]), self.payload(finding_boundary.model_copy(update={"calculation_ids": list({i for c in claims for i in c.calculation_ids})}), required_passage_ids={identifier for statement in statements for identifier in statement.passage_ids}) | {"claims": [c.model_dump(mode="json") for c in claims], "falsification": draft.falsification, "observation_window": draft.falsification_window, "expected_source": draft.falsification_source, "novelty_assessment": challenge.model_dump(mode="json")}, stage="verifying", instruction="Independently verify every claim against ONLY its linked source passages/facts and registered calculations. Check all numbers and qualifiers, metric/date/scope binding, causal overreach and context relevance. Inferred claims must remain qualified. Every supporting link must be relevant and entail the claim in combination. A reconciled segment contribution gap is a cross-sectional observation for one disclosed interval; do not require a growth trend to verify it, and reject claims of onset, persistence or causality without history. Reject unsupported detail even when a citation ID exists. Return exactly one verdict per claim ID with no duplicates or omissions. Ensure falsification identifies an observable metric or event, comparison direction, concrete observation window and expected source, follows from the relationship, and uses no fabricated historical facts. Independently assess non_obvious_synthesis_supported: ordinary growth summaries, mere headline rewording, and unsupported causal mechanisms do not qualify. Compare the supplied novelty assessment with its linked evidence, and reject historical development claims beyond the observed series. Detect investment recommendations.")
         verdicts = {v.claim_id: v for v in review.verdicts}
         complete_review = len(review.verdicts) == len(claims) and set(verdicts) == {c.id for c in claims}

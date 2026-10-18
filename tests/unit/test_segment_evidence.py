@@ -13,6 +13,7 @@ from signal_research.research.live import derive_calculations
 from signal_research.research.proposals import verified_proposals
 from signal_research.retrieval.exchange_tables import exchange_table_batch
 from signal_research.retrieval.passages import parse_html
+from signal_research.retrieval.quality import format_prose
 
 
 def segment_fixture():
@@ -142,8 +143,8 @@ def test_incomplete_or_incomparable_segment_schedules_do_not_produce_dependency(
     assert not any(c.formula_id=='segment_dependency_gap' for c in derive_calculations(facts))
 
 
-@pytest.mark.parametrize('reject', [False,True])
-def test_segment_snapshot_still_requires_complete_independent_publication_review(store,settings,reject):
+@pytest.mark.parametrize('scenario', ['accepted', 'semantic_reject', 'multiple_numerical_errors', 'mixed_anchor_and_numerical_errors'])
+def test_segment_snapshot_still_requires_complete_independent_publication_review(store,settings,scenario):
     from datetime import UTC, datetime
 
     from signal_research.db.models import CompanyModel
@@ -177,17 +178,35 @@ def test_segment_snapshot_still_requires_complete_independent_publication_review
         timeline_analysis=statement('Only the April to June 2026 reporting interval is established; the onset of this relationship is unknown.'),
         onset_status='unknown',falsification='Investments no longer contribute more to reported segment results than gross segment revenue.',
         falsification_window='Next comparable quarterly segment disclosure',falsification_source='Original issuer quarterly segment schedule')
+    reviews=[]
     def review(schema,payload,**kwargs):
         assert schema.__name__=='SemanticReview'
-        return schema(verdicts=[dict(claim_id=c['id'],supported=not reject,reason='Independent test reviewer verdict')
+        reviews.append(payload)
+        return schema(verdicts=[dict(claim_id=c['id'],supported=scenario!='semantic_reject',reason='Independent test reviewer verdict')
                                 for c in payload['claims']],falsification_is_observable=True,
                       contains_investment_recommendation=False,non_obvious_synthesis_supported=True)
     research.calls=SimpleNamespace(model=review)
     challenge=Challenge(refuted=False,unresolved=True,strongest_alternative='Reported losses or accounting classifications may explain concentration.',
         reason='A bounded arithmetic observation survives; causal persistence is not established.',relevant_passage_ids=[passage.id],
         novelty_status='additional_supported_synthesis',novelty_rationale='Cross-metric result concentration beyond headline totals.',published_explanation='Segment totals only.')
+    if scenario in {'multiple_numerical_errors', 'mixed_anchor_and_numerical_errors'}:
+        first=draft.why_it_matters[0].model_copy(update={'text':'Unverified detail of 123456789 crore.'})
+        if scenario=='mixed_anchor_and_numerical_errors':
+            first=first.model_copy(update={'text':'Unanchored context.', 'fact_ids':[], 'calculation_ids':[]})
+        second=draft.why_it_matters[1].model_copy(update={'text':'Another unverified detail of 987654321 crore.'})
+        invalid=draft.model_copy(update={'why_it_matters':[first,second,draft.why_it_matters[2]]})
+        assert research.compose(invalid,challenge,'alternative explanation') is None
+        rejected=research.draft_feedback['rejected_statements']
+        assert len(rejected)==2
+        assert {item['rejected_statement'] for item in rejected}=={format_prose(first.text),format_prose(second.text)}
+        assert all(item['repairable'] for item in rejected)
+        assert not reviews  # No invalid draft reaches paid independent review.
+        assert not store.artifacts(rid,'semantic_review')
+        if scenario=='mixed_anchor_and_numerical_errors':
+            assert {item['validation_stage'] for item in rejected}=={'local_evidence_anchors','local_numerical_gates'}
     report=research.compose(draft,challenge,'segment concentration alternative accounting explanation')
-    if reject:
+    assert len(reviews)==1  # Corrected prose still requires independent review.
+    if scenario=='semantic_reject':
         assert report is None
     else:
         assert verify_report(report).outcome.value=='discovery'
