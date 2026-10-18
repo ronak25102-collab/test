@@ -1521,6 +1521,30 @@ class LiveResearch:
         self.attach_peer_context()
         self.store.artifact(self.run_id, 'peer_benchmark', self.peer_benchmark)
 
+    def complete_peer_lineage(self, statement):
+        """Link the verified peer passages a peer comparison claim relies on; never invent support.
+
+        Like complete_calculation_lineage, this only attaches existing verified evidence that a
+        writer omitted. It applies when the statement talks about peers, the peer benchmark is
+        verified, and a peer fact matches a metric and scope the statement itself is bound to.
+        The independent semantic review still decides whether the linked evidence entails the claim.
+        """
+        passage_ids = list(statement.passage_ids)
+        if (self.peer_benchmark.get('status') != 'verified'
+                or not re.search(r'\bpeers?\b', statement.text, re.I)):
+            return passage_ids
+        ids = set(statement.fact_ids) | {i for c in self.calculations if c.id in set(statement.calculation_ids)
+                                          for i in c.input_fact_ids}
+        bound = {(f.metric_key, f.scope.value) for f in self.facts if f.id in ids}
+        known = {p.id for p in self.passages}  # Only peer passages already attached as citable context.
+        for bundle in self.peer_benchmark.get('sources', []):
+            for fact in bundle['facts']:
+                passage = UUID(str(fact['passage_id']))
+                if ((fact['metric_key'], fact['scope']) in bound and passage in known
+                        and passage not in passage_ids):
+                    passage_ids.append(passage)
+        return passage_ids
+
     def attach_peer_context(self):
         """Make actually used peer passages citable without mixing issuer balances."""
         from signal_research.domain.schemas import Passage, SourceDocument
@@ -1906,7 +1930,8 @@ class LiveResearch:
         claims, local_rejections = [], []
         for statement in statements:
             statement = statement.model_copy(update={'calculation_ids': complete_calculation_lineage(
-                statement.text, statement.fact_ids, statement.calculation_ids, self.calculations)})
+                statement.text, statement.fact_ids, statement.calculation_ids, self.calculations),
+                'passage_ids': self.complete_peer_lineage(statement)})
             if not (statement.fact_ids or statement.calculation_ids):
                 self.draft_feedback={'repairable':True,'validation_stage':'local_evidence_anchors',
                     'rejected_statement': statement.text,
