@@ -38,7 +38,7 @@ export function FinanceBackdrop() {
               <stop offset="1" stopColor="#fff9dd" stopOpacity="0" />
             </linearGradient>
           </defs>
-          {pillars.map(pillar => <g className={`finance-pillar finance-pillar-${pillar.name}`} key={pillar.name} style={{ transformOrigin: pillar.origin }}>
+          {pillars.map(pillar => <g className={`finance-art-pillar finance-art-pillar-${pillar.name}`} key={pillar.name} style={{ transformOrigin: pillar.origin }}>
             <g clipPath={`url(#${id}-${pillar.name})`}><use href={`#${artwork}`} /></g>
           </g>)}
           <g clipPath={`url(#${glass})`}>

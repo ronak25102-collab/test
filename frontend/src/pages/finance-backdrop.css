@@ -27,10 +27,11 @@
 }
 .finance-artwork-image { background: url('/images/beyond-financial-research.png') center / 100% 100% no-repeat; }
 .finance-artwork-light { overflow: visible; }
-.finance-pillar { transform-box: view-box; animation: finance-pillar-rise 11s ease-in-out infinite alternate; }
-.finance-pillar-middle { animation-delay: -4s; animation-duration: 13s; }
-.finance-pillar-front { animation-delay: -7s; animation-duration: 15s; }
-.finance-pillar-left { animation-delay: -2s; animation-duration: 12s; }
+/* Distinct from the progress scene's .finance-pillar, whose SVG translate a CSS transform would override. */
+.finance-art-pillar { transform-box: view-box; animation: finance-pillar-rise 11s ease-in-out infinite alternate; }
+.finance-art-pillar-middle { animation-delay: -4s; animation-duration: 13s; }
+.finance-art-pillar-front { animation-delay: -7s; animation-duration: 15s; }
+.finance-art-pillar-left { animation-delay: -2s; animation-duration: 12s; }
 .finance-glass-light { animation: finance-glass-sweep 15s ease-in-out infinite; }
 .finance-market-trace { stroke: #e4dab0; stroke-width: 1.2; opacity: .22; }
 .finance-market-signal {
