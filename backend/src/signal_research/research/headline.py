@@ -19,7 +19,8 @@ def validate_headline(text, entity, facts, calculations):
         errors.append('Maximum 35 words.')
     if entity.casefold() not in text.casefold():
         errors.append('The entity must be named.')
-    if not re.search(r'\b(?:from|between|during)\b|20\d{2}\s*[-–]\s*20\d{2}', text, re.I):
+    # A point-in-time ratio is dated by its single reporting date ('as at September 2025').
+    if not re.search(r'\b(?:from|between|during|as at|as of)\b|20\d{2}\s*[-–]\s*20\d{2}', text, re.I):
         errors.append('State the observed time span explicitly.')
     if re.search(r'\b(?:pp|yoy|casa|nim|cagr|basis points)\b', text, re.I):
         errors.append('Expand financial jargon into plain English.')
@@ -47,6 +48,18 @@ def validate_headline(text, entity, facts, calculations):
     return errors
 
 
+# Same-date ratios rendered as a plain-English level; {value} is the registered output in percent.
+SNAPSHOT_RATIOS = {
+    'deposit_borrowing_mix': 'deposits at {value}% of deposits plus borrowings',
+    'loan_to_deposit': 'gross advances at {value}% of deposits',
+    'profit_margin': 'net profit at {value}% of revenue',
+    'vnb_to_ape': 'value of new business at {value}% of annualised premium equivalent',
+    'fee_yield': 'fee revenue at {value}% of average assets under management',
+    'funding_share': 'the disclosed borrowing component at {value}% of total borrowings',
+    'transaction_revenue_share': 'transaction revenue at {value}% of total revenue',
+}
+
+
 def template_headline(company, facts, calculations):
     available = [c for c in calculations if c.available and c.output_value is not None]
     c = next((c for c in available if c.formula_id == 'segment_dependency_gap'), None) or next(
@@ -66,9 +79,13 @@ def template_headline(company, facts, calculations):
         detail = f'recorded a {value} percentage point change in deposits as a share of deposits plus borrowings'
     elif c.formula_id == 'growth_gap':
         detail = f'recorded a {value} percentage point {inputs[0].metric_key.replace("_", " ")} versus {inputs[2].metric_key.replace("_", " ")} growth gap'
+    elif c.formula_id in SNAPSHOT_RATIOS and len(ends) == 1:
+        # One reporting date: a level, not a change, so it is dated 'as at', never 'from X to X'.
+        span = f'as at {ends[0]:%B %Y}'
+        detail = f'reported {SNAPSHOT_RATIOS[c.formula_id].format(value=value)}'
     else:
         unit = '%' if c.unit == 'percent' else ' percentage points' if c.unit == 'percentage_points' else ' times'
         label = {'yoy_growth': 'annual growth', 'cagr': 'annual compounded growth'}.get(c.formula_id, c.formula_id.replace('_', ' '))
         detail = f'recorded {value}{unit} for {label} in {inputs[0].metric_key.replace("_", " ")}'
-    scope = f' on a {inputs[0].scope.value} basis' if c.formula_id in {'deposit_borrowing_mix_change','segment_dependency_gap'} else ''
+    scope = f' on a {inputs[0].scope.value} basis' if c.formula_id in {'deposit_borrowing_mix_change', 'segment_dependency_gap', *SNAPSHOT_RATIOS} else ''
     return f'{company.legal_name} {detail} {span}{scope}.', c
