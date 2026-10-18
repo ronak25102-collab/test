@@ -118,7 +118,7 @@ class NvidiaProvider(LLMProvider):
     """NVIDIA hosted chat completions with native JSON schema and local validation."""
 
     endpoint = "https://integrate.api.nvidia.com/v1/chat/completions"
-    protocol_version = "nvidia-validated-json-stream-v5"
+    protocol_version = "nvidia-validated-json-stream-v6"
 
     def __init__(self, settings: Settings):
         self.settings = settings
@@ -132,7 +132,10 @@ class NvidiaProvider(LLMProvider):
             raise ProviderNotConfigured(f"no NVIDIA model configured for role {model_role}")
         # The constrained decoder receives a schema, but the model also needs its
         # field names, types and formats in the prompt to choose meaningful values.
-        guidance = ("Return only a JSON object matching this schema. Dates must use YYYY-MM-DD; "
+        guidance = ("Return only a populated DATA INSTANCE matching the schema below, never the schema itself. "
+                    "Do not echo $defs, properties, required, type or other schema-definition keys. "
+                    "Review verdict arrays must contain one entry per supplied candidate index, with the original index preserved. "
+                    "Dates must use YYYY-MM-DD; "
                     "convert only complete dates explicitly present in the evidence. Populate available "
                     "fields rather than leaving explicit dates null. Never create a fact for an absent "
                     "metric. Numeric values must contain only the exact source number; put currency "
