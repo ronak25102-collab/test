@@ -83,10 +83,10 @@
 .history-sources { margin-top: 16px; gap: 9px; }
 .history-sources li { font-size: 9px; color: #83996f; padding: 10px; background: #e8efdc; border-radius: 4px; }
 .history-sources a { color: #4e7540; margin-left: 8px; }
-.history-empty { padding: 30px; border: 1px dashed #d6dfc7; background: #f5f8ef; border-radius: 10px; margin: 20px 0; color: #829571; }
-.history-empty > span { font-size: 32px; color: #9caf87; }
-.history-empty p { font-size: 12px; margin: 13px 0 8px; }
-.history-empty small { font-size: 10px; line-height: 1.7; }
+.history-empty { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; align-items: center; padding: 18px 22px; border: 1px dashed #d6dfc7; background: #f5f8ef; border-radius: 10px; margin: 20px 0; color: #6f8360; }
+.history-empty > span { grid-row: 1 / span 2; font-size: 26px; line-height: 1; color: #9caf87; }
+.history-empty p { font-size: 13px; margin: 0 0 4px; }
+.history-empty small { font-size: 11px; line-height: 1.6; }
 .figure-toolbar, .source-toolbar { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; }
 .report-search { display: grid; flex: 1; min-width: min(100%, 220px); gap: 9px; }
 .report-search > span, .scope-filter > span { font-size: 9px; color: #7c916a; font-weight: 400; }
@@ -299,6 +299,12 @@ html:has(dialog[open]) { overflow: hidden; }
 .report-fact .fact-actions a { font-size: 10px; }
 .source-record a { font-size: 13px; } .source-record p { font-size: 10px; }
 .report-review-card p, .report-review-card ul { font-size: 12px; }
+/* Challenge cards: no icon row, so the heading sits at the top; body text one step larger. */
+.report-review-card.counter p, .report-review-card.falsification p { font-size: 13px; line-height: 1.75; }
+.report-review-card.counter small, .report-review-card.falsification small { display: block; font-size: 11px; line-height: 1.7; }
+.report-review-card.counter > small { margin: 14px 0 16px; }
+.falsification-rule > strong { font-size: 13px; line-height: 1.65; display: block; margin-bottom: 6px; }
+.falsification-rule > p { font-size: 12px; margin-bottom: 10px; }
 .inspector-passage blockquote { font-size: 12px; color: #567346; }
 @keyframes report-row-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .report-reveal { opacity: 1; transform: none; } }
@@ -390,7 +396,14 @@ html:has(dialog[open]) { overflow: hidden; }
 .challenge-trail blockquote { white-space: pre-wrap; max-height: 280px; overflow: auto; font-size: 11px; line-height: 1.8; }
 @media (max-width: 760px) { .submission-checklist { grid-template-columns: 1fr; } .submission-heading { align-items: flex-start; flex-direction: column; } .submission-brief, .challenge-trail { padding: 18px; } }
 .story-timeline>ol{list-style:none;padding:0;border-left:1px solid #a6b396;margin-left:8px}.story-timeline>ol>li{padding:0 0 26px 24px;position:relative;display:grid;grid-template-columns:110px 1fr;gap:18px}.story-timeline>ol>li:before{content:'';position:absolute;left:-5px;top:5px;width:9px;height:9px;background:#315b3e;border-radius:50%}.story-timeline time{font-size:12px;color:#68795c}.story-sparklines{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.story-sparklines figure{margin:0;background:#f5f5ec;padding:14px;border-radius:12px}.story-sparklines svg{width:100%;height:60px}.story-timeline blockquote{white-space:pre-wrap;max-height:300px;overflow:auto}.technical-detail{padding:14px 0;font-size:14px}.technical-detail p{max-width:90ch}@media(max-width:600px){.story-timeline>ol>li{grid-template-columns:1fr;gap:8px}}
-.peer-comparison{padding:28px 0}.peer-comparison svg{width:100%;max-height:260px}.peer-comparison article,.report-falsification-tests article{padding:18px;margin:12px 0;border:1px solid #d8dfcd;border-radius:12px;background:#f7f7ef}.peer-comparison blockquote,.report-falsification-tests blockquote{white-space:pre-wrap;max-height:320px;overflow:auto;overflow-wrap:anywhere}.strength-trace{border:1px solid #d7ddcb;border-radius:12px;padding:14px;margin:18px 0}.strength-trace summary{font-weight:600;cursor:pointer}.strength-trace ul{list-style:none;padding-left:0;line-height:1.9}.best-candidate{background:#f3eddf;padding:20px;border-radius:12px}.cold-start-control{display:flex;align-items:center;gap:10px;margin:20px 0;font-size:14px}.cold-start-control input{width:18px;height:18px}.journey-live-metrics{font-variant-numeric:tabular-nums;font-size:13px;color:#61735e;padding:12px 0;border-top:1px solid #dce2d3}
+.peer-comparison{padding:28px 0}.peer-comparison svg{width:100%;max-height:260px}.peer-comparison article,.report-falsification-tests article{padding:18px;margin:12px 0;border:1px solid #d8dfcd;border-radius:12px;background:#f7f7ef}
+/* Observable test cards: a clear heading, compact detail lines, the status as a small label and the source set apart. */
+.report-falsification-tests>p{margin:0 0 8px}.report-falsification-tests article{padding:20px 24px}
+.report-falsification-tests h4{margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid #e1e6d6}
+.report-falsification-tests article>p{margin:0 0 6px;line-height:1.6}
+.report-falsification-tests article>strong{display:inline-block;margin:10px 0 4px;padding:2px 10px;border-radius:20px;background:#e8eedc;font-size:12px;font-weight:500}.report-falsification-tests article>strong::first-letter{text-transform:uppercase}
+.report-falsification-tests article>small{display:block;margin-top:12px;padding-top:10px;border-top:1px solid #e1e6d6;color:#6f7d63;line-height:1.6}
+.report-falsification-tests article>details{margin-top:6px}.report-falsification-tests article>details>summary{padding:4px 0;cursor:pointer}.report-falsification-tests article>details>blockquote{margin:6px 0 10px}.peer-comparison blockquote,.report-falsification-tests blockquote{white-space:pre-wrap;max-height:320px;overflow:auto;overflow-wrap:anywhere}.strength-trace{border:1px solid #d7ddcb;border-radius:12px;padding:14px;margin:18px 0}.strength-trace summary{font-weight:600;cursor:pointer}.strength-trace ul{list-style:none;padding-left:0;line-height:1.9}.best-candidate{background:#f3eddf;padding:20px;border-radius:12px}.cold-start-control{display:flex;align-items:center;gap:10px;margin:20px 0;font-size:14px}.cold-start-control input{width:18px;height:18px}.journey-live-metrics{font-variant-numeric:tabular-nums;font-size:13px;color:#61735e;padding:12px 0;border-top:1px solid #dce2d3}
 @media print{.print-control{display:none}}
 
 /* Keep withheld candidates legible inside the dark report hero. */

@@ -55,9 +55,25 @@ function CompanyGrowth({ report }: { report: Report }) {
   const plot = 110, top = 24
   const zeroY = top + high * plot / span
   const width = 600, slot = (width - 80) / bars.length, barWidth = Math.min(48, slot * .45)
+  // One label per bar, wrapped to the bar's own slot so neighbouring labels never overprint.
+  // The metric wraps by word; the scope (when several are shown) takes its own line.
+  const charsPerLine = Math.max(8, Math.floor((slot - 10) / 5.6))
+  const labelLines = (bar: { metric: string; scope: string }) => {
+    const lines: string[] = []
+    for (const word of displayMetric(bar.metric).split(' ')) {
+      const last = lines.length - 1
+      if (last >= 0 && `${lines[last]} ${word}`.length <= charsPerLine) lines[last] += ` ${word}`
+      else lines.push(word)
+    }
+    return scopes.size > 1 ? [...lines, bar.scope] : lines
+  }
+  const labels = bars.map(labelLines)
+  const lineHeight = 14, extraLines = Math.max(...labels.map(lines => lines.length), 1) - 1
+  const height = 190 + extraLines * lineHeight
   return <div className="company-growth">
     <p>Company only · verified annual growth (%){scopes.size === 1 ? ` · ${[...scopes][0]}` : ''}</p>
-    <svg viewBox={`0 0 ${width} 190`} role="img" aria-label={`Verified annual growth for ${report.company.legal_name}; no verified peer median`}>
+    {/* The shared chart cap (260px) would shrink a taller chart; keep the same scale and let it grow. */}
+    <svg viewBox={`0 0 ${width} ${height}`} style={{ maxHeight: 'none' }} role="img" aria-label={`Verified annual growth for ${report.company.legal_name}; no verified peer median`}>
       <line x1="40" x2={width - 40} y1={zeroY} y2={zeroY} stroke="#ccd7d4" />
       {bars.map((bar, index) => {
         const cx = 40 + (index + .5) * slot
@@ -65,7 +81,7 @@ function CompanyGrowth({ report }: { report: Report }) {
         return <g key={`${bar.metric}|${bar.scope}`}>
           <rect x={cx - barWidth / 2} y={y} width={barWidth} height={h} fill="#315b3e" />
           <text x={cx} y={bar.value >= 0 ? y - 6 : y + h + 14} textAnchor="middle" fontSize="11">{displayNumber(String(bar.value))}%</text>
-          <text x={cx} y="182" textAnchor="middle" fontSize="11">{displayMetric(bar.metric)}{scopes.size > 1 ? ` · ${bar.scope}` : ''}</text>
+          <text x={cx} y="182" textAnchor="middle" fontSize="11">{labels[index].map((line, row) => <tspan key={row} x={cx} dy={row ? lineHeight : 0}>{line}</tspan>)}</text>
         </g>
       })}
     </svg>
