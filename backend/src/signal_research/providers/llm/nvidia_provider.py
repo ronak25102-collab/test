@@ -59,7 +59,10 @@ async def stream_payload(response: httpx.Response, max_output_tokens: int) -> di
             data.clear()
             if event == "[DONE]":
                 if finish == "length":
-                    raise NvidiaStructuredOutputError("NVIDIA reached its output token limit before completing structured output")
+                    error = NvidiaStructuredOutputError("NVIDIA reached its output token limit before completing structured output")
+                    # Too much requested output, not an invalid answer: a narrower request may complete.
+                    error.truncated = True
+                    raise error
                 if finish != "stop":
                     raise NvidiaRequestError("NVIDIA returned incomplete or refused structured output")
                 return {"id": request_id, "usage": usage, "choices": [{

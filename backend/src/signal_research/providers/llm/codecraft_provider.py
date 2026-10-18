@@ -98,6 +98,8 @@ class CodeCraftProvider(LLMProvider):
             if choice.get("finish_reason") == "length":
                 error = CodeCraftStructuredOutputError("CodeCraft reached its output token limit before completing structured output")
                 error.provider_usage = usage
+                # Too much requested output, not an invalid answer: a narrower request may complete.
+                error.truncated = True
                 raise error
             if choice.get("finish_reason") != "stop" or choice["message"].get("refusal"):
                 raise ValueError

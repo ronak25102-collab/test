@@ -372,6 +372,11 @@ class LiveResearch:
         self.extraction_timeouts = 0
         self.last_extraction_timeout = None
         self.extraction_deadline_reserve = 0
+        self.extraction_truncated = False
+        # While no registered calculation exists there is nothing to analyse yet, so
+        # retrieval of comparable periods may use the window reserved for analysis.
+        self.recovering_comparables = False
+        self.quarters_collected = False
         self.history_cache = []
         self.plan_questions = []
         self.revalidated_documents = set()
@@ -402,6 +407,10 @@ class LiveResearch:
         """Reserve a real reasoning window, not just one last provider response."""
         if self.peer_mode:
             return self.time_reserve(120)
+        if getattr(self, 'recovering_comparables', False):
+            # No calculation exists yet, so no hypothesis can use the analysis window.
+            # Keep only what challenge, composition and final review need.
+            return self.investigation_reserve()
         duration = self.settings.max_run_seconds if self.is_deep else min(self.settings.max_run_seconds, self.settings.demo_target_seconds)
         stages = self.settings.stage_request_seconds
         # Leave room for a hypothesis, peer fact extraction/review, independent
@@ -698,6 +707,9 @@ class LiveResearch:
             if passage.page_index is not None:
                 self.extracted.update(p.id for p in self.passages
                     if (p.document_id, p.page_index) == (passage.document_id, passage.page_index))
+            # A response cut off at its output limit asked for too many figures at once.
+            # The identical request is never resent; extract() may ask narrower questions.
+            self.extraction_truncated = bool(getattr(exc, 'truncated', False))
             self.store.artifact(self.run_id, 'extraction_failure', {
                 'passage_id': passage.id, 'schema': schema.__name__, 'error_code': exc.code,
                 'reason': str(exc), 'action': 'source withheld; request not retried'})
@@ -836,15 +848,39 @@ class LiveResearch:
                                | {p['period_end'] for p in abbreviated_quarter_periods(passage.text)})
                 if self.peer_mode and getattr(self, 'preferred_periods', None):
                     dates = [d for d in dates if d in self.preferred_periods]
-                batch = self.extraction_model(passage, source_fact_batch_schema([m.key for m in metrics], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
+                def model_batch(selected):
+                    return self.extraction_model(passage, source_fact_batch_schema([m.key for m in selected], passage.id, dates), {"passage_id": passage.id, "entity": self.company.legal_name,
                                       "source_period_columns": [{"label": label, "period_end": str(period)} for label, period in month_end_columns(passage.text)],
                                       "source_declared_durations": [*declared_duration_periods(passage.text), *explicit_duration_ranges(passage.text), *abbreviated_quarter_periods(passage.text)],
                                       "document_identity_passages": [{"id": p.id, "text": p.text[:1600]} for p in identity_passages if issuer_named(p.text, self.company)],
-                                      "allowed_metric_keys": [m.key for m in metrics],
-                                      "research_focus_metrics": list(focus_metrics),
-                                      "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in metrics],
+                                      "allowed_metric_keys": [m.key for m in selected],
+                                      "research_focus_metrics": [k for k in focus_metrics if k in {m.key for m in selected}],
+                                      "allowed_metric_definitions": [{"key": m.key, "period_type": "instant" if m.kind == "stock" else "duration"} for m in selected],
                                       "passage_text": passage.text}, "extract", "extracting",
                                       extraction_instruction(profile) + " Return compact JSON only: no reasoning narrative or evidence_quote. Prefer research_focus_metrics where supplied, including their comparative periods, before unrelated balance rows. Supplied source_declared_durations normalize an explicit duration and full end date; use only the matching start/end pair. Never use the period of a different column or metric.")
+                self.extraction_truncated = False
+                batch = model_batch(metrics)
+                if batch is None and self.extraction_truncated and len(metrics) > 1 and not self.extraction_paused:
+                    # A page with many registered figures and comparative columns can exceed
+                    # one response. Re-read it as two narrower, distinct requests; each part
+                    # is a complete structured answer and still passes the same validation
+                    # and independent review. The truncated response itself is discarded.
+                    middle = (len(metrics) + 1) // 2
+                    parts = []
+                    for selected in (metrics[:middle], metrics[middle:]):
+                        self.extraction_truncated = False
+                        part = model_batch(selected)
+                        if part is not None:
+                            parts.append(part)
+                        if self.extraction_paused:
+                            break
+                    if parts:
+                        # The parts were validated individually; combined they may exceed one batch's cap.
+                        batch = ExtractedFactBatch.model_construct(
+                            facts=[f for part in parts for f in part.facts],
+                            missing_metrics=[m for part in parts for m in part.missing_metrics],
+                            notes=[n for part in parts for n in part.notes])
+                        self.limitations.append('A page exceeded one extraction response; it was re-read as narrower metric requests, each independently reviewed.')
                 if batch is None:
                     batch = ExtractedFactBatch(notes=['Incomplete extraction response; no candidates accepted.'])
             accepted, candidates, rejected = [], [], []
@@ -1160,8 +1196,8 @@ class LiveResearch:
         self.limitations.append(reason)
         return False
 
-    def collect_history(self):
-        if not self.calculations or self.extraction_paused:
+    def collect_history(self, *, without_calculations=False):
+        if (not self.calculations and not without_calculations) or self.extraction_paused:
             return
         years = {fact.period_end.year for fact in self.facts if fact.period_end}
         current_fact_passages = {f.passage_id for f in self.facts if f.period_end and f.period_end.year == self.cutoff.year}
@@ -1194,6 +1230,8 @@ class LiveResearch:
                 self.extract(limit=4, preferred_document_ids=fresh, historical=True)
             if any(s['comparable_periods'] >= 5 for s in comparable_series(self.facts)):
                 break
+            if without_calculations and self.calculations:
+                break  # A comparable period was found; ordinary history collection continues later.
         self.store.artifact(self.run_id, 'historical_coverage', {'series': comparable_series(self.facts)})
         if needs_history(self.facts):
             self.limitations.append('Only one or two comparable snapshots were verified; trend onset and sustained historical development are not established.')
@@ -1395,6 +1433,9 @@ class LiveResearch:
         return HypothesisBatch(candidates=sorted(unique.values(), key=lambda h: h.significance + h.novelty, reverse=True)[:3], missing_evidence=[m[:200] for m in list(dict.fromkeys(missing))[:6]])
 
     def collect_quarters(self):
+        if getattr(self, 'quarters_collected', False):
+            return  # Already searched while recovering comparable periods; never repeat those searches.
+        self.quarters_collected = True
         targets = quarter_ends(self.cutoff)
         for year in sorted({d.year for d in targets}, reverse=True):
             if self.budget.remaining_seconds() <= self.analysis_reserve() or self.budget.search_calls >= self.budget.max_search_calls - 5:
@@ -1592,6 +1633,18 @@ class LiveResearch:
             self.stage("extracting", "Checking newly retrieved statements without relaxing figure bindings")
             self.extract(limit=2)
         self.recover_issuer_identity()
+        if not self.calculations and self.facts and not self.extraction_paused:
+            # The first filing can carry only periods that no registered formula pairs
+            # (for example a half-year-apart September and March). Retrieve the earlier
+            # comparable quarters and years before concluding no calculation exists.
+            self.stage("discovering", "Seeking comparable earlier periods for the verified figures")
+            self.recovering_comparables = True
+            try:
+                self.collect_quarters()
+                if not self.calculations:
+                    self.collect_history(without_calculations=True)
+            finally:
+                self.recovering_comparables = False
         if not self.calculations:
             if not self.facts:
                 eligible_issuer = any(d.document_type.startswith("issuer") and d.cutoff_eligibility == "eligible" for d in self.documents)
