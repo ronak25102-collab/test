@@ -96,7 +96,7 @@ class DurableCalls:
                 status = f'rejected_http_{exc.http_status}'
             if isinstance(exc, CodeCraftGatewayError):
                 self.store.artifact(self.run_id, f'gateway_failure:{identifier}', {'http_status': exc.http_status})
-                status = 'gateway_failure_billing_unknown'
+                status = 'gateway_error_unknown'
             self.store.record_provider_call(self.run_id, stage=stage, request_hash=digest, provider=str(key[0]), model=model, attempt=attempt, status=status, latency_ms=int((monotonic() - started) * 1000),
                 input_tokens=reported_usage.input_tokens if reported_usage else None,
                 output_tokens=reported_usage.output_tokens if reported_usage else None,

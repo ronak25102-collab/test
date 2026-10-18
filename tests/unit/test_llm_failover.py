@@ -74,7 +74,10 @@ def test_gateway_response_uses_authorized_nvidia_without_refunding_or_repeating_
     assert sent == ['primary-test'] and len(nvidia) == 1
     assert not resumed._active_credentials
     records = pipeline.store.provider_calls(pipeline.run_id)
-    assert [r['status'] for r in records] == ['gateway_failure_billing_unknown', 'ok']
+    from signal_research.db.models import ProviderCallModel
+    # SQLite ignores VARCHAR lengths; catch the PostgreSQL contract locally too.
+    assert all(len(r['status']) <= ProviderCallModel.__table__.c.status.type.length for r in records)
+    assert [r['status'] for r in records] == ['gateway_error_unknown', 'ok']
     assert records[0]['estimated_cost_usd'] is None
     assert pipeline.budget.input_tokens > 120 and pipeline.budget.output_tokens > 80
     assert not any('exhausted:' in a['kind'] for a in pipeline.store.artifacts(pipeline.run_id))
