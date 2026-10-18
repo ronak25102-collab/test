@@ -1,0 +1,87 @@
+/* An optical layer over the original artwork: no new visual theme or scene assets. */
+.hero-finance {
+  container-type: size;
+  pointer-events: none;
+  overflow: hidden;
+  background: #e8e0ce;
+}
+.hero-finance::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--paper) 0%, #f6f5efeb 10%, #f6f5ef55 34%, transparent 64%);
+}
+.finance-artboard {
+  position: absolute;
+  /* Match the original image's cover sizing and center / 66% crop exactly. */
+  width: max(100cqw, 150cqh);
+  aspect-ratio: 3 / 2;
+  left: 50%;
+  top: 66%;
+  transform: translate(-50%, -66%);
+}
+.finance-artwork, .finance-artwork-image, .finance-artwork-light { position: absolute; inset: 0; width: 100%; height: 100%; }
+.finance-artwork {
+  transform-origin: 50% 72%;
+  animation: finance-scene-drift 26s ease-in-out infinite alternate;
+}
+.finance-artwork-image { background: url('/images/beyond-financial-research.png') center / 100% 100% no-repeat; }
+.finance-artwork-light { overflow: visible; }
+.finance-pillar { transform-box: view-box; animation: finance-pillar-rise 11s ease-in-out infinite alternate; }
+.finance-pillar-middle { animation-delay: -4s; animation-duration: 13s; }
+.finance-pillar-front { animation-delay: -7s; animation-duration: 15s; }
+.finance-pillar-left { animation-delay: -2s; animation-duration: 12s; }
+.finance-glass-light { animation: finance-glass-sweep 15s ease-in-out infinite; }
+.finance-market-trace { stroke: #e4dab0; stroke-width: 1.2; opacity: .22; }
+.finance-market-signal {
+  stroke: #dfc784;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 8 108;
+  animation: finance-market-flow 9s linear infinite;
+}
+.finance-lens-light { opacity: 0; animation: finance-lens-sweep 13s ease-in-out infinite; }
+.finance-lens-rim {
+  stroke: #fff0bf;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 22 180;
+  opacity: .65;
+  animation: finance-rim-flow 13s ease-in-out infinite;
+}
+.finance-bank-light {
+  stroke: #e8d9a8;
+  stroke-width: 1.1;
+  stroke-dasharray: 16 380;
+  opacity: .35;
+  animation: finance-bank-flow 16s ease-in-out infinite;
+}
+.finance-atmosphere {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 69% 74%, #fff5cf24, transparent 47%);
+  animation: finance-light-breathe 12s ease-in-out infinite alternate;
+}
+@keyframes finance-scene-drift { from { transform: scale(1.006) translate3d(-2px, 0, 0); } to { transform: scale(1.027) translate3d(3px, -5px, 0); } }
+@keyframes finance-pillar-rise { from { transform: scaleY(1); } to { transform: scaleY(1.026); } }
+@keyframes finance-glass-sweep { 0%, 12% { transform: translateX(-900px); opacity: 0; } 25% { opacity: .7; } 67% { opacity: .7; } 85%, 100% { transform: translateX(1500px); opacity: 0; } }
+@keyframes finance-market-flow { 0% { stroke-dashoffset: 116; opacity: 0; } 8%, 83% { opacity: .9; } 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes finance-lens-sweep { 0%, 35% { transform: translateX(-110px); opacity: 0; } 46% { opacity: .14; } 65% { opacity: .2; } 78%, 100% { transform: translateX(150px); opacity: 0; } }
+@keyframes finance-rim-flow { 0%, 30% { stroke-dashoffset: 190; opacity: 0; } 46%, 67% { opacity: .65; } 85%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes finance-bank-flow { 0%, 12% { stroke-dashoffset: 396; opacity: 0; } 30%, 74% { opacity: .3; } 90%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes finance-light-breathe { from { opacity: .3; } to { opacity: .85; } }
+
+/* The existing motion setting and intersection observer govern the entire scene. */
+.motion-scene:not(.is-in-view) .hero-finance * { animation-play-state: paused; }
+.motion-paused .finance-artwork { transform: none; }
+.motion-paused .finance-artwork-light, .motion-paused .finance-atmosphere { visibility: hidden; }
+@media (max-width: 760px) {
+  .finance-artwork { animation-duration: 32s; }
+  .finance-artwork-light { opacity: .55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finance-artwork { transform: none; }
+  .finance-artwork-light, .finance-atmosphere { visibility: hidden; }
+}
+@media print { .finance-artwork-light, .finance-atmosphere { display: none; } }

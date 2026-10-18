@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useEffect, useId, useRef, useState } from 'react'
 import { ResearchJourney } from './ResearchJourney'
+import { FinanceBackdrop } from './FinanceBackdrop'
 
 export function BeyondMark() {
   return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M7 5v22h9a8 8 0 1 0 0-16h-3V5H7Z" fill="currentColor"/><path d="M13 17h3a2 2 0 1 1 0 4h-3v-4Z" fill="var(--paper, #f6f5ef)"/><path d="m20 3 6 6m0-6-6 6" stroke="currentColor" strokeWidth="2"/></svg>
@@ -78,7 +79,7 @@ export function Landing({ onLaunch, motionPaused }: { onLaunch: () => void; moti
   }, [])
   return <div className="landing" ref={root}>
     <section className="landing-hero motion-scene" id="platform" aria-labelledby="hero-heading">
-      <div className="hero-finance" aria-hidden="true" />
+      <FinanceBackdrop />
       <div className="hero-copy"><h1 id="hero-heading"><span className="hero-line hero-line-muted"><span>Find the next signal.</span></span>{' '}<span className="hero-line"><span>Beyond the numbers.</span></span></h1><p>Investigate banks, NBFCs and financial services.<br />Connect public filings. Test the story behind the numbers.</p><div className="hero-actions"><button className="button-dark" onClick={onLaunch}>Start your research <Arrow /></button><a className="text-link" href="#how-it-works">Explore the process <span>↓</span></a></div><span className="hero-footnote">Independent evidence. Reproducible calculations. Challenged conclusions.</span></div>
       <div className="hero-product" onPointerMove={e => {
         if (motionPaused || e.pointerType !== 'mouse' || matchMedia('(prefers-reduced-motion: reduce)').matches) return
