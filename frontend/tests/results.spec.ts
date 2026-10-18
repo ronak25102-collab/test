@@ -92,11 +92,19 @@ test('chart points and calculation inputs open their exact evidence', async ({ p
   await dialog.getByRole('button', { name: 'Close source evidence', exact: true }).click()
   await page.getByRole('navigation', { name: 'Report sections' }).getByRole('link', { name: /Calculations/ }).click()
   const calculation = page.locator('.calculation-card').first()
-  await calculation.getByText('Calculation inputs', { exact: true }).click()
-  await expect(calculation.locator('code')).toContainText('current / prior')
-  await calculation.getByRole('button', { name: /Inspect input/ }).first().click()
+  await calculation.getByRole('button', { name: 'Calculation inputs', exact: true }).click()
+  const inputs = page.getByRole('dialog', { name: 'Calculation inputs', exact: true })
+  await expect(inputs.locator('code')).toContainText('current / prior')
+  await inputs.getByRole('button', { name: /Inspect input/ }).first().click()
   dialog = page.getByRole('dialog', { name: 'Verified figure evidence', exact: true })
   await expect(dialog.getByRole('link', { name: /Open original source/ })).toHaveAttribute('href', report.documents[0].canonical_url)
+  // Escape closes the inspected input first, returning to the calculation popup.
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(inputs).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(inputs).not.toBeVisible()
+  await expect(calculation.getByRole('button', { name: 'Calculation inputs', exact: true })).toBeFocused()
 })
 
 test('source filters, empty states and export links keep their provenance', async ({ page }) => {

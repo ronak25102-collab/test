@@ -3,6 +3,7 @@ import type { Company, Report, RunSummary } from '../api/generated'
 import { RequestError, api } from '../api/client'
 import { ReportPrint } from './ReportPrint'
 import { ResearchResult } from './ResearchResult'
+import { EvidenceModal } from './EvidenceModal'
 import { calculationFormulas, displayNumber, displayUnit } from './format'
 import { Arrow, BeyondMark, Landing } from './Landing'
 import { usePageMotion } from '../usePageMotion'
@@ -222,9 +223,7 @@ export function App() {
 }
 
 function EvidenceDrawer({ report, claim, evidence, onClose }: { report: Report; claim: Report['claims'][number]; evidence: { link: { passage_or_fact_id: string; relation: string; reason: string }; passage?: Report['passages'][number]; fact?: Report['facts'][number]; document?: Report['documents'][number] }[]; onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => { const dialog = ref.current; const previous = document.activeElement as HTMLElement | null; dialog?.showModal(); return () => { if (dialog?.open) dialog.close(); previous?.focus({ preventScroll: true }) } }, [])
-  return <dialog ref={ref} className="drawer claim-drawer" aria-label="Claim evidence" onCancel={event => { event.preventDefault(); onClose() }}><button className="close" onClick={onClose} aria-label="Close evidence">×</button><span className="eyebrow">CLAIM PROVENANCE</span><h2>{claim.text}</h2><p className="pill">{claim.kind} · {claim.verification_status}</p>
+  return <EvidenceModal className="drawer claim-drawer" label="Claim evidence" kicker="CLAIM PROVENANCE" closeLabel="Close evidence" onClose={onClose}><h2>{claim.text}</h2><p className="pill">{claim.kind} · {claim.verification_status}</p>
     {evidence.map(({ link, passage, fact, document }) => <div className="evidence-item" key={link.passage_or_fact_id}><span className={link.relation === 'supporting' ? 'support' : 'oppose'}>{link.relation}</span><p>{link.reason}</p>
       {fact && <div className="source-fact"><strong>{fact.value_decimal}</strong> {fact.unit_normalized}<small>{fact.metric_key} · {fact.period_end} · {fact.scope}</small></div>}
       {document && <p><a href={document.canonical_url} target="_blank" rel="noreferrer">Open original source: {document.title}</a><small>{document.publisher} · published {document.published_at?.slice(0, 10) || 'unknown'} · {document.origin_family_id}</small></p>}
@@ -236,5 +235,5 @@ function EvidenceDrawer({ report, claim, evidence, onClose }: { report: Report; 
       const document = report.documents.find(d => d.id === passage?.document_id)
       return <li key={id}>{fact?.metric_key}: {fact?.value_decimal} {fact?.unit_normalized} · {fact?.period_end} · {fact?.scope} {document && <a href={document.canonical_url} target="_blank" rel="noreferrer">Source</a>}</li>
     })}</ol><p>Output: {displayNumber(calc.output_value)} {displayUnit(calc.unit)}</p><p>{calc.comparability_checks.join('; ')}</p><p>{calc.limitations.join('; ')}</p></section>)}
-  </dialog>
+  </EvidenceModal>
 }

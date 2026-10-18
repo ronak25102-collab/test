@@ -1,5 +1,6 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
-import type { Fact, Passage, Report } from '../api/generated'
+import type { Calculation, Fact, Passage, Report } from '../api/generated'
+import { EvidenceModal } from './EvidenceModal'
 import { type ReportSection, routeHref } from '../appRoute'
 import { TimelineStory } from './TimelineStory'
 import { PeerComparison } from './PeerComparison'
@@ -46,17 +47,34 @@ function SourcePassage({ passage, figure }: { passage: Passage; figure?: string 
 }
 
 function SourceInspector({ fact, report, onClose }: { fact: Fact; report: Report; onClose: () => void }) {
-  const ref = useRef<HTMLDialogElement>(null)
   const passage = report.passages.find(item => item.id === fact.passage_id)
   const source = report.documents.find(item => item.id === passage?.document_id)
-  useEffect(() => { const dialog = ref.current; const previous = document.activeElement as HTMLElement | null; dialog?.showModal(); return () => { if (dialog?.open) dialog.close(); previous?.focus({ preventScroll: true }) } }, [])
-  return <dialog ref={ref} className="source-inspector" aria-label="Verified figure evidence" onCancel={event => { event.preventDefault(); onClose() }} onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose() } }}>
-    <div className="inspector-top"><span className="section-kicker">THE FIGURE & ITS SOURCE</span><button className="close" onClick={onClose} aria-label="Close source evidence">×</button></div>
+  return <EvidenceModal className="source-inspector" label="Verified figure evidence" kicker="THE FIGURE & ITS SOURCE" closeLabel="Close source evidence" onClose={onClose}>
     <h2>{displayMetric(fact.metric_key)}</h2><div className="inspector-number">{displayNumber(fact.value_decimal)}<span>{displayUnit(fact.unit_normalized)}</span></div>
     <div className="inspector-metadata"><span>Reporting date<strong>{fact.period_end || 'Not specified'}</strong></span><span>Scope<strong>{fact.scope} · {fact.segment || 'all'}</strong></span><span>Definition<strong>{fact.definition_id || 'Issuer reported'}</strong></span><span>Original unit<strong>{fact.unit_raw || 'Not specified'}</strong></span></div>
     {source && <div className="inspector-source"><span className="section-kicker">ORIGINAL DOCUMENT</span><h3>{source.title}</h3><p>{source.publisher} · {source.published_at ? `Published ${source.published_at.slice(0, 10)}` : source.cutoff_eligibility_basis === 'verified_retrieval' ? `Public availability verified ${source.retrieved_at?.slice(0, 10) || 'by retrieval receipt'}` : 'Publication date unknown'}</p><a href={source.canonical_url} target="_blank" rel="noreferrer">Open original source{passage?.page_index != null ? ` · page ${passage.page_index + 1}` : ''}<Arrow diagonal /></a></div>}
     {passage ? <SourcePassage passage={passage} figure={fact.value_raw} /> : <p>No source passage is available for this figure.</p>}
-  </dialog>
+  </EvidenceModal>
+}
+
+function CalculationInspector({ calc, report, onInspect, onClose }: { calc: Calculation; report: Report; onInspect: (fact: Fact) => void; onClose: () => void }) {
+  const inputs = calc.input_fact_ids.map(input => report.facts.find(fact => fact.id === input))
+  const known = inputs.filter((fact): fact is Fact => Boolean(fact))
+  const metrics = [...new Set(known.map(fact => displayMetric(fact.metric_key)))]
+  const scopes = [...new Set(known.map(fact => fact.scope))]
+  return <EvidenceModal className="calculation-inspector" label="Calculation inputs" kicker="THE CALCULATION & ITS INPUTS" closeLabel="Close calculation inputs" onClose={onClose}>
+    <h2>{displayMetric(calc.formula_id)}</h2>
+    <div className={`inspector-number ${Number(calc.output_value) < 0 ? 'value-decrease' : ''}`}>{displayNumber(calc.output_value)}<span>{displayUnit(calc.unit)}</span></div>
+    <div className="inspector-metadata"><span>Compares<strong>{metrics.join(' / ') || 'Registered calculation'}</strong></span><span>Scope<strong>{scopes.join(' / ') || 'Not specified'}</strong></span><span>Formula version<strong>v{calc.formula_version}</strong></span><span>Inputs<strong>{calc.input_fact_ids.length}</strong></span></div>
+    <section className="calculation-formula"><h3>Formula</h3><code>{calculationFormulas[calc.formula_id] || calc.formula_id}</code></section>
+    <section className="calculation-inputs"><h3>Inputs</h3><ol>{inputs.map((fact, index) => <li key={calc.input_fact_ids[index]}>{fact ? <>
+      <span className="calculation-input-index">{String(index + 1).padStart(2, '0')}</span>
+      <div><span>{displayMetric(fact.metric_key)}</span><strong>{displayNumber(fact.value_decimal)} <small>{displayUnit(fact.unit_normalized)}</small></strong><em>{fact.period_end || 'Period unspecified'} · {fact.scope}</em></div>
+      <button onClick={() => onInspect(fact)}>Inspect input <Arrow diagonal /></button>
+    </> : <span>Input unavailable</span>}</li>)}</ol></section>
+    {calc.comparability_checks.length > 0 && <section className="calculation-notes"><h3>Comparability checks</h3><p>{calc.comparability_checks.join('; ')}</p></section>}
+    {calc.limitations.length > 0 && <section className="calculation-notes"><h3>Limitations</h3><p>{calc.limitations.join('; ')}</p></section>}
+  </EvidenceModal>
 }
 
 function SourceLibrary({ report }: { report: Report }) {
@@ -81,6 +99,7 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
   const [search, setSearch] = useState('')
   const [scope, setScope] = useState('All scopes')
   const [selectedFact, setSelectedFact] = useState<Fact | null>(null)
+  const [selectedCalculation, setSelectedCalculation] = useState<Calculation | null>(null)
   const [showAdditionalCalculations, setShowAdditionalCalculations] = useState(false)
   const root = useRef<HTMLElement>(null)
   const id = useId()
@@ -91,7 +110,7 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
   const displayedCalculations = discovery && !showAdditionalCalculations ? report.calculations.filter(c => findingCalculationIds.has(c.id)) : report.calculations
   const origins = new Set(report.documents.filter(document => document.cutoff_eligibility === 'eligible').map(document => document.origin_family_id)).size
 
-  useEffect(() => { setSelectedFact(null) }, [section])
+  useEffect(() => { setSelectedFact(null); setSelectedCalculation(null) }, [section])
 
   useEffect(() => {
     const element = root.current
@@ -150,20 +169,20 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
         <div className="facts-grid report-facts">{filteredFacts.map(fact => {
           const passage = report.passages.find(item => item.id === fact.passage_id)
           const source = report.documents.find(item => item.id === passage?.document_id)
-          return <article className="fact report-fact" key={fact.id}><div className="report-fact-top"><span>{displayMetric(fact.metric_key)}</span><span className="fact-scope">{fact.scope}</span></div><strong>{displayNumber(fact.value_decimal)}<small>{displayUnit(fact.unit_normalized)}</small></strong><em>{fact.period_end || 'Period unspecified'}{fact.segment && fact.segment !== 'all' ? ` · ${fact.segment}` : ''}</em><div className="fact-actions">{source && <a href={source.canonical_url} target="_blank" rel="noreferrer">Original source{passage?.page_index != null ? ` · page ${passage.page_index + 1}` : ''}</a>}<button aria-label={`Inspect ${displayMetric(fact.metric_key)} · ${fact.period_end || 'source'}`} onClick={() => setSelectedFact(fact)} title="Inspect figure and source"><Arrow diagonal /></button></div>{passage && <details><summary>Source passage</summary><blockquote>{passage.text}</blockquote><small>Raw unit: {fact.unit_raw} · Published: {source?.published_at?.slice(0, 10) || 'unknown'}{source?.cutoff_eligibility_basis === 'verified_retrieval' && ` · Public availability verified: ${source.retrieved_at}`}</small></details>}</article>
+          return <article className="fact report-fact" key={fact.id}><div className="report-fact-top"><span>{displayMetric(fact.metric_key)}</span><span className="fact-scope">{fact.scope}</span></div><strong>{displayNumber(fact.value_decimal)}<small>{displayUnit(fact.unit_normalized)}</small></strong><em>{fact.period_end || 'Period unspecified'}{fact.segment && fact.segment !== 'all' ? ` · ${fact.segment}` : ''}</em><div className="fact-actions">{source && <a href={source.canonical_url} target="_blank" rel="noreferrer">Original source{passage?.page_index != null ? ` · page ${passage.page_index + 1}` : ''}</a>}<button aria-label={`Inspect ${displayMetric(fact.metric_key)} · ${fact.period_end || 'source'}`} onClick={() => setSelectedFact(fact)} title="Inspect figure and source"><Arrow diagonal /></button></div>{passage && <button className="card-popup-open" aria-haspopup="dialog" onClick={() => setSelectedFact(fact)}>Source passage<Arrow diagonal /></button>}</article>
         })}</div>
         {!filteredFacts.length && <div className="report-empty">{report.facts.length ? 'No figures match these filters.' : 'No verified financial figures were established for this run.'}</div>}
       </section>
       </>}
       {section === 'calculations' && <>
-      <section className="report-section report-reveal" id="report-calculations" aria-labelledby={`${id}-calculations`}><div className="report-section-title"><div><span className="section-kicker">03 / CHECK THE ARITHMETIC</span><h3 id={`${id}-calculations`}>Reproducible calculations</h3></div><span>Expand any calculation to see its inputs</span></div>
+      <section className="report-section report-reveal" id="report-calculations" aria-labelledby={`${id}-calculations`}><div className="report-section-title"><div><span className="section-kicker">03 / CHECK THE ARITHMETIC</span><h3 id={`${id}-calculations`}>Reproducible calculations</h3></div><span>Open any calculation to see its inputs</span></div>
         {discovery && report.calculations.length > displayedCalculations.length && <p className="muted">Showing the {displayedCalculations.length} calculations linked to this discovery.</p>}
         {discovery && report.calculations.some(c => !findingCalculationIds.has(c.id)) && <button className="quiet" aria-pressed={showAdditionalCalculations} onClick={() => setShowAdditionalCalculations(value => !value)}>{showAdditionalCalculations ? 'Show discovery calculations only' : 'Show additional research calculations'}</button>}
         <div className="calculation-grid">{displayedCalculations.map(calc => {
           const inputs = calc.input_fact_ids.map(input => report.facts.find(fact => fact.id === input))
           const metrics = [...new Set(inputs.filter((fact): fact is Fact => Boolean(fact)).map(fact => displayMetric(fact.metric_key)))]
           const claim = report.claims.find(item => item.calculation_ids.includes(calc.id))
-          return <article className="calculation-card" key={calc.id}><span className="calculation-metric">{metrics.join(' / ') || 'Registered calculation'}</span><h4>{displayMetric(calc.formula_id)}</h4><div className={`calculation-value ${Number(calc.output_value) < 0 ? 'value-decrease' : ''}`}>{displayNumber(calc.output_value)}<span>{displayUnit(calc.unit)}</span></div><div className="calculation-context">{[...new Set(inputs.filter(Boolean).map(fact => fact!.scope))].join(' / ')} · Formula v{calc.formula_version}</div><details><summary>Calculation inputs</summary><code>{calculationFormulas[calc.formula_id] || calc.formula_id}</code><ol>{inputs.map((fact, index) => <li key={calc.input_fact_ids[index]}>{fact ? <><span>{displayMetric(fact.metric_key)}</span><strong>{displayNumber(fact.value_decimal)} {displayUnit(fact.unit_normalized)}</strong><small>{fact.period_end} · {fact.scope}</small><button onClick={() => setSelectedFact(fact)}>Inspect input <span>↗</span></button></> : 'Input unavailable'}</li>)}</ol>{calc.comparability_checks.length > 0 && <p>{calc.comparability_checks.join('; ')}</p>}{calc.limitations.length > 0 && <p>{calc.limitations.join('; ')}</p>}</details>{claim && <button className="calculation-claim" onClick={() => onClaim(claim.id)}>Open claim evidence <Arrow diagonal /></button>}</article>
+          return <article className="calculation-card" key={calc.id}><span className="calculation-metric">{metrics.join(' / ') || 'Registered calculation'}</span><h4>{displayMetric(calc.formula_id)}</h4><div className={`calculation-value ${Number(calc.output_value) < 0 ? 'value-decrease' : ''}`}>{displayNumber(calc.output_value)}<span>{displayUnit(calc.unit)}</span></div><div className="calculation-context">{[...new Set(inputs.filter(Boolean).map(fact => fact!.scope))].join(' / ')} · Formula v{calc.formula_version}</div><button className="card-popup-open" aria-haspopup="dialog" onClick={() => setSelectedCalculation(calc)}>Calculation inputs<Arrow diagonal /></button>{claim && <button className="calculation-claim" onClick={() => onClaim(claim.id)}>Open claim evidence <Arrow diagonal /></button>}</article>
         })}</div>{!report.calculations.length && <div className="report-empty">No reproducible calculations were available for this run.</div>}
       </section>
       </>}
@@ -188,6 +207,8 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
       })}</nav>
       <footer className="report-footnote"><span>Every figure has a paper trail.</span><span>Cutoff {report.cutoff} · Public evidence research</span></footer>
     </div>
+    {selectedCalculation && <CalculationInspector calc={selectedCalculation} report={report} onInspect={setSelectedFact} onClose={() => setSelectedCalculation(null)} />}
+    {/* Rendered after the calculation popup so an inspected input opens on top of it. */}
     {selectedFact && <SourceInspector fact={selectedFact} report={report} onClose={() => setSelectedFact(null)} />}
   </section>
 }
