@@ -58,6 +58,40 @@ def test_balanced_uncertain_request_never_moves_to_a_different_key(pipeline, mon
     assert not resumed._active_credentials
 
 
+@pytest.mark.parametrize('status', [520, 521, 522, 523, 524])
+@pytest.mark.parametrize('routing', ['balanced', 'ordered'])
+def test_gateway_response_uses_authorized_nvidia_without_refunding_or_repeating_codecraft(pipeline, monkeypatch, status, routing):
+    pipeline.settings.codecraft_key_routing = 'balanced' if routing == 'balanced' else 'sequential'
+    sent = install_http(monkeypatch, lambda key: httpx.Response(status))
+    nvidia = []
+    def generate(self, schema, *args):
+        nvidia.append(True)
+        return schema(value=42), ProviderUsage(input_tokens=120, output_tokens=80)
+    monkeypatch.setattr(NvidiaProvider, 'generate', generate)
+    assert pipeline.model(Result, {'test': 'gateway'}).value == 42
+    resumed = DurableCalls(pipeline.store, pipeline.settings, pipeline.run_id, pipeline.budget)
+    assert resumed.model(Result, {'test': 'gateway'}).value == 42
+    assert sent == ['primary-test'] and len(nvidia) == 1
+    assert not resumed._active_credentials
+    records = pipeline.store.provider_calls(pipeline.run_id)
+    assert [r['status'] for r in records] == ['gateway_failure_billing_unknown', 'ok']
+    assert records[0]['estimated_cost_usd'] is None
+    assert pipeline.budget.input_tokens > 120 and pipeline.budget.output_tokens > 80
+    assert not any('exhausted:' in a['kind'] for a in pipeline.store.artifacts(pipeline.run_id))
+    assert resumed.model(Result, {'test': 'new work during outage'}).value == 42
+    assert sent == ['primary-test'] and len(nvidia) == 2
+
+
+def test_gateway_failure_without_authorized_fallback_is_not_repeated(pipeline, monkeypatch):
+    from signal_research.providers.llm.codecraft_provider import CodeCraftGatewayError
+    pipeline.settings.codecraft_nvidia_fallback = False
+    sent = install_http(monkeypatch, lambda key: httpx.Response(520))
+    for _ in range(2):
+        with pytest.raises(CodeCraftGatewayError):
+            pipeline.model(Result, {'gateway': 'no fallback'})
+    assert sent == ['primary-test']
+
+
 def test_balanced_mode_exhausts_keys_then_uses_authorized_nvidia(pipeline, monkeypatch):
     pipeline.settings.codecraft_key_routing = 'balanced'
     sent = install_http(monkeypatch, lambda key: httpx.Response(402))

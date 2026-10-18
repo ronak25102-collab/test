@@ -92,6 +92,36 @@ def test_single_window_does_not_spend_peer_requests_without_comparable_target_se
     assert research.peer_benchmark['missing'] and len(artifacts)==1
 
 
+@pytest.mark.parametrize('status', ['supported', 'contradicted'])
+@pytest.mark.parametrize('unverified_number', [False, True])
+def test_current_reconciliation_requires_its_own_verified_numbers(status, unverified_number):
+    from signal_research.research.live import LiveResearch
+    company, passage, facts = segment_fixture()
+    calculations = derive_calculations(facts)
+    hypothesis = verified_proposals(company, facts, calculations, []).candidates[0]
+    research = LiveResearch.__new__(LiveResearch)
+    research.facts, research.calculations = facts, calculations
+    research.run_id, research.opposing_queries, research.limitations = uuid4(), ['reconciliation notes'], []
+    research.payload = lambda _: {'passages': [{'id': passage.id}]}
+    reason = ('The note reports 987654.32 crore of eliminations.' if unverified_number
+              else 'The original note qualifies how the reported segment results should be interpreted.')
+    research.calls = SimpleNamespace(model=lambda schema, *args, **kwargs: schema(
+        status=status, passage_ids=[passage.id], reason=reason))
+    artifacts = []
+    research.store = SimpleNamespace(artifact=lambda *args: artifacts.append(args))
+    research.check_current_reconciliation(hypothesis)
+    assert research.now_check['searched_queries'] == research.opposing_queries
+    if unverified_number:
+        assert research.now_check['status'] == 'not_found'
+        assert research.now_check['passage_ids'] == []
+        assert 'unverified' in research.now_check['reason']
+        assert research.limitations and artifacts[0][1] == 'unverified_reconciliation_review'
+        assert artifacts[0][2]['status'] == status  # Preserve adverse evidence for audit.
+    else:
+        assert research.now_check['status'] == status
+        assert not research.limitations
+
+
 @pytest.mark.parametrize('corruption',['missing_component','wrong_scope','wrong_period','wrong_total','different_names','wrong_denominator','different_entity'])
 def test_incomplete_or_incomparable_segment_schedules_do_not_produce_dependency(corruption):
     _, _, facts = segment_fixture()

@@ -27,6 +27,15 @@ class CodeCraftTimeout(CodeCraftError):
     code = 'CODECRAFT_TIMEOUT'
 
 
+class CodeCraftGatewayError(CodeCraftError):
+    """A gateway response has unknown billing; never refund or rotate keys."""
+    code = 'CODECRAFT_GATEWAY_ERROR'
+
+    def __init__(self, status):
+        self.http_status = status
+        super().__init__(f'CodeCraft upstream gateway failed (HTTP {status}); billing is unknown')
+
+
 class CodeCraftUnavailable(CodeCraftError):
     """An explicit rejection, distinct from an uncertain transport response."""
     def __init__(self, status):
@@ -123,6 +132,8 @@ class CodeCraftProvider(LLMProvider):
                         "Authorization": f"Bearer {self.settings.codecraft_api_key}",
                     }, json=body)
                     if response.status_code != 200:
+                        if response.status_code in {520, 521, 522, 523, 524}:
+                            raise CodeCraftGatewayError(response.status_code)
                         if response.status_code == 402:
                             raise CodeCraftCreditsExhausted("CodeCraft token allowance and balance exhausted (HTTP 402)")
                         if response.status_code in {401, 403, 404, 429, 503}:

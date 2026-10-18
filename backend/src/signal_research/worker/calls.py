@@ -12,6 +12,7 @@ from signal_research.providers.llm.base import ProviderNotConfigured
 from signal_research.providers.llm.codecraft_provider import (
     CodeCraftCreditsExhausted,
     CodeCraftError,
+    CodeCraftGatewayError,
     CodeCraftUnavailable,
 )
 from signal_research.providers.llm.factory import get_llm_provider
@@ -59,6 +60,9 @@ class DurableCalls:
         access_rejection = self.store.artifacts(self.run_id, f'rejected_access:{identifier}')
         if access_rejection:
             raise CodeCraftUnavailable(access_rejection[0]['payload']['http_status'])
+        gateway_failure = self.store.artifacts(self.run_id, f'gateway_failure:{identifier}')
+        if gateway_failure:
+            raise CodeCraftGatewayError(gateway_failure[0]['payload']['http_status'])
         if self.store.artifacts(self.run_id, f"reserved:{identifier}"):
             raise UncertainCall("A previous request may have been billed but has no durable result. It will not be repeated automatically; start a new run to retry it.")
         self.budget.check()
@@ -90,6 +94,9 @@ class DurableCalls:
             if isinstance(exc, CodeCraftUnavailable):
                 self.store.artifact(self.run_id, f'rejected_access:{identifier}', {'http_status': exc.http_status})
                 status = f'rejected_http_{exc.http_status}'
+            if isinstance(exc, CodeCraftGatewayError):
+                self.store.artifact(self.run_id, f'gateway_failure:{identifier}', {'http_status': exc.http_status})
+                status = 'gateway_failure_billing_unknown'
             self.store.record_provider_call(self.run_id, stage=stage, request_hash=digest, provider=str(key[0]), model=model, attempt=attempt, status=status, latency_ms=int((monotonic() - started) * 1000),
                 input_tokens=reported_usage.input_tokens if reported_usage else None,
                 output_tokens=reported_usage.output_tokens if reported_usage else None,
@@ -110,6 +117,25 @@ class DurableCalls:
                            lambda hits: [asdict(hit) for hit in hits], decode)
 
     def model(self, schema, payload, role="research", stage="investigating", instruction=""):
+        routes = [(slot, settings) for slot, settings in self.settings.routes_for_stage(role, stage)
+                  if settings.llm_provider == 'nvidia']
+        if routes and self.store.artifacts(self.run_id, 'codecraft_gateway_outage'):
+            return self._balanced_model(schema, payload, role, stage, instruction, routes)
+        try:
+            return self._route_model(schema, payload, role, stage, instruction)
+        except CodeCraftGatewayError as error:
+            if not routes:
+                raise
+            if not self.store.artifacts(self.run_id, 'codecraft_gateway_outage'):
+                self.store.artifact(self.run_id, 'codecraft_gateway_outage', {'http_status': error.http_status})
+            marker = f'gateway_fallback:{cache_key([schema.model_json_schema(), payload, role, stage, instruction])}'
+            if not self.store.artifacts(self.run_id, marker):
+                self.store.artifact(self.run_id, marker, {'http_status': error.http_status, 'billing': 'unknown'})
+                self.store.append_event(self.run_id, stage, 'provider_fallback',
+                    f'CodeCraft gateway failed (HTTP {error.http_status}); continuing with authorized NVIDIA. The uncertain CodeCraft cost remains reserved; no CodeCraft key is retried.')
+            return self._balanced_model(schema, payload, role, stage, instruction, routes)
+
+    def _route_model(self, schema, payload, role, stage, instruction):
         routes = self.settings.routes_for_stage(role, stage)
         if self.settings.codecraft_key_routing == 'balanced' and len(routes) > 1:
             return self._balanced_model(schema, payload, role, stage, instruction, routes)

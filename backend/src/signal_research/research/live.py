@@ -1300,8 +1300,21 @@ class LiveResearch:
             self.now_check = {'status': 'not_found', 'passage_ids': [], 'reason': 'Review could not bind a current reconciliation to exact original passages.'}
         else:
             self.now_check = review.model_dump(mode='json')
+        if self.now_check['status'] in {'supported', 'contradicted'}:
+            bound_facts = [f for f in self.facts if f.id in hypothesis.fact_ids]
+            bound_calcs = [c for c in self.calculations if c.id in hypothesis.calculation_ids]
+            reason = format_prose(self.now_check['reason'])
+            if not supported_numbers(reason, bound_facts, bound_calcs) or not supported_percentages(reason, bound_facts, bound_calcs):
+                # A source quotation is not an extracted, independently verified
+                # numerical fact. Keep the provisional review for audit, but do
+                # not promote it into a claim or let it resolve a break.
+                self.store.artifact(self.run_id, 'unverified_reconciliation_review', self.now_check)
+                self.now_check = {'status': 'not_found', 'passage_ids': [],
+                    'reason': 'Reconciliation review contained numerical detail without verified inputs; its conclusion remains unverified.'}
+                self.limitations.append('A provisional reconciliation explanation contained unverified numerical detail and was withheld. Its source notes remain available for independent claim review; no structural break was cleared by this check.')
         if self.now_check['status'] == 'not_found':
-            self.now_check['reason'] = 'No relevant reconciliation was established in the retrieved passages; absence is not proven.'
+            if 'unverified' not in self.now_check['reason']:
+                self.now_check['reason'] = 'No relevant reconciliation was established in the retrieved passages; absence is not proven.'
         self.now_check['searched_queries'] = list(self.opposing_queries)
         self.store.artifact(self.run_id, 'current_falsification_check', self.now_check)
 

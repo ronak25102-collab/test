@@ -37,6 +37,19 @@ Repeated business names then lost their metric binding.
   be bypassed by this local cleanup.
 - Display diagnostic metric labels and dates in plain language. Source quotes and
   recorded evidence are unchanged.
+- Validate numerical detail in the current reconciliation review before promoting
+  it into a report claim. An unverified explanation is retained in an audit
+  artifact, reported as unverified, and cannot clear a structural break. This
+  prevents an unextracted number in an auxiliary check from poisoning otherwise
+  source-bound drafts; independent final claim review still decides publication.
+- Recognize explicit CodeCraft gateway responses (520–524) separately from credit
+  rejection. If NVIDIA fallback was configured, use it for remaining work in that
+  run rather than repeatedly contacting the affected gateway with other keys.
+  Unknown gateway billing keeps its original reservation. Lost responses and
+  generic transport timeouts are still never automatically resubmitted.
+- The shared environment examples use NVIDIA JSON-object mode to avoid compiling
+  a new remote decoder grammar for every dynamic citation schema. The full schema
+  stays in the prompt; original local Pydantic and research validators still run.
 
 ## Financial interpretation limits
 
@@ -62,4 +75,4 @@ context in final drafting, which was correctly withheld; the bounded cleanup fix
 was added afterward. The final live outcome is recorded separately. These local
 checks do not establish a discovery until final publication review completes.
 
-The full local backend suite passed 704 tests (one Windows symlink-permission skip); Ruff, the frontend production build and all 49 Edge browser tests passed.
+The full local backend suite passed 719 tests (one Windows symlink-permission skip); Ruff, the frontend production build and all 49 Edge browser tests passed.
