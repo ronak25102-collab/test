@@ -117,10 +117,65 @@ test('source filters, empty states and export links keep their provenance', asyn
   await expect(sources.getByText('No sources match these filters.', { exact: true })).toBeVisible()
   await sources.getByRole('button', { name: 'Reset source filters', exact: true }).click()
   await expect(sources.locator('.source-record')).toHaveCount(report.documents.length)
-  await page.locator('.report-export > summary').click()
-  await expect(page.getByRole('link', { name: 'CSV', exact: true })).toHaveAttribute('href', new RegExp(`/runs/${report.run_id}/exports/facts.csv$`))
-  await expect(page.getByRole('link', { name: 'Print / Save as PDF', exact: true })).toHaveAttribute('href', `?run=${report.run_id}&print=1`)
-  await expect(page.getByRole('link', { name: 'Self-contained HTML', exact: true })).toHaveAttribute('href', new RegExp(`/runs/${report.run_id}/exports/report.html$`))
+})
+
+test('export popup generates the report on request, then downloads the chosen format', async ({ page }) => {
+  const requested: string[] = []
+  await page.route('**/api/v1/runs/*/exports/*', route => {
+    const file = new URL(route.request().url()).pathname.split('/').pop()!
+    requested.push(file)
+    if (file === 'report.json') return route.fulfill({ json: result })
+    if (file === 'facts.csv') return route.fulfill({ body: 'id,metric_key\n1,gross_advances\n', contentType: 'text/csv' })
+    if (file === 'report.html') return route.fulfill({ body: '<!doctype html><title>Report</title>', contentType: 'text/html' })
+    return route.fulfill({ status: 404, json: {} })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await expect(page.getByRole('navigation', { name: 'Report sections' })).toBeVisible()
+  expect(requested).toEqual([])
+  await page.getByRole('button', { name: /Export report/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Export report', exact: true })
+  await expect(dialog.getByRole('heading', { name: 'Generating your report' })).toBeVisible()
+  await expect(dialog.getByRole('heading', { name: 'Your report is ready' })).toBeVisible()
+  await expect(dialog.locator('.export-summary')).toContainText(`${result.facts.length} verified facts`)
+  expect(requested).toEqual(['report.json'])
+  for (const name of ['PDF', 'Self-contained HTML', 'JSON', 'CSV']) await expect(dialog.getByRole('button', { name: new RegExp(`^${name}\\b`) })).toBeVisible()
+
+  const company = result.company.legal_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  let download = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: /^CSV\b/ }).click()
+  expect((await download).suggestedFilename()).toBe(`beyond-${company}-${result.cutoff}-facts.csv`)
+  await expect(dialog.getByRole('button', { name: /^CSV\b/ })).toContainText('Downloaded')
+  download = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: /^JSON\b/ }).click()
+  expect((await download).suggestedFilename()).toBe(`beyond-${company}-${result.cutoff}-report.json`)
+  download = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: /^Self-contained HTML\b/ }).click()
+  expect((await download).suggestedFilename()).toBe(`beyond-${company}-${result.cutoff}-report.html`)
+  // JSON reuses the report generated when the popup opened; only CSV and HTML needed their own requests.
+  expect(requested).toEqual(['report.json', 'facts.csv', 'report.html'])
+
+  const printView = page.waitForEvent('popup')
+  await dialog.getByRole('button', { name: /^PDF\b/ }).click()
+  const printPage = await printView
+  expect(printPage.url()).toContain(`run=${report.run_id}&print=1&autoprint=1`)
+  await printPage.close()
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
+  await expect(page.getByRole('button', { name: /Export report/ })).toBeFocused()
+})
+
+test('export popup reports a generation failure and can retry', async ({ page }) => {
+  let attempts = 0
+  await page.route('**/api/v1/runs/*/exports/report.json', route => {
+    attempts++
+    return attempts === 1 ? route.fulfill({ status: 409, json: { detail: { code: 'REPORT_NOT_READY', message: 'report is not available yet' } } }) : route.fulfill({ json: result })
+  })
+  await page.goto(`/?run=${report.run_id}`)
+  await page.getByRole('button', { name: /Export report/ }).click()
+  const dialog = page.getByRole('dialog', { name: 'Export report', exact: true })
+  await expect(dialog.getByRole('alert')).toContainText('report is not available yet')
+  await dialog.getByRole('button', { name: 'Try again', exact: true }).click()
+  await expect(dialog.getByRole('heading', { name: 'Your report is ready' })).toBeVisible()
 })
 
 test('mobile results and evidence dialogs fit the viewport with reduced motion', async ({ page }) => {

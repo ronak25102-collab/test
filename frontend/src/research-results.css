@@ -19,12 +19,9 @@
 .report-hero-top, .report-company, .report-verdict { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .report-eyebrow { font-size: 8px; letter-spacing: .16em; color: #d3dfbc; }
 .report-eyebrow > span { color: #95ac85; }
-.report-export { position: relative; z-index: 2; }
-.report-export > summary { font-size: 10px; cursor: pointer; list-style: none; padding: 10px 12px; border: 1px solid #c5d4ad40; border-radius: 6px; }
-.report-export > summary span { margin-left: 18px; }
-.report-export > div { position: absolute; top: calc(100% + 6px); right: 0; min-width: 160px; display: grid; padding: 6px; background: #f9fbf0; border: 1px solid #d6dfc8; color: #355035; border-radius: 8px; box-shadow: 0 12px 35px #112a2430; }
-.report-export a { display: block; padding: 11px 12px; border-radius: 4px; text-decoration: none; font-size: 11px; }
-.report-export a:hover { background: #e7eedb; }
+.report-export { position: relative; z-index: 2; font-size: 10px; cursor: pointer; padding: 10px 12px; border: 1px solid #c5d4ad40; border-radius: 6px; background: transparent; color: inherit; }
+.report-export span { margin-left: 18px; }
+.report-export:hover { border-color: #9fb987; }
 .report-company { justify-content: flex-start; flex-wrap: wrap; gap: 12px 20px; font-size: 9px; color: #a8bc99; margin: 25px 0 15px; }
 .report-company > span:first-child { padding: 5px 8px; border: 1px solid #c3d6a73b; border-radius: 4px; color: #d8e3c3; letter-spacing: .08em; }
 .report-dashboard .report-hero h2 { color: #f0f4e4; font-weight: 400; font-size: clamp(27px, 3vw, 41px); letter-spacing: -1.5px; line-height: 1.2; max-width: 950px; margin: 0 0 16px; }
@@ -224,6 +221,59 @@
  .claim-drawer .modal-body section { font-size: 14px; }
 }
 @keyframes modal-in { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+/* Export popup: same frame as the evidence popups, sized so the whole chooser fits without scrolling.
+   fit-content, not auto: with inset 0 an auto height would stretch to fill the viewport. */
+.evidence-modal.export-modal { width: min(760px, calc(100vw - 48px)); height: fit-content; max-height: calc(100dvh - 32px); }
+.export-modal .inspector-top { padding: 18px 32px 14px; }
+.export-modal .modal-body { padding: 0 32px 26px; scrollbar-gutter: auto; }
+.export-modal h2 { margin: 20px 0 6px; font-size: 24px; font-weight: 400; letter-spacing: -.8px; color: #254f39; }
+.export-modal .modal-body > div > p, .export-meta > p { margin: 0; font-size: 13px; line-height: 1.6; color: #7e9668; }
+.export-preparing { display: grid; justify-items: center; text-align: center; padding: 26px 12px 8px; }
+.export-preparing .export-spinner { width: 42px; height: 42px; border-width: 3px; }
+.export-progress { position: relative; width: min(360px, 100%); height: 4px; margin-top: 22px; border-radius: 999px; background: #e1e9d5; overflow: hidden; }
+.export-progress > span { position: absolute; inset: 0 auto 0 0; width: 40%; border-radius: inherit; background: linear-gradient(90deg, #a9c391, #4f7a43); animation: export-sweep 1.3s var(--ease-out) infinite; }
+.export-failed h2 { color: #8f4b2f; }
+.export-failed .quiet { margin-top: 18px; }
+.export-spinner { display: inline-block; flex-shrink: 0; width: 12px; height: 12px; border: 2px solid #d2dfc1; border-top-color: #4f7a43; border-radius: 50%; animation: export-spin .8s linear infinite; }
+.export-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+.export-summary { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.export-summary li { padding: 5px 11px; border: 1px solid #d7e2c8; border-radius: 999px; background: #f0f5e7; font-size: 11px; color: #6c8957; }
+.export-summary strong { color: #254f39; font-weight: 500; }
+.export-choose { margin: 20px 0 10px; font-size: 12px; font-weight: 400; color: #789260; }
+/* Four formats in a 2 × 2 grid keep the popup short. */
+.export-formats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; }
+.export-formats > li { display: flex; min-width: 0; }
+.export-format { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 14px; width: 100%; padding: 14px 16px; border: 1px solid #d7e2c8; border-radius: 12px; background: #f3f7eb; color: inherit; text-align: left; cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.export-format:hover:not(:disabled) { border-color: #9fb987; background: #edf4e2; transform: translateY(-1px); }
+.export-format:disabled { cursor: progress; }
+.export-tag { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 9px; background: #254f39; color: #eef3e2; font-size: 10px; font-weight: 600; letter-spacing: .08em; }
+.export-text { min-width: 0; }
+.export-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.export-title strong { font-size: 14px; font-weight: 500; color: #2f5a40; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.export-text small { display: block; margin-top: 5px; font-size: 11.5px; line-height: 1.5; color: #84987a; }
+.export-action { display: inline-flex; flex-shrink: 0; align-items: center; gap: 6px; font-size: 11px; color: #4e6d40; white-space: nowrap; }
+.export-action > svg { width: 11px; height: 11px; }
+.export-done .export-action { color: #3f7a3c; }
+.export-format.export-error { border-color: #e2c3b3; background: #fbf1ea; }
+.export-format.export-error .export-action { color: #8f4b2f; }
+p.export-error { margin: 12px 0 0; font-size: 12px; color: #8f4b2f; }
+@keyframes export-spin { to { transform: rotate(360deg); } }
+@keyframes export-sweep { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+/* Short windows: tighten spacing further rather than scroll. */
+@media (max-height: 560px) {
+ .export-modal .inspector-top { padding-block: 12px 10px; }
+ .export-modal h2 { margin-top: 12px; font-size: 21px; }
+ .export-choose { margin: 14px 0 8px; }
+ .export-format { padding: 11px 14px; }
+ .export-modal .modal-body { padding-bottom: 18px; }
+}
+@media (max-width: 760px) {
+ .evidence-modal.export-modal { width: calc(100vw - 24px); }
+ .export-modal .inspector-top { padding-inline: 20px; }
+ .export-modal .modal-body { padding-inline: 20px; }
+ .export-formats { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+ .export-format { padding: 12px 14px; }
+}
 .evidence-modal::backdrop { background: #102b2452; backdrop-filter: blur(3px); animation: scenery-reveal .25s ease both; }
 html:has(dialog[open]) { overflow: hidden; }
 .inspector-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #dbe5ce; padding-bottom: 20px; }
@@ -260,8 +310,8 @@ html:has(dialog[open]) { overflow: hidden; }
  .report-hero-top { gap: 12px; align-items: flex-start; }
  .report-eyebrow { font-size: 7px; line-height: 1.8; }
  .report-eyebrow > span { display: block; }
- .report-export > summary { font-size: 9px; padding: 9px; white-space: nowrap; }
- .report-export > summary > span { margin-left: 9px; }
+ .report-export { font-size: 9px; padding: 9px; white-space: nowrap; }
+ .report-export > span { margin-left: 9px; }
  .report-company { gap: 10px; font-size: 8px; margin-top: 18px; }
  .report-dashboard .report-hero h2 { font-size: 28px; letter-spacing: -.9px; }
  .report-dashboard .report-hero-description { font-size: 11px; margin-bottom: 19px; }

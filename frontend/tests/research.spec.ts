@@ -141,7 +141,8 @@ test(`${outcome} still exposes verified facts, inputs and original sources`, asy
 }
 
 test('complete report exposes sources, calculation inputs and printable timeline', async ({ page }) => {
-  await page.route('**/api/v1/**', route => {
+  // Context-level mocks also serve the print view, which opens in a new tab.
+  await page.context().route('**/api/v1/**', route => {
     const path = new URL(route.request().url()).pathname
     if (path.endsWith('/runs/queue')) return route.fulfill({ json: { queued_count: 0 } })
     if (path.endsWith('/companies')) return route.fulfill({ json: { items: [report.company] } })
@@ -162,11 +163,18 @@ test('complete report exposes sources, calculation inputs and printable timeline
   await expect(drawer.getByText('Output: 20.00 percent')).toBeVisible()
   await page.screenshot({ path: 'test-results/evidence-drawer.png', fullPage: true })
   await page.getByRole('button', { name: 'Close evidence' }).click()
-  await page.locator('.report-export > summary').click()
-  await page.getByRole('link', { name: 'Print / Save as PDF' }).click()
-  await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible()
-  await expect(page.getByRole('link', { name: report.documents[0].title })).toHaveAttribute('href', report.documents[0].canonical_url)
-  await page.screenshot({ path: 'test-results/print-report.png', fullPage: true })
+  await page.context().route('**/api/v1/runs/*/exports/report.json', route => route.fulfill({ json: report }))
+  await page.getByRole('button', { name: /Export report/ }).click()
+  const exportDialog = page.getByRole('dialog', { name: 'Export report', exact: true })
+  const popup = page.waitForEvent('popup')
+  await exportDialog.getByRole('button', { name: /^PDF\b/ }).click()
+  const printView = await popup
+  // The print view calls window.print() for autoprint; stub it so the test can inspect the page.
+  await printView.addInitScript(() => { window.print = () => {} })
+  await printView.goto(printView.url())
+  await expect(printView.getByRole('heading', { name: 'Timeline' })).toBeVisible()
+  await expect(printView.getByRole('link', { name: report.documents[0].title })).toHaveAttribute('href', report.documents[0].canonical_url)
+  await printView.screenshot({ path: 'test-results/print-report.png', fullPage: true })
 })
 
 test('failed run shows its reason and can resume', async ({ page }) => {

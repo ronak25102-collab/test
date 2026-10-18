@@ -27,7 +27,7 @@
 .research-page.report-page .research-breadcrumbs { margin: 0 0 12px; min-height: 34px; }
 .report-page .report-dashboard { position: relative; }
 .report-export-slot { position: absolute; top: -46px; right: 0; z-index: 20; }
-.report-export-slot .report-export > summary { color: var(--green); border-color: #bdcbb0; background: #fcfdf7; white-space: nowrap; }
+.report-export-slot .report-export { color: var(--green); border-color: #bdcbb0; background: #fcfdf7; white-space: nowrap; }
 .research-page.report-page .workspace-heading { margin: 0; }
 .research-page.report-page .workspace-heading .section-kicker,
 .research-page.report-page .workspace-heading p { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
@@ -65,7 +65,7 @@
  .research-page.progress-page { width: 90vw; }
  .research-page .workspace-heading h1 { font-size: 32px; }
  .research-page .workspace-heading p { font-size: 11px; }
- .report-export-slot .report-export > summary { padding: 9px; font-size: 8px; }
+ .report-export-slot .report-export { padding: 9px; font-size: 8px; }
  .report-page .report-navigation { top: 72px; overflow-x: auto; flex-wrap: nowrap; }
  .report-page .report-navigation a { flex-shrink: 0; white-space: nowrap; }
  .research-queue-note { font-size: 10px; }

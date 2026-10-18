@@ -1,10 +1,10 @@
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
 import type { Calculation, Fact, Passage, Report } from '../api/generated'
 import { EvidenceModal } from './EvidenceModal'
+import { ExportDialog } from './ExportDialog'
 import { type ReportSection, routeHref } from '../appRoute'
 import { TimelineStory } from './TimelineStory'
 import { PeerComparison } from './PeerComparison'
-import { API_BASE } from '../api/client'
 import { Arrow } from './Landing'
 import { ResearchAudit } from './ResearchAudit'
 import { ChallengeTrail, SubmissionBrief } from './SubmissionBrief'
@@ -91,7 +91,8 @@ function SourceLibrary({ report }: { report: Report }) {
 }
 
 function ReportExport({ report }: { report: Report }) {
-  return <details className="report-export"><summary>Export report <span>↗</span></summary><div><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.html`}>Self-contained HTML</a><a href={`?run=${report.run_id}&print=1`}>Print / Save as PDF</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/report.json`}>JSON</a><a href={`${API_BASE}/api/v1/runs/${report.run_id}/exports/facts.csv`}>CSV</a></div></details>
+  const [open, setOpen] = useState(false)
+  return <><button className="report-export" aria-haspopup="dialog" onClick={() => setOpen(true)}>Export report <span>↗</span></button>{open && <ExportDialog report={report} onClose={() => setOpen(false)} />}</>
 }
 
 export function ResearchResult({ report, onClaim, section, onNavigate }: { report: Report; onClaim: (id: string) => void; section: ReportSection; onNavigate: (section: ReportSection) => void }) {

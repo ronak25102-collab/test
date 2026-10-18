@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { Calculation, Document, Fact, Report } from '../api/generated'
 import { displayMetric, displayNumber, displayResearchGap, displayUnit } from './format'
 import './report-print.css'
@@ -85,6 +86,13 @@ function groupLimitations(limitations: string[]) {
 }
 
 export function ReportPrint({ report }: { report: Report }) {
+  // The export popup opens this view with autoprint=1 so PDF is one click: open the print dialog once fonts are ready.
+  useEffect(() => {
+    if (new URLSearchParams(location.search).get('autoprint') !== '1') return
+    let active = true
+    document.fonts.ready.then(() => { if (active) window.setTimeout(() => { if (active) window.print() }, 300) })
+    return () => { active = false }
+  }, [])
   const discovery = report.discoveries[0]
   const cutoffLong = longDate(report.cutoff)
   const cutoffShort = cutoffLong.replace(/(\d+) (\w+) (\d+)/, '$1 $2 $3').toUpperCase()
