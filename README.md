@@ -2,6 +2,46 @@
 
 **An evidence-first research workbench for listed financial businesses.**
 
+The backend now defaults to **stored evidence playback** (`PIPELINE_MODE=precomputed`).
+It shows the existing progress stages for `REPLAY_DURATION_SECONDS=120`, then saves a
+reviewed published report under the new run ID. Playback makes no search, model or
+source-fetch requests and requires no provider keys or rate card. Existing endpoints,
+report schema, exports, synthetic SYNTHBANK replay and the frontend are unchanged.
+
+Currently available: **HDFC Bank, Jio Financial Services, ICICI Bank, State Bank of
+India, Kotak Mahindra Bank and Axis Bank**. These six fixtures pass the numerical
+verifier and minimum document/passage/fact/calculation/history/peer parity checks.
+The official roster has **12** Track A constituents: BSE, Bajaj Finance, Bajaj
+Finserv, HDFC Life, SBI Life and Shriram Finance remain incomplete and return the
+existing unsupported error instead of another issuer's report. See the
+[verified roster](docs/PRECOMPUTED_COMPANIES.md), [parity contract](docs/PARITY_CHECKLIST.md)
+and [measured coverage](docs/PRECOMPUTED_STATUS.md) for exact shortfalls. A parity
+pass is not a claim that all five annual years/eight quarters or every live source
+link are available.
+
+To restore the original provider-backed execution, set `PIPELINE_MODE=live` in
+`.env` and restart the API and worker. Its original credential, budget and rate-card
+checks still apply. The existing Live/Deep request options are preserved; the backend
+pipeline setting selects their execution path. An accepted run retains its execution
+policy and playback duration across restarts.
+
+To refresh a stored company, edit
+`backend/src/signal_research/precomputed/inputs/<SYMBOL>.yaml` using actual opened
+source documents and a recorded source-based editorial review, then run:
+
+```powershell
+uv run python scripts/build_precomputed.py HDFCBANK JIOFIN ICICIBANK SBIN KOTAKBANK AXISBANK --strict-parity
+```
+
+The builder is offline. It checks original source-byte hashes, numerical/date/scope
+bindings, formula results, peer reproduction, structural breaks, history, cadence,
+strength and final verification. Raw downloaded PDFs/HTML stay local; use
+`uv run python scripts/gather_precomputed_sources.py --restore-fixtures` to restore
+missing source bytes before rebuilding. Changed remote bytes fail rather than silently
+replacing a cited document. To add a company, supply the same source inputs and a
+reviewed report without changing the report schema; an incomplete research-only YAML
+cannot be published. Building all inputs reports unfinished companies and exits nonzero.
+
 Beyond investigates banks, NBFCs, insurers, exchanges and diversified financial groups from public
 evidence. It reads original filings, binds every figure to its source, runs registered Decimal
 calculations, tests the strongest opposing explanation, and publishes a finding only when it survives

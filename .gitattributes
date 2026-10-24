@@ -1,0 +1,2 @@
+# Preserve the fetched NSE source bytes so its recorded SHA-256 survives checkout.
+backend/src/signal_research/precomputed/research_sources/ind_nifty50list.csv -text
