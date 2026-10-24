@@ -11,6 +11,15 @@ router = APIRouter(prefix="/health", tags=["health"])
 def configuration(request: Request):
     from signal_research.research.readiness import live_readiness, provider_warnings
     settings = request.app.state.settings
+    if settings.pipeline_mode == "precomputed":
+        from signal_research.precomputed.catalog import index_entries
+        return {"ready": True, "issues": [], "warnings": [], "provider": "none",
+                "mode": "precomputed", "max_run_seconds": settings.replay_duration_seconds,
+                "demo_time_warning": False, "cost_policy": "No outbound calls",
+                "model_request_timeout_seconds": settings.model_request_timeout_seconds,
+                "codecraft_backup_keys": 0, "nvidia_fallback_enabled": False,
+                "nvidia_planning_enabled": False,
+                "companies_available": [entry["symbol"] for entry in index_entries(settings)]}
     result = live_readiness(settings)
     try:
         result["warnings"] = provider_warnings(request.app.state.store, settings)

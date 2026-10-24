@@ -15,6 +15,8 @@ class OpenAIProvider(LLMProvider):
 
     def generate(self, schema: type[BaseModel], messages: list[dict[str, str]], model_role: str,
                  deadline: timedelta, max_output_tokens: int):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         if not self.settings.openai_api_key:
             raise ProviderNotConfigured("OPENAI_API_KEY is not configured")
         model = self.settings.openai_model_extract if model_role == "extract" else self.settings.openai_model_research

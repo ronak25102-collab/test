@@ -25,6 +25,8 @@ class TavilySearchProvider(SearchProvider):
         self.settings = settings
 
     def search(self, query: str, domains: list[str] | None, as_of: date, max_results: int) -> list[SearchHit]:
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         if not self.settings.tavily_api_key:
             raise SearchNotConfigured("TAVILY_API_KEY is not configured")
         if self.settings.free_services_only:

@@ -61,6 +61,8 @@ class CodeCraftProvider(LLMProvider):
 
     def generate(self, schema: type[BaseModel], messages: list[dict[str, str]], model_role: str,
                  deadline: timedelta, max_output_tokens: int):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         if not self.settings.codecraft_api_key or not self.settings.model_for_role(model_role):
             raise ProviderNotConfigured("CodeCraft key and model role must be configured")
         # CodeCraft raises smaller budgets to 2048. Never send a request whose
@@ -123,6 +125,8 @@ class CodeCraftProvider(LLMProvider):
         return parsed, usage
 
     async def _request(self, body, deadline):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         seconds = deadline.total_seconds()
         try:
             async with asyncio.timeout(seconds):

@@ -128,6 +128,8 @@ class NvidiaProvider(LLMProvider):
 
     def generate(self, schema: type[BaseModel], messages: list[dict[str, str]], model_role: str,
                  deadline: timedelta, max_output_tokens: int):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         if not self.settings.nvidia_api_key:
             raise ProviderNotConfigured("NVIDIA_API_KEY is not configured")
         model = self.settings.model_for_role(model_role)
@@ -201,6 +203,8 @@ class NvidiaProvider(LLMProvider):
                                      request_id=payload.get("id"), status="ok")
 
     async def _request(self, body, deadline, max_output_tokens):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         seconds = deadline.total_seconds()
         try:
             # A read timeout alone resets on each chunk. This also bounds the

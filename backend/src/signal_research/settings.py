@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     display_timezone: str = "Asia/Kolkata"
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
+    pipeline_mode: Literal["precomputed", "live"] = "precomputed"
+    replay_duration_seconds: float = Field(default=120, ge=0)
+    precomputed_dir: Path = Path(__file__).parent / "precomputed"
     llm_provider: Literal["openai", "gemini", "nvidia", "codecraft"] = "openai"
     codecraft_api_key: str = Field(default="", repr=False)
     codecraft_secondary_api_keys: list[str] = Field(default_factory=list, repr=False, exclude=True, max_length=5)

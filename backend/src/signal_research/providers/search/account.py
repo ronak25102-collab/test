@@ -53,6 +53,8 @@ def free_account_usage(settings, reserve=0):
 
 
 def fetch_free_account_usage(settings):
+    from signal_research.precomputed.guard import require_network_allowed
+    require_network_allowed()
     for attempt in range(2):
         try:
             response = httpx.get("https://api.tavily.com/usage", headers={"Authorization": "Bearer " + settings.tavily_api_key},

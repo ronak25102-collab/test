@@ -19,6 +19,9 @@ def run_worker(once: bool = False) -> None:
     factory = session_factory(engine)
     store = Store(factory, settings.data_dir)
     store.bootstrap()
+    if settings.pipeline_mode == "precomputed":
+        from signal_research.precomputed.catalog import bootstrap_catalog
+        bootstrap_catalog(store, settings)
     machine = ResearchMachine(store, settings)
     owner = f"worker-{uuid.uuid4()}"
     while True:

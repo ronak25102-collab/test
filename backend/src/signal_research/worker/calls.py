@@ -47,6 +47,8 @@ class DurableCalls:
             self.rates = {r["model_id"]: r for r in json.loads(settings.model_rate_card_path.read_text(encoding="utf-8-sig"))["models"]}
 
     def invoke(self, key, stage, reserve, request, encode=lambda x: x, decode=lambda x: x, *, attempt=1):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         digest = hashlib.sha256(json.dumps(key, sort_keys=True, default=str).encode()).hexdigest()
         identifier = digest[:32]
         cached = self.store.artifacts(self.run_id, f"result:{identifier}")

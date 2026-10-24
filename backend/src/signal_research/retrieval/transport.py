@@ -11,6 +11,8 @@ from .url_policy import UnsafeURL, _is_private
 
 class PublicNetworkBackend(httpcore.SyncBackend):
     def connect_tcp(self, host, port, timeout=None, local_address=None, socket_options=None):
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         addresses = sorted({item[4][0] for item in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)})
         if not addresses or any(_is_private(address) for address in addresses):
             raise UnsafeURL("connection DNS resolved to a private destination")

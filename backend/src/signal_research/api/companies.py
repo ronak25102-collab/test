@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from signal_research.domain.schemas import ResolveRequest
 from signal_research.research.entity_resolver import resolve
@@ -14,8 +14,9 @@ def companies(q: str = "", store=Depends(get_store)):
 
 
 @router.post("/resolve")
-def resolve_company(request: ResolveRequest, store=Depends(get_store)):
-    result = resolve(store, request.query, refresh=True)
+def resolve_company(request: ResolveRequest, http_request: Request, store=Depends(get_store)):
+    result = resolve(store, request.query,
+                     refresh=http_request.app.state.settings.pipeline_mode != "precomputed")
     if result.company:
         return {"resolved": result.company.model_dump(mode="json"), "candidates": [c.model_dump(mode="json") for c in result.candidates]}
     if result.candidates:

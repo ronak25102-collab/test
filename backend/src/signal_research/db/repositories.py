@@ -199,7 +199,8 @@ class Store:
             row = session.get(CompanyModel, str(company_id))
             return company_schema(row) if row else None
 
-    def create_run(self, company: Company, as_of: date, mode: RunMode, idempotency_key: str | None = None, cold_start: bool = False) -> UUID:
+    def create_run(self, company: Company, as_of: date, mode: RunMode, idempotency_key: str | None = None, cold_start: bool = False,
+                   pipeline_mode: str | None = None, replay_duration_seconds: float | None = None) -> UUID:
         with self.session_factory() as session:
             if idempotency_key:
                 existing = session.scalar(select(ResearchRunModel).where(ResearchRunModel.idempotency_key == idempotency_key))
@@ -213,7 +214,10 @@ class Store:
             row = ResearchRunModel(
                 id=str(run_id), company_id=str(company.id), as_of=as_of, mode=mode.value,
                 status=RunStatus.QUEUED.value, stage=RunStatus.QUEUED.value,
-                config_json={"schema_version": "1.0", "mode": mode.value, 'cold_start': cold_start},
+                config_json={"schema_version": "1.0", "mode": mode.value, 'cold_start': cold_start,
+                             **({'pipeline_mode': pipeline_mode,
+                                 'replay_duration_seconds': replay_duration_seconds}
+                                if pipeline_mode is not None else {})},
                 budget_json={"search_calls": 0, "fetch_documents": 0, "model_calls": 0, "ocr_pages": 0},
                 progress_json={"sources_found": 0, "documents_parsed": 0, "calculations_completed": 0, "counterevidence_checks": 0},
                 limitations=[], idempotency_key=idempotency_key,
@@ -223,6 +227,12 @@ class Store:
             self._add_event(session, str(run_id), RunStatus.QUEUED.value, "run_queued", "Research run queued")
             session.commit()
             return run_id
+
+    def run_configuration(self, run_id: UUID | str) -> dict[str, Any]:
+        """Keep accepted execution policy across worker restarts and mode changes."""
+        with self.session_factory() as session:
+            row = session.get(ResearchRunModel, str(run_id))
+            return dict(row.config_json or {}) if row else {}
 
     def _add_event(self, session, run_id: str, stage: str, event_type: str, summary: str, error_code: str | None = None) -> None:
         # Acquire the run's write lock before reading its last sequence. This
@@ -398,15 +408,21 @@ class Store:
             rows = session.scalars(select(ResearchRunModel).where(
                 ResearchRunModel.company_id == str(company_id), ResearchRunModel.as_of <= cutoff,
                 ResearchRunModel.mode.in_(['live', 'deep']),
+                or_(ResearchRunModel.config_json['pipeline_mode'].as_string().is_(None),
+                    ResearchRunModel.config_json['pipeline_mode'].as_string() != 'precomputed'),
                 ResearchRunModel.status == RunStatus.COMPLETED.value,
                 ResearchRunModel.report_json.is_not(None),
             ).order_by(ResearchRunModel.ended_at.desc()).limit(limit)).all()
             reports = []
             for row in rows:
                 try:
-                    reports.append(ResearchReport.model_validate(row.report_json))
+                    report = ResearchReport.model_validate(row.report_json)
                 except ValueError:
                     continue
+                if (report.generation_metadata.get('mode') == 'precomputed'
+                        or report.source_coverage.get('mode') == 'precomputed'):
+                    continue
+                reports.append(report)
             return reports
 
     def run_history(self, limit=12):
@@ -598,7 +614,9 @@ class Store:
     def latest_live_run_id(self):
         with self.session_factory() as session:
             return session.scalar(select(ResearchRunModel.id).where(
-                ResearchRunModel.mode.in_(['live', 'deep'])).order_by(
+                ResearchRunModel.mode.in_(['live', 'deep']),
+                or_(ResearchRunModel.config_json['pipeline_mode'].as_string().is_(None),
+                    ResearchRunModel.config_json['pipeline_mode'].as_string() != 'precomputed')).order_by(
                 ResearchRunModel.created_at.desc(), ResearchRunModel.id.desc()).limit(1))
 
     def _save_evidence(self, session, report):

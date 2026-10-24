@@ -37,13 +37,25 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
     if (request.mode == RunMode.REPLAY) != ("SYNTHBANK" in company.symbols):
         raise HTTPException(status_code=422, detail={"code": "MODE_COMPANY_MISMATCH", "message": "Replay requires SYNTHBANK; live and deep modes require a real listed company"})
     if request.mode != RunMode.REPLAY:
-        from signal_research.research.readiness import live_readiness
-        readiness = live_readiness(http_request.app.state.settings)
-        if not readiness["ready"]:
-            raise HTTPException(status_code=503, detail={"code": "LIVE_CONFIGURATION_INCOMPLETE",
-                "message": " ".join(readiness["issues"]), "issues": readiness["issues"]})
+        settings = http_request.app.state.settings
+        if settings.pipeline_mode == "precomputed":
+            from signal_research.precomputed.catalog import PrecomputedUnavailable, load_report
+            try:
+                load_report(settings, company, request.as_of)
+            except PrecomputedUnavailable as exc:
+                raise HTTPException(status_code=404, detail={"code": exc.code, "message": str(exc)}) from exc
+        else:
+            from signal_research.research.readiness import live_readiness
+            readiness = live_readiness(settings)
+            if not readiness["ready"]:
+                raise HTTPException(status_code=503, detail={"code": "LIVE_CONFIGURATION_INCOMPLETE",
+                    "message": " ".join(readiness["issues"]), "issues": readiness["issues"]})
     try:
-        run_id = store.create_run(company, request.as_of, request.mode, idempotency_key, cold_start=request.cold_start)
+        settings = http_request.app.state.settings
+        run_id = store.create_run(company, request.as_of, request.mode, idempotency_key,
+                                  cold_start=request.cold_start,
+                                  pipeline_mode=settings.pipeline_mode,
+                                  replay_duration_seconds=settings.replay_duration_seconds)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(exc)})
     response.headers["Location"] = f"/api/v1/runs/{run_id}"

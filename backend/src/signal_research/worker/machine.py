@@ -27,6 +27,7 @@ class ResearchMachine:
     def __init__(self, store: Store, settings: Settings):
         self.store = store
         self.settings = settings
+        self.lease_error = None
 
     def process(self, run_id: UUID) -> None:
         from threading import Event, Thread
@@ -58,6 +59,23 @@ class ResearchMachine:
             return
         self.store.update_run(run_id, started=True)
         summary = self.store.get_summary(run_id)
+        pipeline_mode = self.store.run_configuration(run_id).get('pipeline_mode', self.settings.pipeline_mode)
+        if pipeline_mode == "precomputed" and summary.mode != RunMode.REPLAY:
+            from signal_research.precomputed.runtime import process_precomputed
+            try:
+                process_precomputed(self, run_id)
+            except Exception as exc:
+                if self.lease_error or "fenced lease" in str(exc) or self._cancelled(run_id):
+                    return
+                if self.store.has_report(run_id):
+                    return
+                logger.exception("precomputed playback %s failed", run_id)
+                self.store.update_run(run_id, status=RunStatus.FAILED, stage=RunStatus.FAILED.value,
+                                      limitations=[str(exc)], ended=True)
+                self.store.append_event(run_id, RunStatus.FAILED.value, "run_failed",
+                                        "Stored evidence playback failed; no live research was attempted",
+                                        error_code=getattr(exc, "code", "STAGE_FAILED"))
+            return
         saved = summary.budget
         limits = saved.get("limits", {})
         started = summary.started_at.replace(tzinfo=UTC) if summary.started_at.tzinfo is None else summary.started_at

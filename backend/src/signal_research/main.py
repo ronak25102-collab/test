@@ -25,6 +25,9 @@ def create_app(settings=None, store_override=None):
             Base.metadata.create_all(engine)
         app.state.store = store_override or Store(session_factory(engine), settings.data_dir)
         app.state.store.bootstrap()
+        if settings.pipeline_mode == "precomputed":
+            from signal_research.precomputed.catalog import bootstrap_catalog
+            bootstrap_catalog(app.state.store, settings)
         if settings.auto_start_worker and store_override is None:
             from threading import Thread
 

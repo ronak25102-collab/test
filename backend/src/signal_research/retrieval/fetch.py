@@ -32,6 +32,8 @@ class PublicFetcher:
         self.max_bytes = max_bytes
 
     def fetch(self, url: str, retries: int = 2) -> FetchResult:
+        from signal_research.precomputed.guard import require_network_allowed
+        require_network_allowed()
         last_error = None
         deadline = monotonic() + self.timeout
         for attempt in range(1, retries + 2):

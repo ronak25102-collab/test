@@ -24,5 +24,14 @@ data/tessdata/*
 output/*
 tmp/
 config/model-rates.json
+data/precomputed-*
+tmp-axis-*.json
+backend/src/signal_research/precomputed/references/d45ea5a6.json
+backend/src/signal_research/precomputed/references/0f0aaa37.json
+backend/src/signal_research/precomputed/research_sources/*.pdf
+backend/src/signal_research/precomputed/research_sources/*.html
+backend/src/signal_research/precomputed/research_sources/*.txt
+backend/src/signal_research/precomputed/research_sources/KOTAKBANK/*.pdf
+!backend/src/signal_research/precomputed/research_sources/FAOP76591.pdf
 !data/.gitkeep
 !output/.gitkeep

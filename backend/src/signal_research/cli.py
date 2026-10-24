@@ -29,6 +29,9 @@ def context():
         Base.metadata.create_all(engine)
     store = Store(session_factory(engine), settings.data_dir)
     store.bootstrap()
+    if settings.pipeline_mode == 'precomputed':
+        from signal_research.precomputed.catalog import bootstrap_catalog
+        bootstrap_catalog(store, settings)
     return settings, store
 
 
@@ -48,7 +51,7 @@ def universe_refresh():
 def research(company: str = typer.Option(..., help="Legal name or exchange symbol"), as_of: str | None = typer.Option(None, help="YYYY-MM-DD cutoff"), mode: RunMode = typer.Option(RunMode.LIVE)):
     """Start and process one run using the same worker service as the API."""
     settings, store = context()
-    resolution = resolve(store, company, refresh=True)
+    resolution = resolve(store, company, refresh=settings.pipeline_mode != 'precomputed')
     if not resolution.company:
         typer.echo(resolution.reason or "company could not be resolved", err=True)
         raise typer.Exit(2)
@@ -63,13 +66,22 @@ def research(company: str = typer.Option(..., help="Legal name or exchange symbo
     if (mode == RunMode.REPLAY) != ("SYNTHBANK" in resolution.company.symbols):
         typer.echo("Replay requires SYNTHBANK; live/deep requires a real listed company", err=True)
         raise typer.Exit(2)
-    if mode != RunMode.REPLAY:
+    if mode != RunMode.REPLAY and settings.pipeline_mode == 'precomputed':
+        from signal_research.precomputed.catalog import PrecomputedUnavailable, load_report
+        try:
+            load_report(settings, resolution.company, cutoff)
+        except PrecomputedUnavailable as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(2) from exc
+    elif mode != RunMode.REPLAY:
         from signal_research.research.readiness import live_readiness
         readiness = live_readiness(settings)
         if not readiness["ready"]:
             typer.echo("Live configuration incomplete: " + " ".join(readiness["issues"]), err=True)
             raise typer.Exit(2)
-    run_id = store.create_run(resolution.company, cutoff, mode, f"cli-{uuid4()}")
+    run_id = store.create_run(resolution.company, cutoff, mode, f"cli-{uuid4()}",
+                              pipeline_mode=settings.pipeline_mode,
+                              replay_duration_seconds=settings.replay_duration_seconds)
     owner = f"cli-{uuid4()}"
     leased = store.lease_next(owner, settings.max_active_runs)
     if leased != run_id:

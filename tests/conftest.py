@@ -14,6 +14,9 @@ from sqlalchemy.schema import CreateSchema, DropSchema
 def isolate_local_credentials(monkeypatch):
     """Developer .env credentials must never affect offline tests or provider selection."""
     monkeypatch.setattr(Settings, "model_config", {**Settings.model_config, "env_file": None})
+    # Existing offline provider tests exercise the explicitly selected live path.
+    # Precomputed tests select pipeline_mode="precomputed" on their own settings.
+    monkeypatch.setenv("PIPELINE_MODE", "live")
 
 
 @pytest.fixture
