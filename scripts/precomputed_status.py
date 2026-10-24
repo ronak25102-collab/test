@@ -84,7 +84,7 @@ def main():
         if receipt.get('error') or (status is not None and status != 200):
             lines.append(f'- {receipt["url"]}: {receipt.get("error") or status}.')
     lines += ['', *details]
-    (ROOT / 'docs' / 'PRECOMPUTED_STATUS.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    (ROOT / 'docs' / 'PRECOMPUTED_STATUS.md').write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
     print(f'{len(available)}/{len(roster)} published fixtures; outstanding issuers remain explicit')
 
 

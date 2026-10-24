@@ -282,4 +282,3 @@ Research-only YAML is present. Missing: reviewed discovery/significance, bound f
 ## SHRIRAMFIN: incomplete
 
 Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
-
