@@ -1,0 +1,3641 @@
+schema_version: '1.0'
+symbol: HDFCBANK
+reference: ../references/d45ea5a6.json.gz
+data_as_of: '2026-10-18'
+source_receipts:
+- url: https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Circular_31032022_1.pdf
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: 7aa5955ec31643c33d9213cd083858543cfb6bb31b45fe1258291fc8c8d1c233
+  error: 'ReadTimeout: The read operation timed out'
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  mime_type: application/pdf
+  bytes: 864157
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/investor-meet/2026/Transcript_19Mar_26.pdf
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: ee877949ab5a6065ca73a8e55b07348cd3ddd9fb9e91890448afbf51bb1e2a69
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/investor-meet/2026/Transcript_19Mar_26.pdf
+  sha256: ee877949ab5a6065ca73a8e55b07348cd3ddd9fb9e91890448afbf51bb1e2a69
+  mime_type: application/pdf
+  bytes: 627716
+- url: https://smest.in/bond-details/7.95-HDFC-Bank-Limited-21-Sep-2026/INE040A08369
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: ddccb089d4c1639b00a84e42d7006149ba58c9c866ea30dad8ad55f779b6194c
+  status_code: 200
+  final_url: https://smest.in/bond-details/7.95-HDFC-Bank-Limited-21-Sep-2026/INE040A08369
+  sha256: eee47c8c31937a9e23e81b58f6131c949dc28910810ffa4f5d6c6885787f7ae2
+  mime_type: text/html; charset=utf-8
+  bytes: 128799
+- url: https://bfsi.economictimes.indiatimes.com/articles/hdfc-bank-kotak-axis-seen-as-re-rating-candidates-despite-q1-margin-pressure/133445973
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: 03c894903fce50d6135e5c85d584ca6843e45eaff4934144412741525e12f3de
+  status_code: 200
+  final_url: https://bfsi.economictimes.indiatimes.com/articles/hdfc-bank-kotak-axis-seen-as-re-rating-candidates-despite-q1-margin-pressure/133445973
+  sha256: a0336b991a54326a2350febc3197146f88138de4c42d65cdf23dca00ad180eae
+  mime_type: text/html; charset=UTF-8
+  bytes: 304459
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  retrieved_at: '2026-10-24T15:22:31.480294+00:00'
+  original_content_hash: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  sha256: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  mime_type: application/pdf
+  bytes: 284989
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/HDFCBank-Analyst-Apr18-2026-vF.pdf
+  retrieved_at: '2026-10-24T15:22:32.068116+00:00'
+  original_content_hash: f2a0b862e5cc9a7af11fd0ac32d3048cce16861519a6f5fcb8b0d568934c11c6
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/HDFCBank-Analyst-Apr18-2026-vF.pdf
+  sha256: f2a0b862e5cc9a7af11fd0ac32d3048cce16861519a6f5fcb8b0d568934c11c6
+  mime_type: application/pdf
+  bytes: 292868
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  retrieved_at: '2026-10-24T15:22:32.122662+00:00'
+  original_content_hash: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  mime_type: application/pdf
+  bytes: 702743
+- url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  retrieved_at: '2026-10-24T15:22:32.128767+00:00'
+  original_content_hash: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  mime_type: application/pdf
+  bytes: 939244
+- url: https://www.hdfc.bank.in/about-us/regulatory-disclosures
+  retrieved_at: '2026-10-24T15:22:32.268418+00:00'
+  original_content_hash: 18969406c9afd61aa9228b2284d69487c0888487240b68e5e70604f013953dbf
+  status_code: 200
+  final_url: https://www.hdfc.bank.in/about-us/regulatory-disclosures
+  sha256: 18969406c9afd61aa9228b2284d69487c0888487240b68e5e70604f013953dbf
+  mime_type: text/html;charset=utf-8
+  bytes: 1423868
+- url: https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4
+  retrieved_at: '2026-10-24T15:22:32.365127+00:00'
+  original_content_hash: 5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875
+  status_code: 200
+  final_url: https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4
+  sha256: 5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875
+  mime_type: application/pdf
+  bytes: 531416
+- url: https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/standalone-financial-results-quarter-ended-june-30-2026.pdf
+  retrieved_at: '2026-10-24T15:22:32.443923+00:00'
+  original_content_hash: b95bef731a963323ad256416cf2cc473c3c2554f6c09e4a83744ee1a6a094e2a
+  status_code: 200
+  final_url: https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/standalone-financial-results-quarter-ended-june-30-2026.pdf
+  sha256: b95bef731a963323ad256416cf2cc473c3c2554f6c09e4a83744ee1a6a094e2a
+  mime_type: application/pdf
+  bytes: 344867
+- url: https://mirza.co.in/assets/pdf/Annual-Report-2022-23.pdf
+  retrieved_at: '2026-10-24T15:22:32.486388+00:00'
+  original_content_hash: 448159aaf575e498ae73ad9e29a0bda00992d7dd069dc5cba169b188aab97077
+  status_code: 200
+  final_url: https://mirza.co.in/assets/pdf/Annual-Report-2022-23.pdf
+  sha256: 448159aaf575e498ae73ad9e29a0bda00992d7dd069dc5cba169b188aab97077
+  mime_type: application/pdf
+  bytes: 5802895
+- url: https://economictimes.indiatimes.com/hdfc-bank-ltd/stocksupdate/companyid-9195.cms
+  retrieved_at: '2026-10-24T15:22:32.518816+00:00'
+  original_content_hash: 369645cf02caef5536857adf4496e2b17c427544c7544129368b1fcb8cd9a5d0
+  status_code: 200
+  final_url: https://economictimes.indiatimes.com/hdfc-bank-ltd/stocksupdate/companyid-9195.cms
+  sha256: adcea0a193e021c652f0ad149a4112b4110c939ff7c8cdbac7846917f3946717
+  mime_type: text/html;charset=UTF-8
+  bytes: 255080
+- url: https://www.bseindia.com/xml-data/corpfiling/AttachHis/f5a52634-1b5a-4902-b70e-e2b18b01bd8b.pdf
+  retrieved_at: '2026-10-24T15:22:32.663021+00:00'
+  original_content_hash: d57cafc5448bf0eac11c8cc11fdd683b8e0224b40dff9782ca49f4d3fff5c41e
+  status_code: 200
+  final_url: https://www.bseindia.com/xml-data/corpfiling/AttachHis/f5a52634-1b5a-4902-b70e-e2b18b01bd8b.pdf
+  sha256: d57cafc5448bf0eac11c8cc11fdd683b8e0224b40dff9782ca49f4d3fff5c41e
+  mime_type: application/pdf
+  bytes: 7556509
+- url: https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/AdvancedEnzymeTechnologiesLimited_April%2030_%202026_RR_391668.html
+  retrieved_at: '2026-10-24T15:22:32.916739+00:00'
+  original_content_hash: ee1ef87675a3e4b3bb84bd799af8d27b86d23cffbc84ff34998ae0b7e94ab840
+  status_code: 406
+  final_url: https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/AdvancedEnzymeTechnologiesLimited_April%2030_%202026_RR_391668.html
+  sha256: 8c5762995c17d2380768193fb6e6d5cfd3ca65147a5704af5fc5f1e82578867e
+  mime_type: text/html; charset=UTF-8
+  bytes: 1038
+- url: https://www.crisilratings.com/mnt/winshare/Ratings/RatingList/RatingDocs/ParsonsNutritionalsPrivateLimited_September%2007_%202026_RR_402522.html
+  retrieved_at: '2026-10-24T15:22:32.984051+00:00'
+  original_content_hash: de1b2a24fd505c586b25c72baa9f5a917adef201e8ba18f0dfd40c967d2ee2ce
+  status_code: 406
+  final_url: https://www.crisilratings.com/mnt/winshare/Ratings/RatingList/RatingDocs/ParsonsNutritionalsPrivateLimited_September%2007_%202026_RR_402522.html
+  sha256: 17758a465e80063da50bf32d18eaa204c6744908ad00e6fef6069396962f5fe0
+  mime_type: text/html; charset=UTF-8
+  bytes: 1038
+facts:
+- id: 3ed7de9f-b4ae-5dad-a5ff-2a14dd962970
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: deposits
+  value_raw: '3167330.55'
+  value_decimal: '3167330.55'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2026-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: deposits_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.99'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: 5576a048-c209-5739-ba53-76b8c7678808
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: deposits
+  value_raw: '2756487.50'
+  value_decimal: '2756487.50'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2025-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: deposits_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.99'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: e3c26f23-2cbd-5a67-99ee-73bef06bd37e
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: advances_as_reported
+  value_raw: '3156014.45'
+  value_decimal: '3156014.45'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2026-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: advances_as_reported_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: 0f2127c7-ca93-56a7-b297-e583b674d535
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: advances_as_reported
+  value_raw: '2735109.92'
+  value_decimal: '2735109.92'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2025-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: advances_as_reported_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: de283afa-cff0-55b1-bce2-217d850cca49
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: borrowings
+  value_raw: '565871.38'
+  value_decimal: '565871.38'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2026-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: borrowings_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.99'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: bd460a84-c3de-52a2-86da-ea8226b3955b
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: borrowings
+  value_raw: '599612.81'
+  value_decimal: '599612.81'
+  unit_raw: crore
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: null
+  period_end: '2025-06-30'
+  period_type: instant
+  scope: consolidated
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: borrowings_as_reported_v1
+  passage_id: 812f79e8-6793-5044-b1d2-fad5cf151c65
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.99'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf
+  document_title: Financial Results for the Quarter Ended June 30, 2026
+  document_type: issuer_disclosure
+  publication_date: '2026-07-18T00:00:00Z'
+  retrieved_at: '2026-10-18T11:49:06.232266Z'
+  sha256: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4
+  page_number: 10
+  exact_passage: 'HDFC BANк
+
+    We understand your world
+
+    Notes:
+
+    1 Consolidated statement of Assets and Liabilities is given below:
+
+    (in crore)
+
+    Particulars As at As at As at
+
+    30.06.2026 30.06.2025 31.03.2026
+
+    Unaudited Unaudited Audited
+
+    CAPITAL AND LIABILITIES
+
+    Capital 1540.13 766.79 1539.34
+
+    Employees stock options / units outstanding 4894.56 4043.72 4545.11
+
+    Reserves and surplus 599871.21 537823.51 579975.02
+
+    Minority interest 23079.48 20513.68 22384.96
+
+    Deposits 3167330.55 2756487.50 3099638.29
+
+    Borrowings 565871.38 599612.81 588484.55
+
+    Other liabilities and provisions 226751.15 198051.73 252977.53
+
+    Policyholders'' funds 382135.20 338748.30 358496.04
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    ASSETS
+
+    Cash and balances with Reserve Bank of India 150579.79 142561.88 200707.11
+
+    Balances with banks and money at call and short notice 87186.84 72050.90 111218.94
+
+    Investments 1339916.99 1265771.54 1280216.29
+
+    Advances 3156014.45 2735109.92 3050783.23
+
+    Fixed assets 16333.29 15439.01 16491.59
+
+    Other assets 221442.30 225114.79 248623.68
+
+    Total 4971473.66 4456048.04 4908040.84
+
+    2 The above financial results represent the consolidated financial results of HDFC Bank Limited and its subsidiaries
+
+    including Employee Welfare Trust (''EWT'') which is consolidated as a subsidiary (together referred to as the "Group"
+
+    herein). These financial results have been approved by the Board of Directors of the Bank at its meeting held on July
+
+    18, 2026. The financial results for the quarter ended June 30, 2026 have been subjected to a "Limited Review" by the
+
+    joint statutory auditors of the Bank viz. Batliboi & Purohit, Chartered Accountants and BSR & Co. LLP, Chartered
+
+    Accountants. The financial results for the quarter ended June 30, 2025 were reviewed by the Bank''s joint statutory
+
+    auditors Price Waterhouse LLP, Chartered Accountants and Batliboi & Purohit, Chartered Accountants.
+
+    -
+
+    3 These financial results have been prepared in accordance with the recognition and measurement principles laid down in
+
+    Accounting Standards specified under Section 133 of the Companies Act, 2013, the relevant provisions of the Banking
+
+    Regulation Act, 1949, the circulars, guidelines and directions issued by the Reserve Bank of India ("the RBI") from time
+
+    to time, the Insurance Regulatory and Development Authority of India ("IRDAI") to the extent applicable for insurance
+
+    entities and other accounting principles generally accepted in India and are in compliance with the presentation and
+
+    disclosure requirements of the Regulation 33 and Regulation 52 read with Regulation 63 of the Securities and
+
+    Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ("SEBI Regulations") as
+
+    amended including relevant circulars issued by the SEBI from time to time, to the extent applicable.
+
+    4 The Group has applied significant accounting policies in the preparation of. these consolidated financial results
+
+    consistent with those followed in the annual consolidated financial statements for the year ended March 31, 2026. Any
+
+    relevant circular / direction issued by the RBI and other regulator(s) is implemented prospectively when it becomes
+
+    applicable, unless specifically required under that circular / direction.
+
+    5 The figures for the quarter ended March 31, 2026 are the balancing figures between audited figures in respect of the
+    full
+
+    financial year 2025-26 and the published year to date figures upto December 31, 2025.
+
+    6 During the year ended March 31, 2026, the shareholders of the Bank had approved, through postal ballot, the issuance
+
+    of bonus shares, in the proportion of 1:1, i.e. 1 (One) bonus equity share of ₹ 1/- each for every 1 (One) fully paid-up
+
+    equity share held as on the record date. Accordingly, the Bank allotted 7,67,70,39,761 equity shares as bonus shares
+
+    on August 28, 2025 by utilisation of share premium. Alls hares and per share information in the financial results reflect
+
+    the effect of bonus shares issuance retrospectively.
+
+    #CR& Co. LL C
+
+    BANK
+
+    Centrat
+
+    Nori (MUMBAI
+
+    WestemE
+
+    S h Gor
+
+    o
+
+    Accounta
+
+    Mered
+
+    ס
+
+    ☆'
+  row_label: null
+  column_label: null
+  section: 37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4.pdf
+- id: 3cca1f07-bf4a-5910-9b94-0235efe4362e
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: '484.5'
+  value_decimal: '48450.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2026-07-01'
+  period_end: '2026-09-30'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: 85190884-d00d-5474-ac80-7d8debfecfdf
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  document_title: Press Release
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:49:29.258194Z'
+  sha256: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND HALF YEAR
+
+    ENDED SEPTEMBER 30, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter ended September 30, 2026, at its meeting held in Mumbai on Saturday,
+
+    October 17, 2026. The accounts have been subjected to a ''Limited Review'' by the
+
+    statutory auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Profit & Loss Account: Quarter ended September 30, 2026
+
+    The Bank’s net revenue was ₹ 484.5 billion for the quarter ended September 30, 2026,
+
+    as against ₹ 459.0 billion for the quarter ended September 30, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended
+
+    September 30, 2026 grew by 9.7% to ₹ 346.2 billion from ₹ 315.5 billion for the quarter
+
+    ended September 30, 2025. Net interest margin was at 3.16% on total assets, and 3.32%
+
+    based on interest earning assets.
+
+    Other income (non-interest revenue) for the quarter ended September 30, 2026 was ₹
+
+    138.3 billion. The four components of other income for the quarter ended September 30,
+
+    2026 were fees & commissions of ₹ 96.9 billion (₹ 88.4 billion in the corresponding quarter
+
+    of the previous year), foreign exchange & derivatives revenue of ₹ 15.5 billion (₹ 15.9
+
+    billion in the corresponding quarter of the previous year), treasury trading gains of ₹ 7.8
+
+    billion (₹ 23.9 billion in the corresponding quarter of the previous year) and miscellaneous
+
+    income, including recoveries and dividend of ₹ 18.1 billion (₹ 15.3 billion in the
+
+    corresponding quarter of the previous year).
+
+    Operating expenses for the quarter ended September 30, 2026 were ₹ 189.7 billion, as
+
+    against ₹ 179.8 billion during the corresponding quarter of the previous year. The cost-
+
+    to-income ratio for the quarter was at 39.1%.
+
+    Provisions and contingencies for the quarter ended September 30, 2026 were ₹ 35.7
+
+    billion. The total credit cost ratio was at 0.44% for the quarter ended September 30, 2026.
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539.pdf
+- id: be7ec50d-3d7c-5c9c-ba2f-a811d6a10ee7
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: '459.0'
+  value_decimal: '45900.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2025-07-01'
+  period_end: '2025-09-30'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: 85190884-d00d-5474-ac80-7d8debfecfdf
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  document_title: Press Release
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:49:29.258194Z'
+  sha256: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND HALF YEAR
+
+    ENDED SEPTEMBER 30, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter ended September 30, 2026, at its meeting held in Mumbai on Saturday,
+
+    October 17, 2026. The accounts have been subjected to a ''Limited Review'' by the
+
+    statutory auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Profit & Loss Account: Quarter ended September 30, 2026
+
+    The Bank’s net revenue was ₹ 484.5 billion for the quarter ended September 30, 2026,
+
+    as against ₹ 459.0 billion for the quarter ended September 30, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended
+
+    September 30, 2026 grew by 9.7% to ₹ 346.2 billion from ₹ 315.5 billion for the quarter
+
+    ended September 30, 2025. Net interest margin was at 3.16% on total assets, and 3.32%
+
+    based on interest earning assets.
+
+    Other income (non-interest revenue) for the quarter ended September 30, 2026 was ₹
+
+    138.3 billion. The four components of other income for the quarter ended September 30,
+
+    2026 were fees & commissions of ₹ 96.9 billion (₹ 88.4 billion in the corresponding quarter
+
+    of the previous year), foreign exchange & derivatives revenue of ₹ 15.5 billion (₹ 15.9
+
+    billion in the corresponding quarter of the previous year), treasury trading gains of ₹ 7.8
+
+    billion (₹ 23.9 billion in the corresponding quarter of the previous year) and miscellaneous
+
+    income, including recoveries and dividend of ₹ 18.1 billion (₹ 15.3 billion in the
+
+    corresponding quarter of the previous year).
+
+    Operating expenses for the quarter ended September 30, 2026 were ₹ 189.7 billion, as
+
+    against ₹ 179.8 billion during the corresponding quarter of the previous year. The cost-
+
+    to-income ratio for the quarter was at 39.1%.
+
+    Provisions and contingencies for the quarter ended September 30, 2026 were ₹ 35.7
+
+    billion. The total credit cost ratio was at 0.44% for the quarter ended September 30, 2026.
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539.pdf
+- id: cf5936e3-5ee5-5427-9164-12f39dd9f9cc
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: nim
+  value_raw: '3.16'
+  value_decimal: '3.16'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: '2026-07-01'
+  period_end: '2026-09-30'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: nim_as_reported_v1
+  passage_id: 85190884-d00d-5474-ac80-7d8debfecfdf
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.96'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  document_title: Press Release
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:49:29.258194Z'
+  sha256: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND HALF YEAR
+
+    ENDED SEPTEMBER 30, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter ended September 30, 2026, at its meeting held in Mumbai on Saturday,
+
+    October 17, 2026. The accounts have been subjected to a ''Limited Review'' by the
+
+    statutory auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Profit & Loss Account: Quarter ended September 30, 2026
+
+    The Bank’s net revenue was ₹ 484.5 billion for the quarter ended September 30, 2026,
+
+    as against ₹ 459.0 billion for the quarter ended September 30, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended
+
+    September 30, 2026 grew by 9.7% to ₹ 346.2 billion from ₹ 315.5 billion for the quarter
+
+    ended September 30, 2025. Net interest margin was at 3.16% on total assets, and 3.32%
+
+    based on interest earning assets.
+
+    Other income (non-interest revenue) for the quarter ended September 30, 2026 was ₹
+
+    138.3 billion. The four components of other income for the quarter ended September 30,
+
+    2026 were fees & commissions of ₹ 96.9 billion (₹ 88.4 billion in the corresponding quarter
+
+    of the previous year), foreign exchange & derivatives revenue of ₹ 15.5 billion (₹ 15.9
+
+    billion in the corresponding quarter of the previous year), treasury trading gains of ₹ 7.8
+
+    billion (₹ 23.9 billion in the corresponding quarter of the previous year) and miscellaneous
+
+    income, including recoveries and dividend of ₹ 18.1 billion (₹ 15.3 billion in the
+
+    corresponding quarter of the previous year).
+
+    Operating expenses for the quarter ended September 30, 2026 were ₹ 189.7 billion, as
+
+    against ₹ 179.8 billion during the corresponding quarter of the previous year. The cost-
+
+    to-income ratio for the quarter was at 39.1%.
+
+    Provisions and contingencies for the quarter ended September 30, 2026 were ₹ 35.7
+
+    billion. The total credit cost ratio was at 0.44% for the quarter ended September 30, 2026.
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539.pdf
+- id: e1743d19-fd83-5897-a515-8b52354e0d5b
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: credit_cost
+  value_raw: '0.44'
+  value_decimal: '0.44'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: '2026-07-01'
+  period_end: '2026-09-30'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: credit_cost_as_reported_v1
+  passage_id: 85190884-d00d-5474-ac80-7d8debfecfdf
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.97'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf
+  document_title: Press Release
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:49:29.258194Z'
+  sha256: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND HALF YEAR
+
+    ENDED SEPTEMBER 30, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter ended September 30, 2026, at its meeting held in Mumbai on Saturday,
+
+    October 17, 2026. The accounts have been subjected to a ''Limited Review'' by the
+
+    statutory auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Profit & Loss Account: Quarter ended September 30, 2026
+
+    The Bank’s net revenue was ₹ 484.5 billion for the quarter ended September 30, 2026,
+
+    as against ₹ 459.0 billion for the quarter ended September 30, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended
+
+    September 30, 2026 grew by 9.7% to ₹ 346.2 billion from ₹ 315.5 billion for the quarter
+
+    ended September 30, 2025. Net interest margin was at 3.16% on total assets, and 3.32%
+
+    based on interest earning assets.
+
+    Other income (non-interest revenue) for the quarter ended September 30, 2026 was ₹
+
+    138.3 billion. The four components of other income for the quarter ended September 30,
+
+    2026 were fees & commissions of ₹ 96.9 billion (₹ 88.4 billion in the corresponding quarter
+
+    of the previous year), foreign exchange & derivatives revenue of ₹ 15.5 billion (₹ 15.9
+
+    billion in the corresponding quarter of the previous year), treasury trading gains of ₹ 7.8
+
+    billion (₹ 23.9 billion in the corresponding quarter of the previous year) and miscellaneous
+
+    income, including recoveries and dividend of ₹ 18.1 billion (₹ 15.3 billion in the
+
+    corresponding quarter of the previous year).
+
+    Operating expenses for the quarter ended September 30, 2026 were ₹ 189.7 billion, as
+
+    against ₹ 179.8 billion during the corresponding quarter of the previous year. The cost-
+
+    to-income ratio for the quarter was at 39.1%.
+
+    Provisions and contingencies for the quarter ended September 30, 2026 were ₹ 35.7
+
+    billion. The total credit cost ratio was at 0.44% for the quarter ended September 30, 2026.
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539.pdf
+- id: 727aa82d-8e85-5215-9ab1-edde66392e41
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 38%
+  value_decimal: '38'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2023-09-30'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: 359fcb0f-bf4c-51e9-9285-bf0c95ebf2e7
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 38%
+  value_decimal: '38'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2024-03-31'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: f4786ef0-b0d1-5cc8-9610-4a120348608b
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 35%
+  value_decimal: '35'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2025-03-31'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: c08e0b50-aedd-54a7-b536-34dd00601c1d
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 34%
+  value_decimal: '34'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2026-03-31'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: cd6e5fdf-f536-5e0f-916f-04def78b58be
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 32%
+  value_decimal: '32'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2026-06-30'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: bc5818ba-5780-5472-8e12-5891704e4d52
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: casa_ratio
+  value_raw: 32%
+  value_decimal: '32'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: null
+  period_end: '2026-09-30'
+  period_type: instant
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: casa_ratio_as_reported_v1
+  passage_id: 3cf7bb68-e92e-516d-9cc2-1a7cc6261035
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf
+  document_title: Q2FY27 Earnings Presentation
+  document_type: issuer_disclosure
+  publication_date: '2026-10-17T00:00:00Z'
+  retrieved_at: '2026-10-18T11:50:53.230996Z'
+  sha256: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21
+  page_number: 15
+  exact_passage: 'STANDALONE
+
+    Yield on assets and cost of funds
+
+    Yield on assets and cost of funds Key Balance Sheet Mix
+
+    15 HDFC Bank Presentation Q2 FY2027
+
+    Certain figures reported above will not add-up due to rounding
+
+    Figures of the previous periods have been regrouped / reclassified wherever necessary to conform to current period''s
+    classification.
+
+    Q
+
+    8 .
+
+    1
+
+    1 %
+
+    J u
+
+    4
+
+    n
+
+    . 8
+
+    ''2
+
+    Y
+
+    %
+
+    5
+
+    ie ld
+
+    Q
+
+    o
+
+    7
+
+    n
+
+    . 8
+
+    2
+
+    A
+
+    %
+
+    S
+
+    s
+
+    4
+
+    e
+
+    s
+
+    . 6 %
+
+    p ''2
+
+    e t s
+
+    5 Q
+
+    7 .
+
+    3
+
+    8 %
+
+    D
+
+    C
+
+    4 . 5 %
+
+    e c ''2
+
+    o s t o
+
+    5
+
+    f F u
+
+    Q
+
+    7
+
+    n
+
+    .
+
+    4
+
+    d
+
+    8 %
+
+    M
+
+    s (
+
+    4
+
+    a
+
+    in
+
+    . 4
+
+    r ''2
+
+    c
+
+    %
+
+    6
+
+    l. S h
+
+    Q
+
+    a
+
+    7
+
+    r
+
+    .
+
+    1
+
+    e
+
+    7 %
+
+    J
+
+    h
+
+    u
+
+    o
+
+    4
+
+    n
+
+    ld
+
+    . 4
+
+    ''2
+
+    e
+
+    %
+
+    6
+
+    r s '' F
+
+    7
+
+    Q
+
+    u
+
+    .
+
+    2
+
+    n
+
+    6
+
+    d
+
+    %
+
+    S
+
+    s
+
+    e
+
+    )
+
+    4
+
+    p
+
+    . 4
+
+    ''2
+
+    %
+
+    6
+
+    Particulars Sep''23 Mar''24 Mar''25 Mar''26 Jun''26 Sep''26
+
+    AUM Mix
+
+    Retail 53% 54% 55% 53% 52% 53%
+
+    Mortgage 29% 30% 30% 29% 29% 28%
+
+    Retail Assets 24% 24% 25% 24% 23% 25%
+
+    Small and mid-market 17% 18% 19% 21% 21% 21%
+
+    Business Banking 12% 12% 13% 15% 15% 16%
+
+    Commercial Transportation 5% 5% 6% 6% 6% 5%
+
+    Corporate & other wholesale 30% 28% 26% 26% 27% 26%
+
+    CASA ratio 38% 38% 35% 34% 32% 32%
+
+    Borrowings as a % of Total
+
+    21% 18% 14% 11% 11% 11%
+
+    Liabilities'
+  row_label: null
+  column_label: null
+  section: bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21.pdf
+- id: 202819f4-efed-5200-af05-350defbe9a4c
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: 1,912.2
+  value_decimal: '191220.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2025-04-01'
+  period_end: '2026-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+- id: 8e439219-b736-514e-807e-cf0e76da8123
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: 1,683.0
+  value_decimal: '168300.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2024-04-01'
+  period_end: '2025-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+- id: 1bffdc95-8be5-5879-acd0-a577fdb77420
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: net_profit
+  value_raw: '746.7'
+  value_decimal: '74670.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2025-04-01'
+  period_end: '2026-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: net_profit_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.98'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+- id: 8bd20fd8-8117-5758-a6fd-7ee5e8d4f27b
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: '462.8'
+  value_decimal: '46280.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2026-01-01'
+  period_end: '2026-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.97'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+- id: 1b1a7bed-f934-5dc9-bba3-56d27b86bb2c
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: revenue
+  value_raw: '440.9'
+  value_decimal: '44090.0'
+  unit_raw: billion
+  unit_normalized: INR_crore
+  currency: INR
+  period_start: '2025-01-01'
+  period_end: '2025-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: revenue_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.97'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+- id: bc9a6952-0edb-5c3b-bc86-6338e5afed18
+  entity_id: 7b3ce91c-9777-5a7c-b308-4d62e5e27c69
+  metric_key: nim
+  value_raw: '3.38'
+  value_decimal: '3.38'
+  unit_raw: '%'
+  unit_normalized: percent
+  currency: null
+  period_start: '2026-01-01'
+  period_end: '2026-03-31'
+  period_type: duration
+  scope: standalone
+  segment: all
+  accounting_basis: issuer_reported
+  definition_id: nim_as_reported_v1
+  passage_id: e05dd23b-f3a7-5de1-950e-aab6cd94d66c
+  status: verified
+  missing_reason: null
+  restates_fact_id: null
+  extraction_confidence: '0.96'
+  source_url: https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf
+  document_title: '[PDF] NEWS RELEASE - HDFC Bank'
+  document_type: issuer_disclosure
+  publication_date: null
+  retrieved_at: '2026-10-18T11:50:53.239490Z'
+  sha256: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e
+  page_number: 1
+  exact_passage: 'NEWS RELEASE HDFC BANK LIMITED,
+
+    Sandoz House, Shivsagar Estate,
+
+    Dr. Annie Besant Road, Worli,
+
+    Mumbai - 400 018.
+
+    CIN: L65920MH1994PLC080618
+
+    HDFC Bank Limited
+
+    FINANCIAL RESULTS (INDIAN GAAP) FOR THE QUARTER AND YEAR ENDED
+
+    MARCH 31, 2026
+
+    The Board of Directors of HDFC Bank Limited approved the Bank’s (Indian GAAP) results
+
+    for the quarter and year ended March 31, 2026, at its meeting held in Mumbai on
+
+    Saturday, April 18, 2026. The accounts have been subjected to an audit by the statutory
+
+    auditors of the Bank.
+
+    STANDALONE FINANCIAL RESULTS:
+
+    Summary for the Financial Year ended March 31, 2026
+
+    Net revenues (net interest income plus other income) for the year ended March 31, 2026
+
+    were ₹ 1,912.2 billion, as against ₹ 1,683.0 billion for the year ended March 31, 2025.
+
+    Profit after tax for the year ended March 31, 2026 was ₹ 746.7 billion, up by 10.9% over
+
+    the corresponding year ended March 31, 2025.
+
+    Profit & Loss Account: Quarter ended March 31, 2026
+
+    The Bank’s net revenue grew by 5.0% to ₹ 462.8 billion for the quarter ended March 31,
+
+    2026 from ₹ 440.9 billion for the quarter ended March 31, 2025.
+
+    Net interest income (interest earned less interest expended) for the quarter ended March
+
+    31, 2026 grew by 3.2% to ₹ 330.8 billion from ₹ 320.7 billion for the quarter ended March
+
+    31, 2025. Net interest margin was at 3.38% on total assets, and 3.53% based on interest
+
+    earning assets.
+
+    Other income (non-interest revenue) for the quarter ended March 31, 2026 was ₹ 132.0
+
+    billion. The four components of other income for the quarter ended March 31, 2026 were
+
+    fees & commissions of ₹ 92.2 billion (₹ 85.3 billion in the corresponding quarter of the
+
+    previous year), foreign exchange & derivatives revenue of ₹ 14.9 billion (₹ 14.4 billion in
+
+    the corresponding quarter of the previous year), net trading and mark to market gain of
+
+    ₹ 8.2 billion (₹ 3.9 billion in the corresponding quarter of the previous year) and
+
+    miscellaneous income, including recoveries and dividend of ₹ 16.7 billion (₹ 16.7 billion
+
+    in the corresponding quarter of the previous year).
+
+    Regd. Office: HDFC Bank Limited, HDFC Bank House, Senapati Bapat Marg, Lower Parel (West), Mumbai - 400 013'
+  row_label: null
+  column_label: null
+  section: a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e.pdf
+note: Imported reviewed evidence. No facts, dates or passages were invented to meet coverage targets.
