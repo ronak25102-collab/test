@@ -50,7 +50,7 @@ for key, aliases, unit, kind, profiles in (
     ("bond_borrowings", ("debt securities", "bonds and debentures"), "INR_crore", "stock", (Profile.NBFC, Profile.DIVERSIFIED)),
     ("segment_revenue", ("segment revenue",), "INR_crore", "duration", COMMON),
     ("segment_revenue_total", ("total segment revenue",), "INR_crore", "duration", COMMON),
-    ("segment_profit_total", ("total segment results", "total segment profit", "total profit before tax"), "INR_crore", "duration", COMMON),
+    ("segment_profit_total", ("total segment results", "total segment profit", "total profit before tax", "total profit after tax"), "INR_crore", "duration", COMMON),
     ("funding_cost", ("cost of funds", "funding cost"), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("credit_cost", ("credit cost",), "percent", "duration", (Profile.BANK, Profile.NBFC)),
     ("nnpa", ("% of Net NPAs to Net Advances", "net non-performing assets ratio", "net NPA ratio", "net NPAs", "net NPA"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
@@ -65,7 +65,7 @@ for key, aliases, unit, kind, profiles in (
     ("expense_ratio", ("expense ratio",), "percent", "duration", (Profile.GENERAL_INSURER,)),
     ("fee_revenue", ("fee revenue", "management fees"), "INR_crore", "duration", (Profile.ASSET_MANAGER, Profile.EXCHANGE)),
     ("revenue", ("revenue from operations", "total revenue", "total revenue from operations"), "INR_crore", "duration", COMMON),
-    ("net_profit", ("net profit", "net profit after tax", "profit after tax", "profit for the period", "total profit (loss) for period"), "INR_crore", "duration", COMMON),
+    ("net_profit", ("net profit", "net profit after tax", "profit after tax", "profit for the period", "profit for the year", "total profit (loss) for period"), "INR_crore", "duration", COMMON),
     ("capital_adequacy", ("capital adequacy ratio", "CRAR"), "percent", "stock", (Profile.BANK, Profile.NBFC)),
 ):
     METRICS[key] = MetricDefinition(key, aliases, unit, kind, profiles, "issuer financial disclosure")

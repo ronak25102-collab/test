@@ -15,6 +15,10 @@ def source_dates(text):
     # Bare FY27 or Q1FY27 still cannot establish any reporting date.
     normalized = re.sub(r"(?<![\w’'])(\d{1,2})\s+(" + MONTH_NAMES + r")[’']\s*(\d{2})(?!\d)",
                         lambda m: f"{m[1]} {m[2]} 20{m[3]}", normalized, flags=re.I)
+    # An explicit day + month + two-digit year is a complete date, unlike a
+    # fiscal label or a row of adjacent month/year columns.
+    normalized = re.sub(r'(?<![\w\d])(\d{1,2})[-/](' + MONTH_NAMES + r')[-/](\d{2})(?!\d)',
+                        lambda m: f'{m[1]} {m[2]} 20{m[3]}', normalized, flags=re.I)
     normalized = normalized.replace(",", " ")
     normalized = re.sub(r"\s+", " ", normalized)
     result = set()
@@ -88,6 +92,7 @@ def declared_duration_periods(text):
     'Year ended 31 March 2026' explicitly denotes the twelve calendar months
     starting 1 April 2025. Ambiguous/mixed headings are deliberately not expanded.
     """
+    text = re.sub(r'\bhalf[ -]+year\b', 'six months', text, flags=re.I)
     normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text, flags=re.I)
     normalized = re.sub(r"\s+", " ", normalized.replace(',', ' '))
     # A uniform comparative header ('Year ended <date> | <date>') applies
@@ -125,3 +130,25 @@ def declared_duration_periods(text):
         start = date(index // 12, index % 12 + 1, 1)
         periods.append({'period_start': start, 'period_end': end, 'source_label': match[0] + end_match[0]})
     return periods
+
+
+def reviewed_table_column_periods(passage):
+    """A reviewed PDF table column must retain its literal source header/date.
+
+    Geometry/editorial review supplies the column label; it cannot supply a date
+    or duration absent from the original page. This does not infer mixed columns
+    from their textual order.
+    """
+    if passage.extraction_method != 'pdf_table' or not passage.column_label or not passage.row_label:
+        return []
+    label = passage.column_label
+    match = re.fullmatch(r'\s*(year|quarter|half[ -]+year|six months)\s+ended\s+(.+?)\s*', label, re.I)
+    if not match or len(source_dates(match[2])) != 1:
+        return []
+    original = re.sub(r'\s+', ' ', passage.text).lower()
+    header = re.sub(r'\s+', ' ', match[1] + ' ended').lower()
+    if header not in original or passage.row_label.lower() not in original:
+        return []
+    if source_dates(match[2])[0] not in source_dates(passage.text):
+        return []
+    return declared_duration_periods(label)

@@ -16,6 +16,7 @@ from .dates import (
     abbreviated_quarter_periods,
     declared_duration_periods,
     explicit_duration_ranges,
+    reviewed_table_column_periods,
     source_dates,
 )
 from .models import ExtractedFactCandidate
@@ -91,7 +92,12 @@ def validate_candidate(
     if candidate.metric_key == "gross_advances" and not re.search(r"\bgross\s+(?:advances|loans)\b", text, re.I):
         return FactValidation(None, "plain or net advances cannot establish gross advances")
     aliases = (*metric.aliases, metric.key.replace("_", " "))
-    if not any(re.search(r"\b" + re.escape(alias.lower()) + r"\b", lowered) for alias in aliases):
+    segment_subtotal = (candidate.metric_key == 'segment_revenue_total'
+                        and passage.extraction_method == 'pdf_table'
+                        and (passage.row_label or '').lower() == 'sub total'
+                        and re.search(r'\bsegment\s+revenue\b', lowered)
+                        and re.search(r'(?im)^\s*sub\s+total\s+\d', text))
+    if not segment_subtotal and not any(re.search(r"\b" + re.escape(alias.lower()) + r"\b", lowered) for alias in aliases):
         return FactValidation(None, "metric label is absent from the cited span")
     if not numeric_token_present(candidate.value_raw, text):
         return FactValidation(None, "raw value does not occur in the cited passage")
@@ -100,7 +106,8 @@ def validate_candidate(
         return FactValidation(None, "period end is absent from the cited span")
     if candidate.period_type.value == "duration":
         declared = any(p['period_start'] == candidate.period_start and p['period_end'] == candidate.period_end
-                       for p in [*declared_duration_periods(text), *explicit_duration_ranges(text), *abbreviated_quarter_periods(text)])
+                       for p in [*declared_duration_periods(text), *explicit_duration_ranges(text),
+                                 *abbreviated_quarter_periods(text), *reviewed_table_column_periods(passage)])
         if not declared:
             return FactValidation(None, "duration start/end are not bound to one explicit reporting interval")
     if not scope_in_text(candidate.scope, text):

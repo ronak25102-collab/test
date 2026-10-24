@@ -8,6 +8,36 @@ from signal_research.extraction.models import ExtractedFactCandidate
 from signal_research.extraction.validate import validate_candidate
 
 
+def test_complete_short_year_dates_and_half_year_headers():
+    from signal_research.extraction.dates import source_dates
+
+    assert source_dates('30-Sep-26 31/Mar/25') == [date(2025, 3, 31), date(2026, 9, 30)]
+    assert source_dates('Sep-26 FY26 Q2FY27') == []
+    periods = declared_duration_periods('Quarter and Half Year ended September 30, 2026')
+    assert {(p['period_start'], p['period_end']) for p in periods} == {
+        (date(2026, 7, 1), date(2026, 9, 30)),
+        (date(2026, 4, 1), date(2026, 9, 30)),
+    }
+
+
+def test_reviewed_pdf_column_requires_literal_header_row_and_source_date():
+    from signal_research.extraction.dates import reviewed_table_column_periods
+
+    passage = Passage(id=uuid4(), document_id=uuid4(), extraction_method='pdf_table',
+        column_label='Year ended 31 March 2025', row_label='Net profit',
+        text='Consolidated INR crore\nQuarter Ended | Year Ended\n'
+             '30 June 2026 | 31 March 2025\nNet profit 100 90')
+    assert reviewed_table_column_periods(passage)[0]['period_start'] == date(2024, 4, 1)
+    assert not reviewed_table_column_periods(passage.model_copy(update={
+        'column_label': 'Year ended 31 March 2024'}))
+    assert not reviewed_table_column_periods(passage.model_copy(update={
+        'column_label': 'Half Year ended 31 March 2025'}))
+    assert not reviewed_table_column_periods(passage.model_copy(update={
+        'row_label': 'Imaginary row'}))
+    assert not reviewed_table_column_periods(passage.model_copy(update={
+        'extraction_method': 'html'}))
+
+
 def test_declared_year_and_quarter_are_exact_but_bare_fy_is_not():
     assert declared_duration_periods('FY2026 Q1 FY25') == []
     assert declared_duration_periods('Year ended 31 March 2026')[0]['period_start'] == date(2025, 4, 1)
