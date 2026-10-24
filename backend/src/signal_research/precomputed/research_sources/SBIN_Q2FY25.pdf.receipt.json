@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/1275616/081124-SBI+Analyst+Presentation+Q2FY25.pdf/088a92be-75e7-59a3-8281-1ad89a704cf2?t=1731055388496",
+  "final_url": "https://sbi.bank.in/documents/17836/1275616/081124-SBI+Analyst+Presentation+Q2FY25.pdf/088a92be-75e7-59a3-8281-1ad89a704cf2?t=1731055388496",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.584387+00:00",
+  "curl_exit_code": 0,
+  "sha256": "ddbc6dccbe418955a446c7141a55bcaa976d7f77fd43c6a822cc75b92c2339bc",
+  "bytes": 2146815,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q2FY25.pdf"
+}

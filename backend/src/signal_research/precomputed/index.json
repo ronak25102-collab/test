@@ -1,0 +1,669 @@
+{
+  "schema_version": "1.0",
+  "companies": [
+    {
+      "symbol": "HDFCBANK",
+      "legal_name": "HDFC Bank Ltd.",
+      "aliases": [
+        "HDFC Bank",
+        "hdfc bank",
+        "HDFCBANK",
+        "HDFC Bank Ltd."
+      ],
+      "nse_code": "HDFCBANK",
+      "bse_code": "500180",
+      "profile": "bank",
+      "generated_at": "2026-10-24T17:42:37.195350+00:00",
+      "data_as_of": "2026-10-18",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://nsearchives.nseindia.com/web/sites/default/files/inline-files/NSE_Circular_31032022_1.pdf",
+          "retrieved_at": "2026-10-18T11:49:06.140927+00:00",
+          "sha256": "7aa5955ec31643c33d9213cd083858543cfb6bb31b45fe1258291fc8c8d1c233"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-1/financial-results-for-the-quarter-ended-june-30-2026.pdf",
+          "retrieved_at": "2026-10-18T11:49:06.232266+00:00",
+          "sha256": "37e6f967dbddf87d0ea4f7b57ee1616b6516c910c44376c6fcf50aaf716da8c4"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/investor-meet/2026/Transcript_19Mar_26.pdf",
+          "retrieved_at": "2026-10-18T11:49:06.168659+00:00",
+          "sha256": "ee877949ab5a6065ca73a8e55b07348cd3ddd9fb9e91890448afbf51bb1e2a69"
+        },
+        {
+          "url": "https://smest.in/bond-details/7.95-HDFC-Bank-Limited-21-Sep-2026/INE040A08369",
+          "retrieved_at": "2026-10-18T11:49:27.210657+00:00",
+          "sha256": "ddccb089d4c1639b00a84e42d7006149ba58c9c866ea30dad8ad55f779b6194c"
+        },
+        {
+          "url": "https://bfsi.economictimes.indiatimes.com/articles/hdfc-bank-kotak-axis-seen-as-re-rating-candidates-despite-q1-margin-pressure/133445973",
+          "retrieved_at": "2026-10-18T11:49:28.388907+00:00",
+          "sha256": "03c894903fce50d6135e5c85d584ca6843e45eaff4934144412741525e12f3de"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/press-release-sep-2026.pdf",
+          "retrieved_at": "2026-10-18T11:49:29.258194+00:00",
+          "sha256": "f98c9279d2f5d991005b76546c0494b0421cf7d4c22328f3ed55afaf3abe0539"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/HDFCBank-Analyst-Apr18-2026-vF.pdf",
+          "retrieved_at": "2026-10-18T11:49:33.554849+00:00",
+          "sha256": "f2a0b862e5cc9a7af11fd0ac32d3048cce16861519a6f5fcb8b0d568934c11c6"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2025-2026/quarter-4/press-release-march-2026.pdf",
+          "retrieved_at": "2026-10-18T11:50:53.239490+00:00",
+          "sha256": "a410875269daf0ce6f9a385dd8fad988c2e131c9375d4724f9c9fbab5dafed3e"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/q2fy27-earnings-presentation.pdf",
+          "retrieved_at": "2026-10-18T11:50:53.230996+00:00",
+          "sha256": "bf5034a3346e06aef0cdd9cbc944437b04247cf0d4b4ed105d3a88a93ef48b21"
+        },
+        {
+          "url": "https://www.hdfc.bank.in/about-us/regulatory-disclosures",
+          "retrieved_at": "2026-10-18T11:52:26.017277+00:00",
+          "sha256": "18969406c9afd61aa9228b2284d69487c0888487240b68e5e70604f013953dbf"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4",
+          "retrieved_at": "2026-10-18T11:51:00.686713+00:00",
+          "sha256": "5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/standalone-financial-results-quarter-ended-june-30-2026.pdf",
+          "retrieved_at": "2026-10-18T11:50:52.070685+00:00",
+          "sha256": "b95bef731a963323ad256416cf2cc473c3c2554f6c09e4a83744ee1a6a094e2a"
+        },
+        {
+          "url": "https://mirza.co.in/assets/pdf/Annual-Report-2022-23.pdf",
+          "retrieved_at": "2026-10-18T11:52:41.115369+00:00",
+          "sha256": "448159aaf575e498ae73ad9e29a0bda00992d7dd069dc5cba169b188aab97077"
+        },
+        {
+          "url": "https://economictimes.indiatimes.com/hdfc-bank-ltd/stocksupdate/companyid-9195.cms",
+          "retrieved_at": "2026-10-18T11:52:44.470569+00:00",
+          "sha256": "369645cf02caef5536857adf4496e2b17c427544c7544129368b1fcb8cd9a5d0"
+        },
+        {
+          "url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f5a52634-1b5a-4902-b70e-e2b18b01bd8b.pdf",
+          "retrieved_at": "2026-10-18T11:52:39.706191+00:00",
+          "sha256": "d57cafc5448bf0eac11c8cc11fdd683b8e0224b40dff9782ca49f4d3fff5c41e"
+        },
+        {
+          "url": "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/AdvancedEnzymeTechnologiesLimited_April%2030_%202026_RR_391668.html",
+          "retrieved_at": "2026-10-18T11:53:28.968790+00:00",
+          "sha256": "ee1ef87675a3e4b3bb84bd799af8d27b86d23cffbc84ff34998ae0b7e94ab840"
+        },
+        {
+          "url": "https://www.crisilratings.com/mnt/winshare/Ratings/RatingList/RatingDocs/ParsonsNutritionalsPrivateLimited_September%2007_%202026_RR_402522.html",
+          "retrieved_at": "2026-10-18T11:53:30.317115+00:00",
+          "sha256": "de1b2a24fd505c586b25c72baa9f5a917adef201e8ba18f0dfd40c967d2ee2ce"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "JIOFIN",
+      "legal_name": "Jio Financial Services Ltd.",
+      "aliases": [
+        "Jio Financial Services",
+        "jio financial services",
+        "JFS",
+        "JIOFIN",
+        "Jio Financial Services Ltd."
+      ],
+      "nse_code": "JIOFIN",
+      "bse_code": "543940",
+      "profile": "diversified",
+      "generated_at": "2026-10-24T16:27:17.776045+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Weak",
+      "sources": [
+        {
+          "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_175188_16072026191853_iXBRL_WEB.html",
+          "retrieved_at": "2026-10-18T11:40:31.960229+00:00",
+          "sha256": "93a8fd1994b6608bdb27f06bffd4ac7b094f8ec79b134ef9611756f5ffc9897d"
+        },
+        {
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/apr-2026/1777539656528.pdf",
+          "retrieved_at": "2026-10-18T11:41:26.212045+00:00",
+          "sha256": "afcde31a866635a820f58742397ca599a12ec956e264de67686ffa3140fa51b2"
+        },
+        {
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/sep-2021/1632978355924.pdf",
+          "retrieved_at": "2026-10-18T11:41:42.885120+00:00",
+          "sha256": "e544a369a87a106400929f1322d0f6e3063913a01dae73f010b111bd45f32fa8"
+        },
+        {
+          "url": "https://nsearchives.nseindia.com/annual_reports/AR_31374_ALMONDZ_2025_2026_A_9900495_04092026153413.pdf",
+          "retrieved_at": "2026-10-18T11:41:51.341217+00:00",
+          "sha256": "7b44a2db8d4fb585aa0d8de4bb56c55ade06cec9e53dfaa9c927bde543854430"
+        },
+        {
+          "url": "https://www.thehindubusinessline.com/markets/sensex-nifty50-today-stock-market-highlights-29th-june-2026/article71157520.ece",
+          "retrieved_at": "2026-10-18T11:42:00.571088+00:00",
+          "sha256": "890a740874e93c7032556f4db7cc79aaf6c445f20bab7b59dd4183658444bc4d"
+        },
+        {
+          "url": "https://m.economictimes.com/good-time-to-increase-equity-allocation-risk-reward-is-favourable-vetri-subramaniam-md-ceo-uti-amc/editionlist/edition-134854847,artid-134837110.cms",
+          "retrieved_at": "2026-10-18T11:42:03.126977+00:00",
+          "sha256": "41838cb512d40e463d51b7544f6fb3fe402c29e26ff6f96a8f02eefa77b31807"
+        },
+        {
+          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2025-2026/annual-report-2025-2026.pdf",
+          "retrieved_at": "2026-10-24T15:27:41.502094+00:00",
+          "sha256": "c6f8bd5102bbf752171d0ca06bf15350318485401f0754237b3d2f79e9311ee4"
+        },
+        {
+          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2024-2025/annual-report-2024-2025.pdf",
+          "retrieved_at": "2026-10-24T15:27:45.405086+00:00",
+          "sha256": "639ba7cbaeae620bc9e8c9a622641a8d201607012d8b0c363a030b9f5a7ce441"
+        },
+        {
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/62167/2026/RNS/62167_rns_2026-10-15_d140e07e-9f39-4f0c-beed-2b212905f942.pdf",
+          "retrieved_at": "2026-10-24T15:27:54.393041+00:00",
+          "sha256": "a4821ad657c1fb9756a569827885c2e4872c837bbf43cd8bb9fe6028e0870fb1"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "ICICIBANK",
+      "legal_name": "ICICI Bank Ltd.",
+      "aliases": [
+        "ICICI Bank",
+        "icici bank",
+        "ICICIBANK",
+        "ICICI Bank Ltd."
+      ],
+      "nse_code": "ICICIBANK",
+      "bse_code": "532174",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:35:57.027339+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Weak",
+      "sources": [
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2026/standalone-financial-results-quarter-ended-june-30-2026",
+          "retrieved_at": "2026-10-18T11:50:51.262224+00:00",
+          "sha256": "e93ef78d4e42c958336b9bcab203631b39e23fca5fec4311e4a6330fd71d35c4"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/pdf/standalone-financial-results-quarter-ended-june-30-2026.pdf",
+          "retrieved_at": "2026-10-18T11:50:52.070685+00:00",
+          "sha256": "b95bef731a963323ad256416cf2cc473c3c2554f6c09e4a83744ee1a6a094e2a"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/annual",
+          "retrieved_at": "2026-10-18T11:50:56.519904+00:00",
+          "sha256": "9e526cf758a2bc29377bea0101b1f77c126fe23a7796157c7e1936efcedc44ea"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/qfr",
+          "retrieved_at": "2026-10-18T11:50:57.588562+00:00",
+          "sha256": "9f2a8f9cd1e1e92a357af982d2791f7e6baec876797a6c40d063bd6e085f08ef"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/investor",
+          "retrieved_at": "2026-10-18T11:50:58.235711+00:00",
+          "sha256": "6b7d99d90a5261d7c84ddac6f2279e6266a93a4c6699307f05443d8d6a33aee5"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/invest-relations",
+          "retrieved_at": "2026-10-18T11:50:58.984351+00:00",
+          "sha256": "3d5f1b2c65bcb162130b0a45d861435c870b9f28aa30b40eb38d1aec750ebca1"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/Q2-2027-investor-presentation.pdf",
+          "retrieved_at": "2026-10-18T11:51:00.896805+00:00",
+          "sha256": "fc6e59886a9999c8cf635173282d8a9c88167d0699f2a5a5dae88285d015254a"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/financial-results-for-quarter-ended-sep-30-2026.pdf",
+          "retrieved_at": "2026-10-18T11:51:04.589606+00:00",
+          "sha256": "c48d0ba657986097242f02d7d185d4255ebfe4e6864c7a96ce611a1a24573c02"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/opening-remarks-of-earnings-call-2026.pdf",
+          "retrieved_at": "2026-10-18T11:51:09.451490+00:00",
+          "sha256": "5ba64c2d5caa30b8c931ff90225a592c072fa33b0a4d17c40f1c0f13198620a2"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2026/performance-review-quarter-ended-june-30-2026",
+          "retrieved_at": "2026-10-18T11:51:11.702723+00:00",
+          "sha256": "72b8ff0cdbe8979be0077c531570d62a837e3db939c0183ddbfdc5b63d251c31"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2026/performance-review-quarter-ended-september-30-2026",
+          "retrieved_at": "2026-10-24T15:24:09.903770+00:00",
+          "sha256": "a46d6c255c6b3b443ba73da52158c3213c85a6c7009a06ce81ad597b0c740232"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2022/news-performance-review-quarter-ended-march-31-2022",
+          "retrieved_at": "2026-10-24T15:24:11.075149+00:00",
+          "sha256": "3fad0bb6e6172b54658e4050c4580cc750db9f2562be98ae38728e86d98a8b41"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2023/performance-review-quarter-ended-march-thirty-one-two-zero-two-three",
+          "retrieved_at": "2026-10-24T15:24:10.380022+00:00",
+          "sha256": "fd11708ba7156566f7c1724f9412fd3780fb7bf4b40706f1807538f467456fb1"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/article/performance-review-quarter-ended-march-31-2024",
+          "retrieved_at": "2026-10-24T15:26:47.294049+00:00",
+          "sha256": "a05da2c5d480b2a2f3896086695dc69458bba4ba4cf0df9f951c0a398b89dd3b"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2025/performance-review-quarter-ended-march-31-2025",
+          "retrieved_at": "2026-10-24T15:26:47.500793+00:00",
+          "sha256": "bcd533df4b33e08f0370588f5ee6b2fdf252d917f794558422cb17c1909dc633"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/news-room/2026/performance-review-quarter-ended-march-31-2026",
+          "retrieved_at": "2026-10-24T15:26:47.280985+00:00",
+          "sha256": "f1dd36050e950c6f23f443590cbb006a2d8f82a6ff9c48577f6f07d388f4f967"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/qfr/2025",
+          "retrieved_at": "2026-10-24T15:25:26.631748+00:00",
+          "sha256": "4b6dfed57b978244438d2cadc5ccbd13f5443cfa2eff21d1d0268f582a4b00df"
+        },
+        {
+          "url": "https://www.icici.bank.in/about-us/qfr/2026",
+          "retrieved_at": "2026-10-24T15:25:26.569826+00:00",
+          "sha256": "b159cc59ea1e6acbaf5e1da7d5b8a76dbdd86cb420e54f3d98ad5da394a18309"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2025-07-q1-2026-investor-presentation.pdf",
+          "retrieved_at": "2026-10-24T15:25:56.427364+00:00",
+          "sha256": "1508d25436644bd39ecddc69961417a80c3e04bef3fcb04a9ccd8659229796ae"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2025_10_Q2-2026_investor-presentation.pdf",
+          "retrieved_at": "2026-10-24T15:25:56.139298+00:00",
+          "sha256": "85055acad5a5af71e2134aa7c04f62dc32db4368e86b88e1f9df16a6bece0495"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2026-04-Q4-2026-investor-presentation.pdf",
+          "retrieved_at": "2026-10-24T15:25:55.557721+00:00",
+          "sha256": "0837ccc948a1b6ee40c47f5845a0ae4d510210e726224c9563796993777798aa"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2026_01_Q3-2026_investor-presentation.pdf",
+          "retrieved_at": "2026-10-24T15:25:56.403240+00:00",
+          "sha256": "f361607a948175b108661e31e245ea7fd18aed32b78e65a890ebf38122ea792e"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-for-quarter-ended-september-30-2025.pdf",
+          "retrieved_at": "2026-10-24T15:25:55.960704+00:00",
+          "sha256": "842479da6782b4d24169356329ac3e890bae25ed1319ae1897a2914db2e4a826"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-march-31-2026.pdf",
+          "retrieved_at": "2026-10-24T15:25:55.507646+00:00",
+          "sha256": "731df7dda7663bdc832c0deb49db0aaf5bbc1c0cce7aca70dc60adfcd14ad368"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/ICICI-Bank-Financial-Results-for-quarter-ended-June-30-2025.pdf",
+          "retrieved_at": "2026-10-24T15:25:56.309046+00:00",
+          "sha256": "1db140e33a0376cf6bfbcf4316f50acd21a144e54bf2acd44db25d27b64f7176"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/icici-bank-financial-results-q3-2026.pdf",
+          "retrieved_at": "2026-10-24T15:25:55.899148+00:00",
+          "sha256": "08f4bf6efba66a0d402ce6fe4f53d7f03ecb6052cc990328fe05707ea0b0abcd"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/performance-review-for-quarter-ended-sep-30-2026.pdf",
+          "retrieved_at": "2026-10-24T15:28:48.286308+00:00",
+          "sha256": "418e6450ce05cea1344c998df7d4f4e84f687d1e66ea367a9d51f73c9056ffb1"
+        },
+        {
+          "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/transcript-for-earnings-call-held-on-oct-17-2026.pdf",
+          "retrieved_at": "2026-10-24T15:28:48.242576+00:00",
+          "sha256": "e2af6ae26826defa4a2fb050630cdab67cb7e54a2115698b8c1dd920ac8da8c2"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "SBIN",
+      "legal_name": "State Bank of India",
+      "aliases": [
+        "SBIN",
+        "State Bank of India"
+      ],
+      "nse_code": "SBIN",
+      "bse_code": "500112",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:52:57.406843+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Weak",
+      "sources": [
+        {
+          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q1FY26.pdf/c6e887f7-3ad0-71bb-ff0d-01d5b5a538d1?t=1754640306703",
+          "retrieved_at": "2026-10-24T15:25:54.702945+00:00",
+          "sha256": "77206ff234deed487e742d9920ae80cbc0e697ecab85529837107277ab9592ac"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/1275616/07082026_SBI+Analyst+Presentation+Q1FY27.pdf/6e4ca530-1666-574e-22fb-f9e19d553ef5?t=1786091443352",
+          "retrieved_at": "2026-10-24T15:25:54.805945+00:00",
+          "sha256": "ff976a31be05a774f502c841c475a3c647737554953bb8d0b75854a464716d4c"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/1275616/081124-SBI+Analyst+Presentation+Q2FY25.pdf/088a92be-75e7-59a3-8281-1ad89a704cf2?t=1731055388496",
+          "retrieved_at": "2026-10-24T15:25:55.584387+00:00",
+          "sha256": "ddbc6dccbe418955a446c7141a55bcaa976d7f77fd43c6a822cc75b92c2339bc"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/3726866/SBI+Analyst+Presentation+Q2FY26+Final.pdf/7cb30a64-312f-de67-7b4f-2576fdd12dc6?t=1762244270753",
+          "retrieved_at": "2026-10-24T15:25:54.575680+00:00",
+          "sha256": "4d873c36eff851070e1f427a0c53626a5fd2ca54b8fd9789dd92530d52849161"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/1275616/SBI+Analyst+Presentation+Q3FY25.pdf/209bafd0-a167-5165-8251-eb61f1554d1e?t=1738833342459",
+          "retrieved_at": "2026-10-24T15:25:55.632710+00:00",
+          "sha256": "5821cc5bce445dd029caef71c10363d450fc871c495490aae0f34c08ce0fb06c"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/1275616/07022026_SBI+Analyst+Presentation+Q3FY26+Final.pdf/0a2df0ed-996f-354b-dd7f-74b4f976e313?t=1770453864849",
+          "retrieved_at": "2026-10-24T15:25:54.759844+00:00",
+          "sha256": "7d1ecfaff77a7b3fde25dc62bd5665973add62e494779ca7b84dfabcc8b4f4e1"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/1275616/180523-SBI+Analyst+Presentation+Q4FY23.pdf/254aa07d-32bc-37c0-048d-c6666d1e1619?t=1684399592252",
+          "retrieved_at": "2026-10-24T15:25:56.451273+00:00",
+          "sha256": "6f7153b23779879856f02efc22dd2b833e8dccfd6becf6255d0575c285ef3444"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/39646794/090524-SBI+Analyst+Presentation+Q4FY24.pdf/90db6161-38e9-2c59-77ee-089853fbfb82?t=1715244403654",
+          "retrieved_at": "2026-10-24T15:25:56.182514+00:00",
+          "sha256": "714867846eadc748f4487ae15bc299d0850bc0b038b1e773a3c6cd3dd6173d7c"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521",
+          "retrieved_at": "2026-10-24T15:25:54.798069+00:00",
+          "sha256": "a7ac622558a1956c10b1db2b3ca616e71f6b5a1b258f7b331100f18ac295048a"
+        },
+        {
+          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279",
+          "retrieved_at": "2026-10-24T15:25:54.627537+00:00",
+          "sha256": "930c7ffdc1174bb2ac39cfcfe6fd8a82b5a805e90dd71f2a143d8daa47621116"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "legal_name": "Kotak Mahindra Bank Ltd.",
+      "aliases": [
+        "Kotak Mahindra Bank",
+        "kotak mahindra bank",
+        "KMB",
+        "KOTAKBANK",
+        "Kotak Mahindra Bank Ltd."
+      ],
+      "nse_code": "KOTAKBANK",
+      "bse_code": "500247",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:43:39.530415+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Weak",
+      "sources": [
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/media-press-releases/2026/media-release-q3fy26.pdf",
+          "retrieved_at": "2026-10-15T16:22:34.227346+00:00",
+          "sha256": "ab7ecc79f6a6649623d87a658d9c3c2f4d69b3f99d30dd26247849bd8024198f"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q2/investor-presentation/Q2FY26-Investor-Presentation.pdf",
+          "retrieved_at": "2026-10-15T16:22:36.412722+00:00",
+          "sha256": "8131b1fdc63c49f84281caa98b30b906279ea7091df6b90a1baa4a8878435933"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/governance/governance-sebi-tab/2026/jun-2026-results-presentation/investor-presentation-july-182026signed.pdf",
+          "retrieved_at": "2026-10-15T16:22:41.118990+00:00",
+          "sha256": "b7f20df822f55235b542220f0076877dad4f87f8375221febd99f7964b005bf2"
+        },
+        {
+          "url": "https://ijirt.org/publishedpaper/IJIRT196103_PAPER.pdf",
+          "retrieved_at": "2026-10-15T16:22:47.551167+00:00",
+          "sha256": "896c2396af1eaa224ab96432b3cbbc2b9e1f1d7e64ec47534bf17651f5f93f0c"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/PressRelease/Q4FY26_Press-Release.pdf",
+          "retrieved_at": "2026-10-15T16:22:50.725643+00:00",
+          "sha256": "3e9d561fec78a342137125f2875d8bc3d1cf21a24b96289c1959245fc0df2af3"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q3/investor-presentation/Q3FY26-Investor-Presentation.pdf",
+          "retrieved_at": "2026-10-15T16:22:53.118454+00:00",
+          "sha256": "1a2cf14698178d93401eb7adbe1240942c642cbf659001b129784d590fe6c922"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Regulatory-Disclosure/FY-2027/basel-iii-disclosures-for-period-ending-30th-june-2026.pdf",
+          "retrieved_at": "2026-10-15T16:22:57.459649+00:00",
+          "sha256": "867c7311b7ea8f09f03249eba37dd13a991922c3d8fab09d02d96f8bfa0d6907"
+        },
+        {
+          "url": "https://www.linkedin.com/posts/business-today-india_stockmarket2026-hdfcbank-sbi-activity-7409567697274900480-HRWy",
+          "retrieved_at": "2026-10-15T16:23:02.243221+00:00",
+          "sha256": "9473bbae728ef61eb802685552c1551f4b17e5fd3a4a4e9eb55149dae48facd4"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2026/kotak-mahindra-bank/Kotak-Mahindra-Bank-Limited-FY26.pdf",
+          "retrieved_at": "2026-10-15T16:28:52.920948+00:00",
+          "sha256": "57062f4dae4135509845143c002d4dabec9b52b07f9fe8d1ab9d2bedb8b3b0eb"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2026/kotak-mahindra-bank/Kotak_Mahindra_Bank_Consolidated_Financial_FY-2025-26.pdf",
+          "retrieved_at": "2026-10-15T16:29:02.678320+00:00",
+          "sha256": "1f3175521b3548a5c56f4d1e1a36ef552cc654f8ee9711e36bd2830ed823fa2a"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/integrated-reports/kotak-mahindra-bank-limited-FY22-23.pdf",
+          "retrieved_at": "2026-10-15T16:32:32.379798+00:00",
+          "sha256": "c257b44941d971a2de5830668dfedfd901f050d43292caf3a1570a515156653a"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/qip/kmbl-preliminary-placement-document-26may2020.pdf",
+          "retrieved_at": "2026-10-15T16:35:56.834405+00:00",
+          "sha256": "8f4d3a533f1bab5e36fd7d808d0979af468347fb8fc55303b05f0333c78ba07a"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2022/kotak-mahindra-bank-21/Kotak-Mahindra-Bank-Limited.pdf",
+          "retrieved_at": "2026-10-15T16:36:17.892030+00:00",
+          "sha256": "ec7cba7bde4f2579cc2683c62a88b6d451bcbbaf96e526ccbec9f0e46c6d6151"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Kotak-Mahindra-Bank-Limited-FY-2020-21.pdf",
+          "retrieved_at": "2026-10-15T16:36:25.984273+00:00",
+          "sha256": "3441937d9ec48a01850a6b8dc08d2063148fbd45d6faac9d6ba5a63855342b7a"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/transcript/Q4FY26-Transcript.pdf",
+          "retrieved_at": "2026-10-15T16:36:32.888300+00:00",
+          "sha256": "83b002f666439b01831747a5779ae1eb0938b0369dfd5e396b69e03f03f740af"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2026/kotak-mahindra-bank/Kotak_Mahindra_Bank_MD_A_FY-2025-26.pdf",
+          "retrieved_at": "2026-10-15T16:36:35.677781+00:00",
+          "sha256": "57b8cedff93a073e19cac823f3d5a950f2cb74bd916c97a1fab60574a2c269a3"
+        },
+        {
+          "url": "https://www.icicidirect.com/mailcontent/idirect_kotak_q2fy26.pdf",
+          "retrieved_at": "2026-10-15T16:39:44.214635+00:00",
+          "sha256": "e06f43586e51f800078d93b988073ee82c919c8b3343907eace698db0e136690"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q2/Transcript/Q2FY26-Transcript.pdf",
+          "retrieved_at": "2026-10-15T16:39:46.193317+00:00",
+          "sha256": "865a477b098f01502c1024839756501c681042f2ffd547afb5711f2b7284dd72"
+        },
+        {
+          "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q3/transcript/Q3FY26-Transcript.pdf",
+          "retrieved_at": "2026-10-15T16:39:49.367173+00:00",
+          "sha256": "93cd1461b8921cd806e932c8a382d26e7941935e1e4ea1ea159f756909f354ac"
+        },
+        {
+          "url": "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/KotakMahindraInvestmentsLimited_April%2001_%202026_RR_392839.html",
+          "retrieved_at": "2026-10-15T16:41:34.343213+00:00",
+          "sha256": "99194a290b92ac44b754ef211f209bef74ed137bedd63eea2516948528188c68"
+        },
+        {
+          "url": "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/KotakMahindraLifeInsuranceCompanyLimited_April%2009_%202026_RR_375347.html",
+          "retrieved_at": "2026-10-15T16:41:35.684436+00:00",
+          "sha256": "bff94c1b1e30fb2313d5f4bab5a3309ac7321c94c873b07a7347ad3e1c2e407f"
+        },
+        {
+          "url": "https://www.crisil.com/mnt/winshare/Ratings/RatingList/RatingDocs/NJCapitalPrivateLimited_May%2008_%202026_RR_394979.html",
+          "retrieved_at": "2026-10-15T16:41:36.575731+00:00",
+          "sha256": "b503305522b21776e03ef70d72af2b588d2eec08c08d6cf411cf5bff2fb474bd"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "AXISBANK",
+      "legal_name": "Axis Bank Ltd.",
+      "aliases": [
+        "Axis Bank",
+        "axis bank",
+        "AXISBANK",
+        "Axis Bank Ltd."
+      ],
+      "nse_code": "AXISBANK",
+      "bse_code": "532215",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:41:22.209489+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Weak",
+      "sources": [
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e3aa4225_5",
+          "retrieved_at": "2026-10-18T11:50:51.249947+00:00",
+          "sha256": "8f19899d401aff3595e5dac2649ddd8b208d505bfab5c3ede4dfeecdd639dcc9"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-september-2026.pdf",
+          "retrieved_at": "2026-10-18T11:50:51.259039+00:00",
+          "sha256": "81a47e8da531e5de7148eaee59cedc264413a767677f013a9dbcca5c4c8abcd2"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/other-information/quarterly-results",
+          "retrieved_at": "2026-10-18T11:50:58.641276+00:00",
+          "sha256": "aee22018dee4fd1e4e95458d0876028f1d796da8b9382fa3fd96530292508ea6"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4",
+          "retrieved_at": "2026-10-18T11:51:00.686713+00:00",
+          "sha256": "5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=c8d22572_5",
+          "retrieved_at": "2026-10-18T11:51:03.456518+00:00",
+          "sha256": "51dd61dee2572df8c0e7277e7e86630dcf98a366c7b09db2727bb2694ddfa01f"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/financial-results-and-other-presentation",
+          "retrieved_at": "2026-10-18T11:51:07.310880+00:00",
+          "sha256": "0d536f2271dc609caea7a6d7568bdaf85072f95bde96e46c1df16bd724348016"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-june-2026.pdf",
+          "retrieved_at": "2026-10-18T11:51:09.980893+00:00",
+          "sha256": "257a7f3463ca346d5db3ad5f6269d1ebb0445a07858e1670e95e515f1c5d8cf5"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/call-transcript/2026-2027/q1fy27-earnings-call.pdf",
+          "retrieved_at": "2026-10-18T11:51:16.645261+00:00",
+          "sha256": "650d206b263b952b015c5677775121efb2d6cc76a3d56a2f045e99ffa7dbe31e"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner",
+          "retrieved_at": "2026-10-18T11:51:19.819596+00:00",
+          "sha256": "17ee16c88b0685988e1e7d97a4570a83043ff3080fc02dde169e0ab0b3c7ff54"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/shareholders-information",
+          "retrieved_at": "2026-10-18T11:51:22.572217+00:00",
+          "sha256": "0b93cbc2c996b27b246d27180ccd728145512d8220bd5922922c29507b23cae7"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/other-information/investor-presentations",
+          "retrieved_at": "2026-10-18T11:51:24.841549+00:00",
+          "sha256": "1de5c46991b45cac55d6c236c0732c320280a791545859a231daaad4d2036fd2"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/investor-presentations/debt-investor-presentation-june-2026.pdf?sfvrsn=9e1f1034_4",
+          "retrieved_at": "2026-10-18T11:51:26.844024+00:00",
+          "sha256": "acb6f518b250059eb461be5912b9bf56a9202b513a9f37c3753c73f641313f09"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=beab124d_6",
+          "retrieved_at": "2026-10-18T11:51:31.404942+00:00",
+          "sha256": "f53c4f90e8e444963793a7c37b1240cbe0b6e9692a3c107fa3db614a669642e3"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/annual-reports/for-axis-bank/annual-report-for-the-year-2025-2026.pdf",
+          "retrieved_at": "2026-10-24T15:29:22.420923+00:00",
+          "sha256": "2630029b366df442fa22e84e9fa1d1f17240d4d8a17b7be656c164ec55da4a9e"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    }
+  ],
+  "incomplete": [
+    {
+      "symbol": "BSE",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    },
+    {
+      "symbol": "BAJAJFINSV",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    },
+    {
+      "symbol": "HDFCLIFE",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    },
+    {
+      "symbol": "SBILIFE",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    },
+    {
+      "symbol": "SHRIRAMFIN",
+      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+    }
+  ]
+}

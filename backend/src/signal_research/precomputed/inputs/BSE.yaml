@@ -1,0 +1,36 @@
+schema_version: '1.0'
+symbol: BSE
+company:
+  symbol: BSE
+  legal_name: BSE Ltd.
+  nse_code: BSE
+  bse_code: null
+  profile: exchange
+  ir_domain: bseindia.com
+  aliases:
+  - BSE
+  - BSE Ltd.
+  isin: INE118H01025
+  id: 4437d831-562b-5fad-8d42-960fab6ebeab
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: bse_listing.pdf
+  bse_code_reason: 'Not applicable: BSE equity is listed only on NSE; SEBI buyback
+    filing confirms designated and only exchange.'
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://www.sebi.gov.in/sebi_data/commondocs/oct-2023/BSE_Limited_PBPA_p.pdf
+  final_url: https://www.sebi.gov.in/sebi_data/commondocs/oct-2023/BSE_Limited_PBPA_p.pdf
+  http_status: 200
+  mime_type: application/pdf
+  retrieved_at: '2026-10-24T15:24:09.851917+00:00'
+  curl_exit_code: 0
+  sha256: 89e25dd75d54ffde18587dcaf0ec10295569906e7854933b251ca8f9c1026ada
+  bytes: 294210
+  local_path: backend/src/signal_research/precomputed/research_sources/bse_listing.pdf
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

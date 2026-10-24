@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/qfr/2026",
+  "final_url": "https://www.icici.bank.in/about-us/qfr/2026",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:25:26.569826+00:00",
+  "curl_exit_code": 0,
+  "sha256": "b159cc59ea1e6acbaf5e1da7d5b8a76dbdd86cb420e54f3d98ad5da394a18309",
+  "bytes": 39639,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_qfr2026.html"
+}

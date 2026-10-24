@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/icici-bank-financial-results-q3-2026.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/icici-bank-financial-results-q3-2026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.899148+00:00",
+  "curl_exit_code": 0,
+  "sha256": "08f4bf6efba66a0d402ce6fe4f53d7f03ecb6052cc990328fe05707ea0b0abcd",
+  "bytes": 361638,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_icici-bank-financial-results-q3-2026.pdf"
+}

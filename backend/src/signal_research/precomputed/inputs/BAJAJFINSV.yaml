@@ -1,0 +1,35 @@
+schema_version: '1.0'
+symbol: BAJAJFINSV
+company:
+  symbol: BAJAJFINSV
+  legal_name: Bajaj Finserv Ltd.
+  nse_code: BAJAJFINSV
+  bse_code: '532978'
+  profile: diversified
+  ir_domain: aboutbajajfinserv.com
+  aliases:
+  - BAJAJFINSV
+  - Bajaj Finserv Ltd.
+  - Bajaj Finserv
+  isin: INE918I01026
+  id: 2b20df08-1026-56d7-a143-2e24b288cbd8
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: bajajfinserv_listing.html
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://nsearchives.nseindia.com/corporate/ixbrl/IT_20260503_023959_WEB.html
+  final_url: https://nsearchives.nseindia.com/corporate/ixbrl/IT_20260503_023959_WEB.html
+  http_status: 200
+  mime_type: text/html
+  retrieved_at: '2026-10-24T15:25:26.563882+00:00'
+  curl_exit_code: 0
+  sha256: 173819d2e46db9308d1b417e22c724a618f146378ade9c3f4bc3f8b62e442549
+  bytes: 28984
+  local_path: backend/src/signal_research/precomputed/research_sources/bajajfinserv_listing.html
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

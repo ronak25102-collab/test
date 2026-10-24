@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_159546_21052026121304_iXBRL_WEB.html",
+  "final_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_159546_21052026121304_iXBRL_WEB.html",
+  "http_status": 200,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:25:26.539654+00:00",
+  "curl_exit_code": 0,
+  "sha256": "781df1a66472c32898fd86043bdf82566634272e8051a85e81d0c518f511ee0b",
+  "bytes": 88653,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/bajajfinance_listing.html"
+}

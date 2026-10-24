@@ -1,0 +1,235 @@
+{
+  "schema_version": "1.0",
+  "data_as_of": "2026-10-24",
+  "verified_at": "2026-10-24T15:25:05.229877+00:00",
+  "membership_source_receipt": {
+    "url": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+    "final_url": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+    "http_status": 200,
+    "mime_type": "text/csv",
+    "retrieved_at": "2026-10-24T15:24:08.519817+00:00",
+    "curl_exit_code": 0,
+    "sha256": "f5ba4027d935ae72879d5c24bbebf0e8439ec8ed504ffdf4175fde69206244b3",
+    "bytes": 3344,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/ind_nifty50list.csv"
+  },
+  "rebalance_source_receipt": {
+    "url": "https://nsearchives.nseindia.com/content/circulars/FAOP76591.pdf",
+    "final_url": "https://nsearchives.nseindia.com/content/circulars/FAOP76591.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf",
+    "retrieved_at": "2026-10-24T15:24:08.639646+00:00",
+    "curl_exit_code": 0,
+    "sha256": "5b18f9e0163e82081bed5cc4947df44a36f8cd4679d5db8fd6ace3b17d452266",
+    "bytes": 141153,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/FAOP76591.pdf"
+  },
+  "rebalance_note": "NSE/FAOP/76591: BSE replaced WIPRO effective 2026-09-30.",
+  "constituent_count": 50,
+  "track_a_count": 12,
+  "companies": [
+    {
+      "symbol": "AXISBANK",
+      "legal_name": "Axis Bank Ltd.",
+      "nse_code": "AXISBANK",
+      "bse_code": "532215",
+      "profile": "bank",
+      "ir_domain": "axis.bank.in",
+      "aliases": [
+        "AXISBANK",
+        "Axis Bank Ltd.",
+        "Axis Bank"
+      ],
+      "isin": "INE238A01034",
+      "id": "45f74e46-095b-5278-bd0e-32b4a89d6d90",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "axis_listing.html"
+    },
+    {
+      "symbol": "BSE",
+      "legal_name": "BSE Ltd.",
+      "nse_code": "BSE",
+      "bse_code": null,
+      "profile": "exchange",
+      "ir_domain": "bseindia.com",
+      "aliases": [
+        "BSE",
+        "BSE Ltd."
+      ],
+      "isin": "INE118H01025",
+      "id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "bse_listing.pdf",
+      "bse_code_reason": "Not applicable: BSE equity is listed only on NSE; SEBI buyback filing confirms designated and only exchange."
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "legal_name": "Bajaj Finance Ltd.",
+      "nse_code": "BAJFINANCE",
+      "bse_code": "500034",
+      "profile": "nbfc",
+      "ir_domain": "aboutbajajfinserv.com",
+      "aliases": [
+        "BAJFINANCE",
+        "Bajaj Finance Ltd.",
+        "Bajaj Finance"
+      ],
+      "isin": "INE296A01032",
+      "id": "411366de-5e17-5a26-98bb-2914d7c3b9e9",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "bajajfinance_listing.html"
+    },
+    {
+      "symbol": "BAJAJFINSV",
+      "legal_name": "Bajaj Finserv Ltd.",
+      "nse_code": "BAJAJFINSV",
+      "bse_code": "532978",
+      "profile": "diversified",
+      "ir_domain": "aboutbajajfinserv.com",
+      "aliases": [
+        "BAJAJFINSV",
+        "Bajaj Finserv Ltd.",
+        "Bajaj Finserv"
+      ],
+      "isin": "INE918I01026",
+      "id": "2b20df08-1026-56d7-a143-2e24b288cbd8",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "bajajfinserv_listing.html"
+    },
+    {
+      "symbol": "HDFCBANK",
+      "legal_name": "HDFC Bank Ltd.",
+      "nse_code": "HDFCBANK",
+      "bse_code": "500180",
+      "profile": "bank",
+      "ir_domain": "hdfc.bank.in",
+      "aliases": [
+        "HDFCBANK",
+        "HDFC Bank Ltd.",
+        "HDFC Bank"
+      ],
+      "isin": "INE040A01034",
+      "id": "7b3ce91c-9777-5a7c-b308-4d62e5e27c69",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "hdfcbank_listing.html"
+    },
+    {
+      "symbol": "HDFCLIFE",
+      "legal_name": "HDFC Life Insurance Company Ltd.",
+      "nse_code": "HDFCLIFE",
+      "bse_code": "540777",
+      "profile": "life_insurer",
+      "ir_domain": "hdfclife.com",
+      "aliases": [
+        "HDFCLIFE",
+        "HDFC Life Insurance Company Ltd.",
+        "HDFC Life Insurance Company"
+      ],
+      "isin": "INE795G01014",
+      "id": "7093edf1-1f19-5d9d-a9cb-cf9aa54ef05f",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "hdfclife_listing.html"
+    },
+    {
+      "symbol": "ICICIBANK",
+      "legal_name": "ICICI Bank Ltd.",
+      "nse_code": "ICICIBANK",
+      "bse_code": "532174",
+      "profile": "bank",
+      "ir_domain": "icici.bank.in",
+      "aliases": [
+        "ICICIBANK",
+        "ICICI Bank Ltd.",
+        "ICICI Bank"
+      ],
+      "isin": "INE090A01021",
+      "id": "f7853dc2-1208-5cae-96b0-9393751f375c",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "ICICIBANK_Q2FY27.html"
+    },
+    {
+      "symbol": "JIOFIN",
+      "legal_name": "Jio Financial Services Ltd.",
+      "nse_code": "JIOFIN",
+      "bse_code": "543940",
+      "profile": "diversified",
+      "ir_domain": "jfs.in",
+      "aliases": [
+        "JIOFIN",
+        "Jio Financial Services Ltd.",
+        "Jio Financial Services"
+      ],
+      "isin": "INE758E01017",
+      "id": "e839de5b-7def-56a2-8b44-beecd23b73fa",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "jio_listing.pdf"
+    },
+    {
+      "symbol": "KOTAKBANK",
+      "legal_name": "Kotak Mahindra Bank Ltd.",
+      "nse_code": "KOTAKBANK",
+      "bse_code": "500247",
+      "profile": "bank",
+      "ir_domain": "kotak.bank.in",
+      "aliases": [
+        "KOTAKBANK",
+        "Kotak Mahindra Bank Ltd.",
+        "Kotak Mahindra Bank"
+      ],
+      "isin": "INE237A01036",
+      "id": "31874b16-c0f7-5623-ac4c-bbbde0bbb88c",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "kotak_listing.pdf"
+    },
+    {
+      "symbol": "SBILIFE",
+      "legal_name": "SBI Life Insurance Company Ltd.",
+      "nse_code": "SBILIFE",
+      "bse_code": "540719",
+      "profile": "life_insurer",
+      "ir_domain": "sbilife.co.in",
+      "aliases": [
+        "SBILIFE",
+        "SBI Life Insurance Company Ltd.",
+        "SBI Life Insurance Company"
+      ],
+      "isin": "INE123W01016",
+      "id": "29b8bacf-48b3-5b4c-af35-d961234fd402",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "sbilife_listing.html"
+    },
+    {
+      "symbol": "SHRIRAMFIN",
+      "legal_name": "Shriram Finance Ltd.",
+      "nse_code": "SHRIRAMFIN",
+      "bse_code": "511218",
+      "profile": "nbfc",
+      "ir_domain": "shriramfinance.in",
+      "aliases": [
+        "SHRIRAMFIN",
+        "Shriram Finance Ltd.",
+        "Shriram Finance"
+      ],
+      "isin": "INE721A01047",
+      "id": "a7ccb086-0374-5e85-98df-30c7c6526a7b",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "shriram_listing.html"
+    },
+    {
+      "symbol": "SBIN",
+      "legal_name": "State Bank of India",
+      "nse_code": "SBIN",
+      "bse_code": "500112",
+      "profile": "bank",
+      "ir_domain": "sbi.bank.in",
+      "aliases": [
+        "SBIN",
+        "State Bank of India"
+      ],
+      "isin": "INE062A01020",
+      "id": "b252e5b7-6e12-5eee-9f7e-bfa18e414230",
+      "membership_source": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+      "identity_evidence_file": "sbi_listing.pdf"
+    }
+  ]
+}

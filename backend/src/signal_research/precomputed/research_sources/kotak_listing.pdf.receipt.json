@@ -1,0 +1,11 @@
+{
+  "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/governance/governance-sebi-tab/2025/integrated-filing-corporate-governance-report-for-the-quarter-ended-september-30-2025/kmbl-integrated-governanceq2fy26final.pdf",
+  "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/governance/governance-sebi-tab/2025/integrated-filing-corporate-governance-report-for-the-quarter-ended-september-30-2025/kmbl-integrated-governanceq2fy26final.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf; charset=utf-8",
+  "retrieved_at": "2026-10-24T15:24:09.236874+00:00",
+  "curl_exit_code": 0,
+  "sha256": "cfb2750ab679bfe2f0e6603385ace3b899ddca67ae6e3175ab40095549389029",
+  "bytes": 1025767,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/kotak_listing.pdf"
+}

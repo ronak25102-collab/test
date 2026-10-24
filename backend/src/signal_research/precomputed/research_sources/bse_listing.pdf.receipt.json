@@ -1,0 +1,11 @@
+{
+  "url": "https://www.sebi.gov.in/sebi_data/commondocs/oct-2023/BSE_Limited_PBPA_p.pdf",
+  "final_url": "https://www.sebi.gov.in/sebi_data/commondocs/oct-2023/BSE_Limited_PBPA_p.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:24:09.851917+00:00",
+  "curl_exit_code": 0,
+  "sha256": "89e25dd75d54ffde18587dcaf0ec10295569906e7854933b251ca8f9c1026ada",
+  "bytes": 294210,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/bse_listing.pdf"
+}

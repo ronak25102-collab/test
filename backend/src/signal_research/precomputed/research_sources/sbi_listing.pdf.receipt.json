@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/SBIN_16052026162539_VR_16052026.pdf",
+  "final_url": "https://nsearchives.nseindia.com/corporate/SBIN_16052026162539_VR_16052026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:24:08.698142+00:00",
+  "curl_exit_code": 0,
+  "sha256": "f03a7705cb8798b050b374a3dc5679444509105a27187fbe5db9746e0cfe0a4f",
+  "bytes": 452034,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/sbi_listing.pdf"
+}

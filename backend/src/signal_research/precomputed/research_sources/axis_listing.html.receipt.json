@@ -1,0 +1,11 @@
+{
+  "url": "https://www.axis.bank.in/shareholders-corner/investor-faqs",
+  "final_url": "https://www.axis.bank.in/shareholders-corner/investor-faqs",
+  "http_status": 200,
+  "mime_type": "text/html; charset=utf-8",
+  "retrieved_at": "2026-10-24T15:24:08.804927+00:00",
+  "curl_exit_code": 0,
+  "sha256": "cc63ff1641d117c7c1b216deffdd9dfe595a7c3c0b9c30ea01fc19adb7b166f3",
+  "bytes": 785589,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/axis_listing.html"
+}

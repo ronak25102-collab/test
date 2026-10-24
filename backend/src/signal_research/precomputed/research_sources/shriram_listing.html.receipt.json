@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_152738_24042026180135_iXBRL_WEB.html",
+  "final_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_152738_24042026180135_iXBRL_WEB.html",
+  "http_status": 200,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:24:09.042320+00:00",
+  "curl_exit_code": 0,
+  "sha256": "1b0c1d4c32d4fb95cd899245aedfae78b2730531e8d9cd496b6d100bafc95517",
+  "bytes": 193464,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/shriram_listing.html"
+}

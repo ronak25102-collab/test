@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/news-room/2022/news-performance-review-quarter-ended-march-31-2022",
+  "final_url": "https://www.icici.bank.in/about-us/news-room/2022/news-performance-review-quarter-ended-march-31-2022",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:24:11.075149+00:00",
+  "curl_exit_code": 0,
+  "sha256": "3fad0bb6e6172b54658e4050c4580cc750db9f2562be98ae38728e86d98a8b41",
+  "bytes": 1079472,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_Q4FY22.html"
+}

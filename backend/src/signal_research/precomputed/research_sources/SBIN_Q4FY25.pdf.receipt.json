@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521",
+  "final_url": "https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:54.798069+00:00",
+  "curl_exit_code": 0,
+  "sha256": "a7ac622558a1956c10b1db2b3ca616e71f6b5a1b258f7b331100f18ac295048a",
+  "bytes": 3267098,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q4FY25.pdf"
+}

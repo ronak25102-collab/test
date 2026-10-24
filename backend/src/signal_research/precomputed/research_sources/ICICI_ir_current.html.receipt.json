@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/invest-relations",
+  "final_url": "https://www.icici.bank.in/about-us/invest-relations",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:28:37.235369+00:00",
+  "curl_exit_code": 0,
+  "sha256": "69b1c5099e91dd31f891acfd28e6f26d5af7b948d9d54e48302bdcf954547ecd",
+  "bytes": 412769,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_ir_current.html"
+}

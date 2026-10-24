@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/ixbrl/IT_20260503_023959_WEB.html",
+  "final_url": "https://nsearchives.nseindia.com/corporate/ixbrl/IT_20260503_023959_WEB.html",
+  "http_status": 200,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:25:26.563882+00:00",
+  "curl_exit_code": 0,
+  "sha256": "173819d2e46db9308d1b417e22c724a618f146378ade9c3f4bc3f8b62e442549",
+  "bytes": 28984,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/bajajfinserv_listing.html"
+}

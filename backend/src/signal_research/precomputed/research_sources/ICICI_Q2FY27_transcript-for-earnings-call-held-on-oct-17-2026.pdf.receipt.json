@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/transcript-for-earnings-call-held-on-oct-17-2026.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/transcript-for-earnings-call-held-on-oct-17-2026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:28:48.242576+00:00",
+  "curl_exit_code": 0,
+  "sha256": "e2af6ae26826defa4a2fb050630cdab67cb7e54a2115698b8c1dd920ac8da8c2",
+  "bytes": 223020,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_Q2FY27_transcript-for-earnings-call-held-on-oct-17-2026.pdf"
+}

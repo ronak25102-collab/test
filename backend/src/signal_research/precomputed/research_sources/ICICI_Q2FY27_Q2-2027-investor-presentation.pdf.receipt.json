@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/Q2-2027-investor-presentation.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/Q2-2027-investor-presentation.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:28:48.450142+00:00",
+  "curl_exit_code": 0,
+  "sha256": "fc6e59886a9999c8cf635173282d8a9c88167d0699f2a5a5dae88285d015254a",
+  "bytes": 1227173,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_Q2FY27_Q2-2027-investor-presentation.pdf"
+}

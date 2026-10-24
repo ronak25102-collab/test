@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2025-07-q1-2026-investor-presentation.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2025-07-q1-2026-investor-presentation.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:56.427364+00:00",
+  "curl_exit_code": 0,
+  "sha256": "1508d25436644bd39ecddc69961417a80c3e04bef3fcb04a9ccd8659229796ae",
+  "bytes": 945789,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_2025-07-q1-2026-investor-presentation.pdf"
+}

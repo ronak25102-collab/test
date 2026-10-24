@@ -1,0 +1,35 @@
+schema_version: '1.0'
+symbol: HDFCLIFE
+company:
+  symbol: HDFCLIFE
+  legal_name: HDFC Life Insurance Company Ltd.
+  nse_code: HDFCLIFE
+  bse_code: '540777'
+  profile: life_insurer
+  ir_domain: hdfclife.com
+  aliases:
+  - HDFCLIFE
+  - HDFC Life Insurance Company Ltd.
+  - HDFC Life Insurance Company
+  isin: INE795G01014
+  id: 7093edf1-1f19-5d9d-a9cb-cf9aa54ef05f
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: hdfclife_listing.html
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_156874_12052026154849_iXBRL_WEB.html
+  final_url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_156874_12052026154849_iXBRL_WEB.html
+  http_status: 200
+  mime_type: text/html
+  retrieved_at: '2026-10-24T15:24:08.632197+00:00'
+  curl_exit_code: 0
+  sha256: bc44a91f31c90ced328adda7e3ef0a925684534da29b26dbe626e660db788eba
+  bytes: 97573
+  local_path: backend/src/signal_research/precomputed/research_sources/hdfclife_listing.html
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

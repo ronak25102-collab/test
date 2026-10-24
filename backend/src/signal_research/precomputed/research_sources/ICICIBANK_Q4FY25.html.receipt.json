@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/news-room/2025/performance-review-quarter-ended-march-31-2025",
+  "final_url": "https://www.icici.bank.in/about-us/news-room/2025/performance-review-quarter-ended-march-31-2025",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:26:47.500793+00:00",
+  "curl_exit_code": 0,
+  "sha256": "bcd533df4b33e08f0370588f5ee6b2fdf252d917f794558422cb17c1909dc633",
+  "bytes": 1064948,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_Q4FY25.html"
+}

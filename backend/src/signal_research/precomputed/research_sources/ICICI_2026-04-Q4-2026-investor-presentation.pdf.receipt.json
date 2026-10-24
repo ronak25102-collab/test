@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2026-04-Q4-2026-investor-presentation.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/2026-04-Q4-2026-investor-presentation.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.557721+00:00",
+  "curl_exit_code": 0,
+  "sha256": "0837ccc948a1b6ee40c47f5845a0ae4d510210e726224c9563796993777798aa",
+  "bytes": 988073,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_2026-04-Q4-2026-investor-presentation.pdf"
+}

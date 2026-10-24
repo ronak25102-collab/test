@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/news-room/2023/performance-review-quarter-ended-march-thirty-one-two-zero-two-three",
+  "final_url": "https://www.icici.bank.in/about-us/news-room/2023/performance-review-quarter-ended-march-thirty-one-two-zero-two-three",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:24:10.380022+00:00",
+  "curl_exit_code": 0,
+  "sha256": "fd11708ba7156566f7c1724f9412fd3780fb7bf4b40706f1807538f467456fb1",
+  "bytes": 1065733,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_Q4FY23.html"
+}

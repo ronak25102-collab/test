@@ -1,0 +1,35 @@
+schema_version: '1.0'
+symbol: SHRIRAMFIN
+company:
+  symbol: SHRIRAMFIN
+  legal_name: Shriram Finance Ltd.
+  nse_code: SHRIRAMFIN
+  bse_code: '511218'
+  profile: nbfc
+  ir_domain: shriramfinance.in
+  aliases:
+  - SHRIRAMFIN
+  - Shriram Finance Ltd.
+  - Shriram Finance
+  isin: INE721A01047
+  id: a7ccb086-0374-5e85-98df-30c7c6526a7b
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: shriram_listing.html
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_152738_24042026180135_iXBRL_WEB.html
+  final_url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_152738_24042026180135_iXBRL_WEB.html
+  http_status: 200
+  mime_type: text/html
+  retrieved_at: '2026-10-24T15:24:09.042320+00:00'
+  curl_exit_code: 0
+  sha256: 1b0c1d4c32d4fb95cd899245aedfae78b2730531e8d9cd496b6d100bafc95517
+  bytes: 193464
+  local_path: backend/src/signal_research/precomputed/research_sources/shriram_listing.html
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

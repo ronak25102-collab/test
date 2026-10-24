@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/news-room/2026/performance-review-quarter-ended-march-31-2026",
+  "final_url": "https://www.icici.bank.in/about-us/news-room/2026/performance-review-quarter-ended-march-31-2026",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:26:47.280985+00:00",
+  "curl_exit_code": 0,
+  "sha256": "f1dd36050e950c6f23f443590cbb006a2d8f82a6ff9c48577f6f07d388f4f967",
+  "bytes": 1069238,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_Q4FY26.html"
+}

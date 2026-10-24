@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/financial-results-for-quarter-ended-sep-30-2026.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/financial-results-for-quarter-ended-sep-30-2026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:28:48.297956+00:00",
+  "curl_exit_code": 0,
+  "sha256": "c48d0ba657986097242f02d7d185d4255ebfe4e6864c7a96ce611a1a24573c02",
+  "bytes": 417432,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_Q2FY27_financial-results-for-quarter-ended-sep-30-2026.pdf"
+}

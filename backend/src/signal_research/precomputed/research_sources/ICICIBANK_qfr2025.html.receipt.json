@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/qfr/2025",
+  "final_url": "https://www.icici.bank.in/about-us/qfr/2025",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:25:26.631748+00:00",
+  "curl_exit_code": 0,
+  "sha256": "4b6dfed57b978244438d2cadc5ccbd13f5443cfa2eff21d1d0268f582a4b00df",
+  "bytes": 38564,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_qfr2025.html"
+}

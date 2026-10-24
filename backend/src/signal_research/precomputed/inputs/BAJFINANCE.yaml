@@ -1,0 +1,53 @@
+schema_version: '1.0'
+symbol: BAJFINANCE
+company:
+  symbol: BAJFINANCE
+  legal_name: Bajaj Finance Ltd.
+  nse_code: BAJFINANCE
+  bse_code: '500034'
+  profile: nbfc
+  ir_domain: aboutbajajfinserv.com
+  aliases:
+  - BAJFINANCE
+  - Bajaj Finance Ltd.
+  - Bajaj Finance
+  isin: INE296A01032
+  id: 411366de-5e17-5a26-98bb-2914d7c3b9e9
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: bajajfinance_listing.html
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf
+  final_url: https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf
+  http_status: 200
+  mime_type: application/pdf
+  retrieved_at: '2026-10-24T15:27:58.197177+00:00'
+  curl_exit_code: 0
+  sha256: 40722430396106b1a34e1ca6f84d8c873cf4e15a2650a96afedc5be169841e94
+  bytes: 1003236
+  local_path: backend/src/signal_research/precomputed/research_sources/BAJFINANCE_Q2FY27.pdf
+- url: https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf
+  final_url: https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf
+  http_status: 200
+  mime_type: application/pdf
+  retrieved_at: '2026-10-24T15:26:47.276444+00:00'
+  curl_exit_code: 0
+  sha256: 722a9cb0c1fcbed6d20d313dccc8169ed29bd0faf42e9cc39ce724ab7c0ac72c
+  bytes: 1193143
+  local_path: backend/src/signal_research/precomputed/research_sources/BAJFINANCE_Q3FY26.pdf
+- url: https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q1-fy27-investor-presentation?fmt=pdf&scl=1
+  final_url: https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q1-fy27-investor-presentation?fmt=pdf&scl=1
+  http_status: 200
+  mime_type: application/pdf
+  retrieved_at: '2026-10-24T15:25:26.670282+00:00'
+  curl_exit_code: 0
+  sha256: 45b664db8fd9858654fa6cdd7cf1b696898a4869152cc3831d16e1a21610bb20
+  bytes: 1483416
+  local_path: backend/src/signal_research/precomputed/research_sources/bajaj_q1fy27.pdf
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

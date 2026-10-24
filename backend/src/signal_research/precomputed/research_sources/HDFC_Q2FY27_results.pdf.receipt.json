@@ -1,0 +1,11 @@
+{
+  "url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/financial-results-for-the-quarter-ended-september-30-2026.pdf",
+  "final_url": "https://www.hdfc.bank.in/content/dam/hdfcbankpws/in/en/pdf/about-us/financial-results/2026-2027/quarter-2/financial-results-for-the-quarter-ended-september-30-2026.pdf",
+  "http_status": 404,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:29:12.412034+00:00",
+  "curl_exit_code": 0,
+  "sha256": "9f567e94b6b82a90e03c3ee5c1d680d9e04c6cd32ad3f5e5ee904a57e84a2aca",
+  "bytes": 23642,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/HDFC_Q2FY27_results.pdf"
+}

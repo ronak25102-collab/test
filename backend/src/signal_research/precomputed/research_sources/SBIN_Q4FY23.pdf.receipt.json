@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/1275616/180523-SBI+Analyst+Presentation+Q4FY23.pdf/254aa07d-32bc-37c0-048d-c6666d1e1619?t=1684399592252",
+  "final_url": "https://sbi.bank.in/documents/17836/1275616/180523-SBI+Analyst+Presentation+Q4FY23.pdf/254aa07d-32bc-37c0-048d-c6666d1e1619?t=1684399592252",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:56.451273+00:00",
+  "curl_exit_code": 0,
+  "sha256": "6f7153b23779879856f02efc22dd2b833e8dccfd6becf6255d0575c285ef3444",
+  "bytes": 3066647,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q4FY23.pdf"
+}

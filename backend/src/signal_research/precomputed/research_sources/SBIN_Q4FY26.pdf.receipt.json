@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279",
+  "final_url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:54.627537+00:00",
+  "curl_exit_code": 0,
+  "sha256": "930c7ffdc1174bb2ac39cfcfe6fd8a82b5a805e90dd71f2a143d8daa47621116",
+  "bytes": 2252365,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q4FY26.pdf"
+}

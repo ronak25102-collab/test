@@ -1,0 +1,110 @@
+{
+  "ab7ecc79-f6a6-6496-23d8-7a658d9c3c2f": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/media-press-releases/2026/media-release-q3fy26.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/media-press-releases/2026/media-release-q3fy26.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:32.931765+00:00",
+    "sha256": "ab7ecc79f6a6649623d87a658d9c3c2f4d69b3f99d30dd26247849bd8024198f",
+    "bytes": 325787,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/ab7ecc79-f6a6-6496-23d8-7a658d9c3c2f.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "8131b1fd-c63c-49f8-4281-caa98b30b906": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q2/investor-presentation/Q2FY26-Investor-Presentation.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q2/investor-presentation/Q2FY26-Investor-Presentation.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:32.969693+00:00",
+    "sha256": "8131b1fdc63c49f84281caa98b30b906279ea7091df6b90a1baa4a8878435933",
+    "bytes": 1604650,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/8131b1fd-c63c-49f8-4281-caa98b30b906.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "b7f20df8-22f5-5235-b542-220f0076877d": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/governance/governance-sebi-tab/2026/jun-2026-results-presentation/investor-presentation-july-182026signed.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/governance/governance-sebi-tab/2026/jun-2026-results-presentation/investor-presentation-july-182026signed.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:32.986570+00:00",
+    "sha256": "b7f20df822f55235b542220f0076877dad4f87f8375221febd99f7964b005bf2",
+    "bytes": 1339091,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/b7f20df8-22f5-5235-b542-220f0076877d.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "3e9d561f-ec78-a342-1371-25f2875d8bc3": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/PressRelease/Q4FY26_Press-Release.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/PressRelease/Q4FY26_Press-Release.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:33.126011+00:00",
+    "sha256": "3e9d561fec78a342137125f2875d8bc3d1cf21a24b96289c1959245fc0df2af3",
+    "bytes": 452317,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/3e9d561f-ec78-a342-1371-25f2875d8bc3.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "1a2cf146-9817-8d93-401e-b7adbe124094": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q3/investor-presentation/Q3FY26-Investor-Presentation.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q3/investor-presentation/Q3FY26-Investor-Presentation.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:33.234270+00:00",
+    "sha256": "1a2cf14698178d93401eb7adbe1240942c642cbf659001b129784d590fe6c922",
+    "bytes": 1369529,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/1a2cf146-9817-8d93-401e-b7adbe124094.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "57062f4d-ae41-3550-9845-143c002d4dab": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2026/kotak-mahindra-bank/Kotak-Mahindra-Bank-Limited-FY26.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2026/kotak-mahindra-bank/Kotak-Mahindra-Bank-Limited-FY26.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:33.453591+00:00",
+    "sha256": "57062f4dae4135509845143c002d4dabec9b52b07f9fe8d1ab9d2bedb8b3b0eb",
+    "bytes": 9262663,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/57062f4d-ae41-3550-9845-143c002d4dab.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "c257b449-41d9-71a2-de58-30668dfedfd9": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/integrated-reports/kotak-mahindra-bank-limited-FY22-23.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/integrated-reports/kotak-mahindra-bank-limited-FY22-23.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:33.811798+00:00",
+    "sha256": "c257b44941d971a2de5830668dfedfd901f050d43292caf3a1570a515156653a",
+    "bytes": 12841641,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/c257b449-41d9-71a2-de58-30668dfedfd9.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "ec7cba7b-de4f-2579-cc26-83c62a88b6d4": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2022/kotak-mahindra-bank-21/Kotak-Mahindra-Bank-Limited.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/Annual-Reports/FY-2022/kotak-mahindra-bank-21/Kotak-Mahindra-Bank-Limited.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:34.041268+00:00",
+    "sha256": "ec7cba7bde4f2579cc2683c62a88b6d451bcbbaf96e526ccbec9f0e46c6d6151",
+    "bytes": 12442655,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/ec7cba7b-de4f-2579-cc26-83c62a88b6d4.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  },
+  "83b002f6-6643-9b01-8317-47a5779ae1eb": {
+    "url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/transcript/Q4FY26-Transcript.pdf",
+    "final_url": "https://www.kotak.bank.in/content/dam/Kotak/investor-relation/Financial-Result/QuarterlyReport/FY-2026/q4/transcript/Q4FY26-Transcript.pdf",
+    "http_status": 200,
+    "mime_type": "application/pdf; charset=utf-8",
+    "retrieved_at": "2026-10-24T15:28:33.840655+00:00",
+    "sha256": "83b002f666439b01831747a5779ae1eb0938b0369dfd5e396b69e03f03f740af",
+    "bytes": 547498,
+    "local_path": "backend/src/signal_research/precomputed/research_sources/KOTAKBANK/83b002f6-6643-9b01-8317-47a5779ae1eb.pdf",
+    "curl_exit_code": 0,
+    "reference_hash_match": true
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2024-2025/annual-report-2024-2025.pdf",
+  "final_url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2024-2025/annual-report-2024-2025.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:24:10.152881+00:00",
+  "curl_exit_code": 0,
+  "sha256": "639ba7cbaeae620bc9e8c9a622641a8d201607012d8b0c363a030b9f5a7ce441",
+  "bytes": 10082281,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/jio_listing.pdf"
+}

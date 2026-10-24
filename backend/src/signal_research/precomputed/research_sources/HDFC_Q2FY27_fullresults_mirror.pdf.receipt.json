@@ -1,0 +1,11 @@
+{
+  "url": "https://cdn.financialreports.eu/financialreports/media/filings/29802/2026/RNS/29802_rns_2026-10-17_ad81d04c-db05-4a23-b5b5-ee85d047f016.pdf",
+  "final_url": "https://cdn.financialreports.eu/financialreports/media/filings/29802/2026/RNS/29802_rns_2026-10-17_ad81d04c-db05-4a23-b5b5-ee85d047f016.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:29:56.212130+00:00",
+  "curl_exit_code": 0,
+  "sha256": "1a25f460842bbd8e3632a000cdbc625d7aa1ec2934d3b0d8b60d270bb33e3bdf",
+  "bytes": 1193121,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/HDFC_Q2FY27_fullresults_mirror.pdf"
+}

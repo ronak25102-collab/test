@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/1275616/SBI+Analyst+Presentation+Q3FY25.pdf/209bafd0-a167-5165-8251-eb61f1554d1e?t=1738833342459",
+  "final_url": "https://sbi.bank.in/documents/17836/1275616/SBI+Analyst+Presentation+Q3FY25.pdf/209bafd0-a167-5165-8251-eb61f1554d1e?t=1738833342459",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.632710+00:00",
+  "curl_exit_code": 0,
+  "sha256": "5821cc5bce445dd029caef71c10363d450fc871c495490aae0f34c08ce0fb06c",
+  "bytes": 2197281,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q3FY25.pdf"
+}

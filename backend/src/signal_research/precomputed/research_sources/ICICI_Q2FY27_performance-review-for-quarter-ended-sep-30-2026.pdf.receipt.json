@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/performance-review-for-quarter-ended-sep-30-2026.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2027/performance-review-for-quarter-ended-sep-30-2026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:28:48.286308+00:00",
+  "curl_exit_code": 0,
+  "sha256": "418e6450ce05cea1344c998df7d4f4e84f687d1e66ea367a9d51f73c9056ffb1",
+  "bytes": 227910,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_Q2FY27_performance-review-for-quarter-ended-sep-30-2026.pdf"
+}

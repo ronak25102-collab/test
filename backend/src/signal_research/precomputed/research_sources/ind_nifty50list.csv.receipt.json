@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+  "final_url": "https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv",
+  "http_status": 200,
+  "mime_type": "text/csv",
+  "retrieved_at": "2026-10-24T15:24:08.519817+00:00",
+  "curl_exit_code": 0,
+  "sha256": "f5ba4027d935ae72879d5c24bbebf0e8439ec8ed504ffdf4175fde69206244b3",
+  "bytes": 3344,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ind_nifty50list.csv"
+}

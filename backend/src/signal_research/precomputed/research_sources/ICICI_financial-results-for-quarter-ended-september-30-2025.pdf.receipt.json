@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-for-quarter-ended-september-30-2025.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-for-quarter-ended-september-30-2025.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.960704+00:00",
+  "curl_exit_code": 0,
+  "sha256": "842479da6782b4d24169356329ac3e890bae25ed1319ae1897a2914db2e4a826",
+  "bytes": 273687,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_financial-results-for-quarter-ended-september-30-2025.pdf"
+}

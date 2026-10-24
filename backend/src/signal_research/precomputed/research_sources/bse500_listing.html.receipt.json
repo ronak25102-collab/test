@@ -1,0 +1,11 @@
+{
+  "url": "https://www.bseindices.com/constituents/code/1003",
+  "final_url": "https://www.bseindices.com/constituents/code/1003",
+  "http_status": 200,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:24:09.273565+00:00",
+  "curl_exit_code": 0,
+  "sha256": "9cbde98617b7d6f8eb74169cd4e127d8b89b8cbf27ba18079205a0ba78df53b1",
+  "bytes": 9587,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/bse500_listing.html"
+}

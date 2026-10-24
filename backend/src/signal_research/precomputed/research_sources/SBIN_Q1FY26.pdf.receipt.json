@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q1FY26.pdf/c6e887f7-3ad0-71bb-ff0d-01d5b5a538d1?t=1754640306703",
+  "final_url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q1FY26.pdf/c6e887f7-3ad0-71bb-ff0d-01d5b5a538d1?t=1754640306703",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:54.702945+00:00",
+  "curl_exit_code": 0,
+  "sha256": "77206ff234deed487e742d9920ae80cbc0e697ecab85529837107277ab9592ac",
+  "bytes": 2107122,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q1FY26.pdf"
+}

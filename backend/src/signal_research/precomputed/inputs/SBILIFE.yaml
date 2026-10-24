@@ -1,0 +1,35 @@
+schema_version: '1.0'
+symbol: SBILIFE
+company:
+  symbol: SBILIFE
+  legal_name: SBI Life Insurance Company Ltd.
+  nse_code: SBILIFE
+  bse_code: '540719'
+  profile: life_insurer
+  ir_domain: sbilife.co.in
+  aliases:
+  - SBILIFE
+  - SBI Life Insurance Company Ltd.
+  - SBI Life Insurance Company
+  isin: INE123W01016
+  id: 29b8bacf-48b3-5b4c-af35-d961234fd402
+  membership_source: https://nsearchives.nseindia.com/content/indices/ind_nifty50list.csv
+  identity_evidence_file: sbilife_listing.html
+data_as_of: '2026-10-24'
+research_status: incomplete
+source_receipts:
+- url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_86174_22042025225822_iXBRL_WEB.html
+  final_url: https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_GOVERNANCE_86174_22042025225822_iXBRL_WEB.html
+  http_status: 200
+  mime_type: text/html
+  retrieved_at: '2026-10-24T15:24:09.189189+00:00'
+  curl_exit_code: 0
+  sha256: 6ac68eb1c1a73a2546d091616e87cf47defbdf22aac2c04a4c522c73a8e67f3d
+  bytes: 99668
+  local_path: backend/src/signal_research/precomputed/research_sources/sbilife_listing.html
+facts: []
+missing_requirements:
+- Source-reviewed financial facts with exact period, unit, scope and table binding
+- Reviewed discovery and significance, counterargument and falsification claims
+- At least two matched peers and three fiscal years of verified observations
+- Full report, evidence and export parity; no placeholder publication is permitted

@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/hi/web/investor-relations/analyst-presentation?inheritRedirect=true",
+  "final_url": "https://sbi.bank.in/hi/web/investor-relations/analyst-presentation?inheritRedirect=true",
+  "http_status": 200,
+  "mime_type": "text/html; charset=UTF-8",
+  "retrieved_at": "2026-10-24T15:24:10.319107+00:00",
+  "curl_exit_code": 0,
+  "sha256": "27477fab8b46714f41975157cbc7941b7bd03f76fe2dd2335a37acd18e048199",
+  "bytes": 429490,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/sbi_analyst_index.html"
+}

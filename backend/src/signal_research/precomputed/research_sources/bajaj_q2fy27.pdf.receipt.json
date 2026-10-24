@@ -1,0 +1,11 @@
+{
+  "url": "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q2-fy27-investor-presentation?fmt=pdf&scl=1",
+  "final_url": "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q2-fy27-investor-presentation?fmt=pdf&scl=1",
+  "http_status": 404,
+  "mime_type": "text/plain;charset=UTF-8",
+  "retrieved_at": "2026-10-24T15:25:26.507208+00:00",
+  "curl_exit_code": 0,
+  "sha256": "aaf72966ba53589f05c673ade83a1b443b445f56127b1668a8360e2a3063d361",
+  "bytes": 17,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/bajaj_q2fy27.pdf"
+}

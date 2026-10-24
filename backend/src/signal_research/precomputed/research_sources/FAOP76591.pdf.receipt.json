@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/content/circulars/FAOP76591.pdf",
+  "final_url": "https://nsearchives.nseindia.com/content/circulars/FAOP76591.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:24:08.639646+00:00",
+  "curl_exit_code": 0,
+  "sha256": "5b18f9e0163e82081bed5cc4947df44a36f8cd4679d5db8fd6ace3b17d452266",
+  "bytes": 141153,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/FAOP76591.pdf"
+}

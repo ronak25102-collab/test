@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-march-31-2026.pdf",
+  "final_url": "https://www.icici.bank.in/content/dam/icicibank/india/managed-assets/docs/about-us/2026/financial-results-march-31-2026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:55.507646+00:00",
+  "curl_exit_code": 0,
+  "sha256": "731df7dda7663bdc832c0deb49db0aaf5bbc1c0cce7aca70dc60adfcd14ad368",
+  "bytes": 409655,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICI_financial-results-march-31-2026.pdf"
+}

@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf",
+  "final_url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:27:58.197177+00:00",
+  "curl_exit_code": 0,
+  "sha256": "40722430396106b1a34e1ca6f84d8c873cf4e15a2650a96afedc5be169841e94",
+  "bytes": 1003236,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/BAJFINANCE_Q2FY27.pdf"
+}

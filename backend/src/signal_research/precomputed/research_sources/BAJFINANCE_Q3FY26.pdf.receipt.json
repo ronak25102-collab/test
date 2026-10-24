@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf",
+  "final_url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:26:47.276444+00:00",
+  "curl_exit_code": 0,
+  "sha256": "722a9cb0c1fcbed6d20d313dccc8169ed29bd0faf42e9cc39ce724ab7c0ac72c",
+  "bytes": 1193143,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/BAJFINANCE_Q3FY26.pdf"
+}

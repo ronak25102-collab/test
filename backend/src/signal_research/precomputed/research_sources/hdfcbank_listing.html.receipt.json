@@ -1,0 +1,11 @@
+{
+  "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_BANKING_175753_18072026160136_iXBRL_WEB.html",
+  "final_url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_BANKING_175753_18072026160136_iXBRL_WEB.html",
+  "http_status": 200,
+  "mime_type": "text/html",
+  "retrieved_at": "2026-10-24T15:24:08.837076+00:00",
+  "curl_exit_code": 0,
+  "sha256": "9b03d676d05a762ffa0ab8de95ff147d7d88d15cbba1e4362513775be4eafa3c",
+  "bytes": 35415,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/hdfcbank_listing.html"
+}

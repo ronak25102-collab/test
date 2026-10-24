@@ -1,0 +1,11 @@
+{
+  "url": "https://www.icici.bank.in/about-us/annual",
+  "final_url": "https://www.icici.bank.in/about-us/annual",
+  "http_status": 200,
+  "mime_type": "text/html;charset=utf-8",
+  "retrieved_at": "2026-10-24T15:26:47.235509+00:00",
+  "curl_exit_code": 0,
+  "sha256": "6bcb9ef7fe50ccb1d3a3caed4caefa220af385154269bf6a989c13d3594f6173",
+  "bytes": 358884,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/ICICIBANK_annual_index.html"
+}

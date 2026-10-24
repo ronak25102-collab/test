@@ -1,0 +1,11 @@
+{
+  "url": "https://sbi.bank.in/documents/17836/3726866/SBI+Analyst+Presentation+Q2FY26+Final.pdf/7cb30a64-312f-de67-7b4f-2576fdd12dc6?t=1762244270753",
+  "final_url": "https://sbi.bank.in/documents/17836/3726866/SBI+Analyst+Presentation+Q2FY26+Final.pdf/7cb30a64-312f-de67-7b4f-2576fdd12dc6?t=1762244270753",
+  "http_status": 200,
+  "mime_type": "application/pdf",
+  "retrieved_at": "2026-10-24T15:25:54.575680+00:00",
+  "curl_exit_code": 0,
+  "sha256": "4d873c36eff851070e1f427a0c53626a5fd2ca54b8fd9789dd92530d52849161",
+  "bytes": 2135480,
+  "local_path": "backend/src/signal_research/precomputed/research_sources/SBIN_Q2FY26.pdf"
+}
