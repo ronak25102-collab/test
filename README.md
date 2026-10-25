@@ -109,6 +109,9 @@ Turn on **Cold start** in the workspace to disable reuse for a run.
 
 ## Quick start
 
+For one-container hosting of the website, API and worker, follow the
+[free Render deployment guide](docs/RENDER_DEPLOYMENT.md).
+
 **Requirements:** Python 3.12, [uv](https://docs.astral.sh/uv/), and Node.js 22.
 
 ```bash

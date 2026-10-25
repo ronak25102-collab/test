@@ -5,8 +5,13 @@
 **/.fix-test*
 **/__pycache__
 .env
+**/.env
+**/.env.*
+.pytest_cache
+.ruff_cache
 data
 output
 reviews
 frontend/test-results
 frontend/playwright-report
+frontend/dist

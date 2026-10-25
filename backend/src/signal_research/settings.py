@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     display_timezone: str = "Asia/Kolkata"
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
+    frontend_dist_dir: Path | None = None
     pipeline_mode: Literal["precomputed", "live"] = "precomputed"
     replay_duration_seconds: float = Field(default=120, ge=0)
     precomputed_dir: Path = Path(__file__).parent / "precomputed"

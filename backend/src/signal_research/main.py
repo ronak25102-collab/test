@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from signal_research.api import companies, evidence, exports, health, runs
 from signal_research.db.models import Base
@@ -51,6 +52,9 @@ def create_app(settings=None, store_override=None):
     @application.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
         return JSONResponse({"code": "INVALID_REQUEST", "message": "Request fields failed validation", "retryable": False, "details": {"errors": [{"location": list(e["loc"]), "message": e["msg"]} for e in exc.errors()]}}, status_code=422)
+
+    if settings.frontend_dist_dir is not None:
+        application.mount("/", StaticFiles(directory=settings.frontend_dist_dir, html=True), name="frontend")
 
     return application
 
