@@ -6,6 +6,22 @@ on:
 permissions:
   contents: read
 jobs:
+  report-memory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          python-version: '3.12'
+      - run: uv sync --frozen
+      - name: Publish and download real bank reports under 512 MiB without swap
+        run: >-
+          sudo systemd-run --wait --pipe
+          -p MemoryMax=512M -p MemorySwapMax=0
+          --working-directory="$GITHUB_WORKSPACE"
+          --setenv=MALLOC_ARENA_MAX=2
+          "$GITHUB_WORKSPACE/.venv/bin/python" scripts/check_report_memory.py
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -6,10 +6,11 @@ from uuid import UUID, uuid5
 
 from signal_research.domain.enums import RunStatus
 from signal_research.domain.schemas import ResearchReport
+from signal_research.report_memory import report_memory
 from signal_research.research.integrity import report_digest
 from signal_research.research.verifier import verify_report
 
-from .catalog import REPORT_MEMORY_LOCK, load_report
+from .catalog import load_report
 from .guard import offline_playback
 
 STAGE_TEXT = {
@@ -88,9 +89,17 @@ def remap_report(fixture, run_id, cutoff, elapsed, stage_durations):
 
     def replace(value):
         if isinstance(value, dict):
-            return {mapping.get(k, k): replace(v) for k, v in value.items()}
+            for key in list(value):
+                child = replace(value[key])
+                replacement = mapping.get(key, key)
+                if replacement != key:
+                    del value[key]
+                value[replacement] = child
+            return value
         if isinstance(value, list):
-            return [replace(v) for v in value]
+            for index, child in enumerate(value):
+                value[index] = replace(child)
+            return value
         if isinstance(value, str):
             if value.startswith("peer:") and value[5:] in mapping:
                 return "peer:" + mapping[value[5:]]
@@ -141,7 +150,7 @@ def process_precomputed(machine, run_id):
 def _process_precomputed(machine, run_id):
     store, settings = machine.store, machine.settings
     summary = store.get_summary(run_id)
-    with REPORT_MEMORY_LOCK:
+    with report_memory():
         fixture = load_report(settings, summary.company, summary.as_of)
         counts = {"documents": len(fixture.documents), "facts": len(fixture.facts),
                   "calculations": len(fixture.calculations),
@@ -196,12 +205,13 @@ def _process_precomputed(machine, run_id):
         return
     # Re-load and publish one report at a time. Timers overlap without holding
     # multiple large evidence graphs in memory or racing shared source inserts.
-    with REPORT_MEMORY_LOCK:
+    with report_memory():
         if machine._cancelled(run_id):
             return
         fixture = load_report(settings, summary.company, summary.as_of)
         report = remap_report(fixture, run_id, summary.as_of, elapsed, stage_durations)
+        del fixture
         if machine._cancelled(run_id):
             return
         store.save_report(report)
-        del report, fixture
+        del report

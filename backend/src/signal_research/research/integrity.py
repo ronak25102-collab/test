@@ -18,7 +18,12 @@ def report_digest(report):
         if document.get("cutoff_eligibility_basis") == "publication_date":
             document.pop("cutoff_eligibility_basis", None)
     payload["generation_metadata"].pop("verification_digest", None)
-    return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    digest = hashlib.sha256()
+    # Preserve the exact legacy checksum without assembling both a complete
+    # Unicode JSON string and its UTF-8 copy in memory.
+    for chunk in json.JSONEncoder(sort_keys=True, separators=(",", ":")).iterencode(payload):
+        digest.update(chunk.encode())
+    return digest.hexdigest()
 
 
 def attest_report(report):

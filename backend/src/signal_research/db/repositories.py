@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
-from sqlalchemy import Text, cast, func, or_, select, update
+from sqlalchemy import JSON, Text, bindparam, cast, func, or_, select, update
 
 from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.schemas import Company, ResearchReport, RunEvent, RunSummary
@@ -379,8 +379,8 @@ class Store:
             return artifact.payload if artifact else None
 
     def save_report(self, report: ResearchReport) -> None:
-        encoded = report.model_dump_json().encode()
-        digest = hashlib.sha256(encoded).hexdigest()
+        encoded = report.model_dump_json()
+        digest = hashlib.sha256(encoded.encode()).hexdigest()
         with self.session_factory() as session:
             self._check_fence(session, str(report.run_id))
             row = session.get(ResearchRunModel, str(report.run_id))
@@ -388,7 +388,16 @@ class Store:
                 raise KeyError("run not found")
             if row.cancel_requested:
                 raise RuntimeError("run cancelled before publication")
-            row.report_json = json.loads(encoded)
+            # The report has already been validated and serialized. Passing JSON
+            # text directly avoids decoding a second evidence graph only for the
+            # SQLAlchemy JSON serializer to encode it again.
+            payload = bindparam("report_payload", type_=Text)
+            if session.bind.dialect.name == "postgresql":
+                payload = cast(payload, JSON)
+            session.execute(update(ResearchRunModel).where(ResearchRunModel.id == str(report.run_id))
+                            .values(report_json=payload).execution_options(synchronize_session=False),
+                            {"report_payload": encoded})
+            del encoded
             row.report_hash = digest
             row.status = RunStatus.COMPLETED.value
             row.stage = RunStatus.COMPLETED.value
@@ -403,9 +412,8 @@ class Store:
         # stored report only when a user requests them (see api/exports.py).
 
     def get_report(self, run_id: UUID | str) -> ResearchReport | None:
-        with self.session_factory() as session:
-            row = session.get(ResearchRunModel, str(run_id))
-            return ResearchReport.model_validate(row.report_json) if row and row.report_json else None
+        payload = self.get_report_json(run_id)
+        return ResearchReport.model_validate_json(payload) if payload is not None else None
 
     def get_report_json(self, run_id: UUID | str) -> str | None:
         """Read the published JSON without decoding and rebuilding its evidence graph.

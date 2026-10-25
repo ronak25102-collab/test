@@ -23,6 +23,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONPATH=/app/backend/src \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    MALLOC_ARENA_MAX=2 \
     DATA_DIR=/app/data \
     FRONTEND_DIST_DIR=/app/frontend/dist \
     PIPELINE_MODE=precomputed \

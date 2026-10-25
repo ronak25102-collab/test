@@ -29,10 +29,10 @@ def portable_html(run_id: UUID, store=Depends(get_store)):
 
 @router.get("/{run_id}/exports/report.json")
 def report_json(run_id: UUID, store=Depends(get_store)):
-    report = store.get_report(run_id)
-    if not report:
+    payload = store.get_report_json(run_id)
+    if payload is None:
         raise HTTPException(status_code=409, detail={"code": "REPORT_NOT_READY", "message": "report is not available yet"})
-    return Response(report.model_dump_json(), media_type="application/json", headers={"Content-Disposition": f"attachment; filename={run_id}.report.json"})
+    return Response(payload, media_type="application/json", headers={"Content-Disposition": f"attachment; filename={run_id}.report.json"})
 
 
 @router.get("/{run_id}/exports/facts.csv")

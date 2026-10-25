@@ -1,13 +1,12 @@
 """Strict local fixture lookup. A missing company never falls back to another issuer."""
 import json
 from datetime import date
-from threading import RLock
 
 from signal_research.domain.enums import PublicationStatus
 from signal_research.domain.schemas import ResearchReport
+from signal_research.report_memory import report_memory
 from signal_research.research.verifier import verify_report
 
-REPORT_MEMORY_LOCK = RLock()
 
 class PrecomputedUnavailable(ValueError):
     code = "UNSUPPORTED_SECTOR"
@@ -15,7 +14,7 @@ class PrecomputedUnavailable(ValueError):
 
 def load_report(settings, company, cutoff: date):
     # Serialize large fixture validation with publication on small hosted instances.
-    with REPORT_MEMORY_LOCK:
+    with report_memory():
         return _load_report(settings, company, cutoff)
 
 
@@ -35,7 +34,7 @@ def _load_report(settings, company, cutoff: date):
         path = settings.precomputed_dir / f"{symbol}.json"
         if not path.is_file():
             continue
-        report = ResearchReport.model_validate_json(path.read_text(encoding="utf-8"))
+        report = ResearchReport.model_validate_json(path.read_bytes())
         if (report.company.id != company.id or symbol not in report.company.symbols
                 or report.company.business_profiles != company.business_profiles):
             raise PrecomputedUnavailable("Stored evidence does not match the selected company")
@@ -56,6 +55,11 @@ def index_entries(settings):
 
 
 def bootstrap_catalog(store, settings):
+    with report_memory():
+        _bootstrap_catalog(store, settings)
+
+
+def _bootstrap_catalog(store, settings):
     """Register identities from validated fixtures without refreshing any directory."""
     from signal_research.db.models import CompanyModel
 
@@ -81,7 +85,7 @@ def bootstrap_catalog(store, settings):
             path = settings.precomputed_dir / f"{symbol}.json"
             if not path.is_file():
                 continue
-            report = ResearchReport.model_validate_json(path.read_text(encoding="utf-8"))
+            report = ResearchReport.model_validate_json(path.read_bytes())
             if symbol not in report.company.symbols:
                 raise ValueError("Precomputed index and report issuer differ")
             company = report.company
@@ -96,4 +100,5 @@ def bootstrap_catalog(store, settings):
             row.business_profiles = [p.value for p in company.business_profiles]
             row.verified_ir_domains = list(company.verified_ir_domains)
             row.identity_source_ids = [str(i) for i in company.identity_source_ids]
+            del report
         session.commit()

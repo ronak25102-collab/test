@@ -64,6 +64,21 @@ use. Additional visitors queue until a slot opens. Provider-backed live processi
 retains its existing single-worker behavior. Evidence persistence checks existing
 IDs in batches instead of sending a separate query for every source passage.
 
+The 512 MiB deployment also shares one memory admission slot between report
+publication, run admission checks, evidence navigation and exports. Heavy requests
+wait for that slot; status polling, cancellation and health checks remain available.
+Timers still overlap for four investigations, but publication or a download can
+add time after the 147-second playback. Keep `MALLOC_ARENA_MAX=2` (set in the image)
+and one Uvicorn process. Freed report memory is collected and returned to glibc
+after heavy operations. Reports retain their full passages and review checksums.
+
+CI runs `scripts/check_report_memory.py` against a temporary local database with a
+hard 512 MiB cgroup limit and swap disabled. It publishes eight real bank reports
+and exercises 16 concurrent clients downloading JSON, HTML, ZIP and evidence while
+the next batch is publishing. It checks for OOM kills and requires server peak RSS
+below 450 MiB. This exercises the current fixture workload; larger future reports
+or heavier traffic still need measurement and may require more memory.
+
 The Free service sleeps after 15 minutes without inbound traffic and can take
 about a minute to wake. Files written inside the container are temporary; saved
 reports and run history are stored in Neon. Both providers have free usage limits.
