@@ -54,6 +54,13 @@ After the worker starts, `/api/v1/health/ready` should return `database: ok` and
 `worker: fresh` (working) or `worker: idle` (waiting). Start an HDFC Bank investigation using today's cutoff and Live
 mode; stored evidence playback runs for 147 seconds before saving the report.
 
+The deployed stored-report mode allows four playbacks to progress concurrently
+(`MAX_PRECOMPUTED_RUNS=4`), so one visitor does not occupy the worker for everyone
+else's entire timer. Reports are loaded and published one at a time to limit memory
+use. Additional visitors queue until a slot opens. Provider-backed live processing
+retains its existing single-worker behavior. Evidence persistence checks existing
+IDs in batches instead of sending a separate query for every source passage.
+
 The Free service sleeps after 15 minutes without inbound traffic and can take
 about a minute to wake. Files written inside the container are temporary; saved
 reports and run history are stored in Neon. Both providers have free usage limits.

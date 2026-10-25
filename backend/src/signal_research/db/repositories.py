@@ -656,21 +656,33 @@ class Store:
             FactModel,
             PassageModel,
         )
+        def existing_ids(model, identifiers):
+            values = list(dict.fromkeys(str(value) for value in identifiers))
+            found = set()
+            for start in range(0, len(values), 500):
+                found.update(session.scalars(select(model.id).where(
+                    model.id.in_(values[start:start + 500]))))
+            return found
+
         document_ids = {}
+        known_documents = {row.content_hash: row.id for row in session.execute(
+            select(SourceDocumentModel.id, SourceDocumentModel.content_hash).where(
+                SourceDocumentModel.content_hash.in_([d.content_hash for d in report.documents])))}
+        known_document_ids = existing_ids(SourceDocumentModel, (d.id for d in report.documents))
         for document in report.documents:
             data = document.model_dump(mode="python")
             data["id"] = str(document.id)
             data["canonical_url"] = str(document.canonical_url)
             data["final_url"] = str(document.final_url)
-            existing = session.scalar(select(SourceDocumentModel).where(SourceDocumentModel.content_hash == document.content_hash))
-            if existing:
-                document_ids[str(document.id)] = existing.id
-            else:
-                document_ids[str(document.id)] = data["id"]
-            if not existing and not session.get(SourceDocumentModel, data["id"]):
+            existing = known_documents.get(document.content_hash)
+            document_ids[str(document.id)] = existing or data["id"]
+            if not existing and data["id"] not in known_document_ids:
                 session.add(SourceDocumentModel(**data))
+                known_documents[document.content_hash] = data["id"]
+                known_document_ids.add(data["id"])
         session.flush()
         pending_passages = {}
+        known_passages = existing_ids(PassageModel, (p.id for p in report.passages))
         for passage in report.passages:
             data = passage.model_dump(mode="python")
             data.update(id=str(passage.id), document_id=document_ids.get(str(passage.document_id), str(passage.document_id)))
@@ -682,10 +694,11 @@ class Store:
             # Autoflush is disabled. session.get cannot see an earlier pending
             # INSERT with this ID until flush, so track repeated spans explicitly.
             pending_passages[data['id']] = data
-            if not session.get(PassageModel, data["id"]):
+            if data["id"] not in known_passages:
                 session.add(PassageModel(**data))
         session.flush()
         pending_facts = {}
+        known_facts = existing_ids(FactModel, (f.id for f in report.facts))
         for fact in report.facts:
             data = fact.model_dump(mode="python")
             data.pop("extraction_confidence", None)
@@ -698,25 +711,35 @@ class Store:
                     raise ValueError('Conflicting source facts share an identifier; report was not saved')
                 continue
             pending_facts[data['id']] = data
-            if not session.get(FactModel, data["id"]):
+            if data["id"] not in known_facts:
                 session.add(FactModel(**data))
         session.flush()
+        known_calculations = existing_ids(CalculationModel, (c.id for c in report.calculations))
+        calculation_inputs = []
         for calculation in report.calculations:
             data = calculation.model_dump(mode="python")
             data.update(id=str(calculation.id), run_id=str(report.run_id), input_fact_ids=[str(i) for i in calculation.input_fact_ids], parameters=json.loads(json.dumps(calculation.parameters, default=str)))
-            if not session.get(CalculationModel, data["id"]):
+            if data["id"] not in known_calculations:
                 session.add(CalculationModel(**data))
-                session.flush()
+                known_calculations.add(data["id"])
                 for position, fact_id in enumerate(calculation.input_fact_ids):
-                    session.add(CalculationInputModel(calculation_id=data["id"], fact_id=str(fact_id), position=position))
+                    calculation_inputs.append(CalculationInputModel(
+                        calculation_id=data["id"], fact_id=str(fact_id), position=position))
         session.flush()
+        session.add_all(calculation_inputs)
+        known_claims = existing_ids(ClaimModel, (c.id for c in report.claims))
+        new_claims = []
         for claim in report.claims:
-            if session.get(ClaimModel, str(claim.id)):
+            if str(claim.id) in known_claims:
                 continue
             session.add(ClaimModel(id=str(claim.id), run_id=str(report.run_id), text=claim.text, kind=claim.kind, material=claim.material, verification_status=claim.verification_status, verification_reasons=claim.verification_reasons))
-            session.flush()
+            known_claims.add(str(claim.id))
+            new_claims.append(claim)
+        session.flush()
+        fact_ids = {fact.id for fact in report.facts}
+        for claim in new_claims:
             for link in claim.evidence_links:
-                is_fact = link.passage_or_fact_id in {f.id for f in report.facts}
+                is_fact = link.passage_or_fact_id in fact_ids
                 session.add(EvidenceLinkModel(claim_id=str(claim.id), fact_id=str(link.passage_or_fact_id) if is_fact else None, passage_id=None if is_fact else str(link.passage_or_fact_id), relation=link.relation, reason=link.reason, entailment_status=link.entailment_status))
             for calc_id in claim.calculation_ids:
                 session.add(ClaimCalculationModel(claim_id=str(claim.id), calculation_id=str(calc_id)))

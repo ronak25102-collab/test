@@ -59,6 +59,7 @@ class Settings(BaseSettings):
     max_ocr_pages: int = 8
     max_fetch_concurrency: int = 3
     max_active_runs: int = 1
+    max_precomputed_runs: int = Field(default=4, ge=1, le=8)
     max_input_tokens: int = 150000
     max_output_tokens: int = 20000
     max_model_output_tokens_per_call: int = Field(default=16384, ge=256, le=65536)

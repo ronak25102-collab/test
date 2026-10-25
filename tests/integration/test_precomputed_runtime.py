@@ -1,6 +1,7 @@
 """Playback mechanics use explicitly synthetic temporary reports, never research fixtures."""
 import json
 import socket
+import time
 from datetime import date, timedelta
 from uuid import uuid4
 
@@ -187,6 +188,34 @@ def test_database_failure_is_readable_in_new_and_existing_run_summaries(offline_
     store.update_run(run_id, status=RunStatus.FAILED, limitations=[str(failure)])
     assert client.get(f'/api/v1/runs/{run_id}').json()['limitations'] == [DATABASE_FAILURE_MESSAGE]
     assert client.get('/api/v1/runs/history').json()['items'][0]['limitations'] == [DATABASE_FAILURE_MESSAGE]
+
+
+def test_multiple_visitors_play_back_together_and_capacity_overflow_queues(offline_app):
+    _, _, settings, fixture = offline_app
+    settings.auto_start_worker = True
+    settings.max_precomputed_runs = 2
+    settings.replay_duration_seconds = 2
+    with TestClient(create_app(settings)) as client:
+        identifiers = []
+        for visitor in range(3):
+            response = client.post('/api/v1/runs', json={
+                'company_id': str(fixture.company.id), 'as_of': '2026-10-08'},
+                headers={'Idempotency-Key': f'visitor-{visitor}'})
+            assert response.status_code == 202
+            identifiers.append(response.json()['run_id'])
+        deadline = time.monotonic() + 12
+        while time.monotonic() < deadline:
+            runs = [client.get(f'/api/v1/runs/{identifier}').json() for identifier in identifiers]
+            if all(run['status'] == 'completed' for run in runs):
+                break
+            time.sleep(.05)
+        assert all(run['status'] == 'completed' for run in runs), runs
+        first_end = min(run['ended_at'] for run in runs[:2])
+        assert runs[1]['started_at'] < runs[0]['ended_at'], 'The second visitor must not wait for the first timer'
+        assert runs[2]['started_at'] >= first_end, 'The configured admission cap must still be respected'
+        reports = [client.get(f'/api/v1/runs/{identifier}/report').json() for identifier in identifiers]
+        assert [report['run_id'] for report in reports] == identifiers
+        assert len({report['facts'][0]['id'] for report in reports}) == 3
 
 
 @pytest.mark.parametrize('symbol', [entry['symbol'] for entry in

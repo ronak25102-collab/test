@@ -25,10 +25,11 @@ class CostPolicyError(RuntimeError):
 
 
 class ResearchMachine:
-    def __init__(self, store: Store, settings: Settings):
+    def __init__(self, store: Store, settings: Settings, stop=None):
         self.store = store
         self.settings = settings
         self.lease_error = None
+        self.stop = stop
 
     def process(self, run_id: UUID) -> None:
         from threading import Event, Thread
@@ -281,6 +282,8 @@ class ResearchMachine:
         self.store.checkpoint(run_id, status.value, 0, {"event": event_type})
 
     def _cancelled(self, run_id: UUID) -> bool:
+        if self.stop is not None and self.stop.is_set():
+            return True  # Leave its durable lease for recovery after a restart.
         if not self.store.is_cancelled(run_id):
             return False
         self.store.update_run(run_id, status=RunStatus.CANCELLED, stage=RunStatus.CANCELLED.value, ended=True)

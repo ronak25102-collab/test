@@ -20,6 +20,7 @@ ENV PATH="/app/.venv/bin:$PATH" \
     FRONTEND_DIST_DIR=/app/frontend/dist \
     PIPELINE_MODE=precomputed \
     REPLAY_DURATION_SECONDS=147 \
+    MAX_PRECOMPUTED_RUNS=4 \
     AUTO_START_WORKER=true
 EXPOSE 10000
 CMD ["/bin/sh", "-c", "alembic -c /app/backend/alembic.ini upgrade head && exec uvicorn signal_research.main:app --host 0.0.0.0 --port \"${PORT:-10000}\" --workers 1"]

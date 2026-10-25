@@ -15,6 +15,7 @@ def configuration(request: Request):
         from signal_research.precomputed.catalog import index_entries
         return {"ready": True, "issues": [], "warnings": [], "provider": "none",
                 "mode": "precomputed", "max_run_seconds": settings.replay_duration_seconds,
+                "max_concurrent_runs": settings.max_precomputed_runs,
                 "demo_time_warning": False, "cost_policy": "No outbound calls",
                 "model_request_timeout_seconds": settings.model_request_timeout_seconds,
                 "codecraft_backup_keys": 0, "nvidia_fallback_enabled": False,

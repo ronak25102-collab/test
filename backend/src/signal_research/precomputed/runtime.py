@@ -9,7 +9,7 @@ from signal_research.domain.schemas import ResearchReport
 from signal_research.research.integrity import report_digest
 from signal_research.research.verifier import verify_report
 
-from .catalog import load_report
+from .catalog import REPORT_MEMORY_LOCK, load_report
 from .guard import offline_playback
 
 STAGE_TEXT = {
@@ -141,7 +141,13 @@ def process_precomputed(machine, run_id):
 def _process_precomputed(machine, run_id):
     store, settings = machine.store, machine.settings
     summary = store.get_summary(run_id)
-    fixture = load_report(settings, summary.company, summary.as_of)
+    with REPORT_MEMORY_LOCK:
+        fixture = load_report(settings, summary.company, summary.as_of)
+        counts = {"documents": len(fixture.documents), "facts": len(fixture.facts),
+                  "calculations": len(fixture.calculations),
+                  "challenges": len(fixture.generation_metadata.get("challenge_reviews", []))}
+        # Concurrent playbacks keep only small counters during their timer.
+        del fixture
     saved = summary.budget
     configured = store.run_configuration(run_id).get('replay_duration_seconds')
     duration = saved.get("replay_duration_seconds", configured if configured is not None else settings.replay_duration_seconds)
@@ -157,6 +163,7 @@ def _process_precomputed(machine, run_id):
     for index, (fraction, stage) in enumerate(schedule):
         next_fraction = schedule[index + 1][0] if index + 1 < len(schedule) else 1
         stage_durations[stage] = stage_durations.get(stage, 0) + max(0, next_fraction - fraction) * duration
+    last_progress = None
     while True:
         if machine.lease_error:
             raise machine.lease_error
@@ -171,21 +178,30 @@ def _process_precomputed(machine, run_id):
             emitted.add(marker)
         progress_fraction = min(1, elapsed / duration) if duration else 1
         progress = {
-            "sources_found": min(len(fixture.documents), int(len(fixture.documents) * min(1, progress_fraction / .25))),
-            "documents_parsed": min(len(fixture.documents), int(len(fixture.documents) * min(1, progress_fraction / .52))),
-            "facts_verified": int(len(fixture.facts) * min(1, progress_fraction / .65)),
-            "facts_reused": int(len(fixture.facts) * min(1, progress_fraction / .65)),
+            "sources_found": min(counts["documents"], int(counts["documents"] * min(1, progress_fraction / .25))),
+            "documents_parsed": min(counts["documents"], int(counts["documents"] * min(1, progress_fraction / .52))),
+            "facts_verified": int(counts["facts"] * min(1, progress_fraction / .65)),
+            "facts_reused": int(counts["facts"] * min(1, progress_fraction / .65)),
             "facts_fresh": 0,
-            "calculations_completed": int(len(fixture.calculations) * min(1, progress_fraction / .82)),
-            "counterevidence_checks": int(len(fixture.generation_metadata.get("challenge_reviews", [])) * min(1, progress_fraction / .92)),
+            "calculations_completed": int(counts["calculations"] * min(1, progress_fraction / .82)),
+            "counterevidence_checks": int(counts["challenges"] * min(1, progress_fraction / .92)),
         }
-        store.update_run(run_id, progress=progress)
+        if progress != last_progress:
+            store.update_run(run_id, progress=progress)
+            last_progress = progress
         if elapsed >= duration:
             break
         time.sleep(min(.5, duration - elapsed))
     if machine._cancelled(run_id):
         return
-    report = remap_report(fixture, run_id, summary.as_of, elapsed, stage_durations)
-    if machine._cancelled(run_id):
-        return
-    store.save_report(report)
+    # Re-load and publish one report at a time. Timers overlap without holding
+    # multiple large evidence graphs in memory or racing shared source inserts.
+    with REPORT_MEMORY_LOCK:
+        if machine._cancelled(run_id):
+            return
+        fixture = load_report(settings, summary.company, summary.as_of)
+        report = remap_report(fixture, run_id, summary.as_of, elapsed, stage_durations)
+        if machine._cancelled(run_id):
+            return
+        store.save_report(report)
+        del report, fixture

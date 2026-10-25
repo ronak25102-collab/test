@@ -1,17 +1,25 @@
 """Strict local fixture lookup. A missing company never falls back to another issuer."""
 import json
 from datetime import date
+from threading import RLock
 
 from signal_research.domain.enums import PublicationStatus
 from signal_research.domain.schemas import ResearchReport
 from signal_research.research.verifier import verify_report
 
+REPORT_MEMORY_LOCK = RLock()
 
 class PrecomputedUnavailable(ValueError):
     code = "UNSUPPORTED_SECTOR"
 
 
 def load_report(settings, company, cutoff: date):
+    # Serialize large fixture validation with publication on small hosted instances.
+    with REPORT_MEMORY_LOCK:
+        return _load_report(settings, company, cutoff)
+
+
+def _load_report(settings, company, cutoff: date):
     roster_path = settings.precomputed_dir / 'roster.json'
     if roster_path.is_file():
         roster = json.loads(roster_path.read_text(encoding='utf-8'))
