@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Report } from '../api/generated'
-import { API_BASE } from '../api/client'
+import { API_BASE, authenticatedFetch } from '../api/client'
 import { EvidenceModal } from './EvidenceModal'
 import { Arrow } from './Landing'
 
@@ -21,7 +21,7 @@ const MIN_PREPARE_MS = 600
 const exportUrl = (runId: string, file: string) => `${API_BASE}/api/v1/runs/${runId}/exports/${file}`
 
 async function fetchExport(url: string, signal?: AbortSignal): Promise<Blob> {
-  const response = await fetch(url, { signal })
+  const response = await authenticatedFetch(url, { signal })
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     throw new Error(body.detail?.message || body.message || `Export failed (${response.status})`)

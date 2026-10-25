@@ -200,19 +200,21 @@ class Store:
             return company_schema(row) if row else None
 
     def create_run(self, company: Company, as_of: date, mode: RunMode, idempotency_key: str | None = None, cold_start: bool = False,
-                   pipeline_mode: str | None = None, replay_duration_seconds: float | None = None) -> UUID:
+                   pipeline_mode: str | None = None, replay_duration_seconds: float | None = None,
+                   owner_user_id: str | None = None) -> UUID:
         with self.session_factory() as session:
             if idempotency_key:
                 existing = session.scalar(select(ResearchRunModel).where(ResearchRunModel.idempotency_key == idempotency_key))
                 if existing:
-                    if (existing.company_id, existing.as_of, existing.mode) != (str(company.id), as_of, mode.value):
+                    if (existing.company_id, existing.as_of, existing.mode, existing.owner_user_id) != (str(company.id), as_of, mode.value, owner_user_id):
                         raise ValueError("idempotency key already belongs to a different request")
                     if bool((existing.config_json or {}).get('cold_start', False)) != cold_start:
                         raise ValueError('idempotency key already belongs to a different cache policy')
                     return UUID(existing.id)
             run_id = uuid4()
             row = ResearchRunModel(
-                id=str(run_id), company_id=str(company.id), as_of=as_of, mode=mode.value,
+                id=str(run_id), company_id=str(company.id), owner_user_id=owner_user_id,
+                as_of=as_of, mode=mode.value,
                 status=RunStatus.QUEUED.value, stage=RunStatus.QUEUED.value,
                 config_json={"schema_version": "1.0", "mode": mode.value, 'cold_start': cold_start,
                              **({'pipeline_mode': pipeline_mode,
@@ -296,20 +298,23 @@ class Store:
                     self.append_event(run_id, RunStatus.CANCELLED.value, "run_cancelled", "Queued run was cancelled before leasing")
             return row.status
 
-    def queued_run_count(self) -> int:
+    def queued_run_count(self, owner_user_id: str | None = None) -> int:
         with self.session_factory() as session:
-            return session.scalar(select(func.count()).select_from(ResearchRunModel).where(
-                ResearchRunModel.status == RunStatus.QUEUED.value,
-            ))
+            query = select(func.count()).select_from(ResearchRunModel).where(
+                ResearchRunModel.status == RunStatus.QUEUED.value)
+            if owner_user_id is not None:
+                query = query.where(ResearchRunModel.owner_user_id == owner_user_id)
+            return session.scalar(query)
 
-    def clear_queue(self) -> list[str]:
+    def clear_queue(self, owner_user_id: str | None = None) -> list[str]:
         """Cancel waiting work atomically; preserve active runs and durable artifacts."""
         with self.session_factory() as session:
             # A conditional write is the first statement, including on SQLite.
             # PostgreSQL rechecks queued status if a worker held the row lock.
-            run_ids = list(session.scalars(update(ResearchRunModel).where(
-                ResearchRunModel.status == RunStatus.QUEUED.value,
-            ).values(
+            query = update(ResearchRunModel).where(ResearchRunModel.status == RunStatus.QUEUED.value)
+            if owner_user_id is not None:
+                query = query.where(ResearchRunModel.owner_user_id == owner_user_id)
+            run_ids = list(session.scalars(query.values(
                 status=RunStatus.CANCELLED.value, stage=RunStatus.CANCELLED.value,
                 cancel_requested=True, ended_at=datetime.now(UTC),
                 lease_owner=None, lease_expires_at=None,
@@ -435,9 +440,17 @@ class Store:
                 reports.append(report)
             return reports
 
-    def run_history(self, limit=12):
+    def run_owner(self, run_id: UUID | str) -> str | None:
         with self.session_factory() as session:
-            identifiers = session.scalars(select(ResearchRunModel.id).order_by(
+            return session.scalar(select(ResearchRunModel.owner_user_id).where(
+                ResearchRunModel.id == str(run_id)))
+
+    def run_history(self, limit=12, owner_user_id: str | None = None):
+        with self.session_factory() as session:
+            query = select(ResearchRunModel.id)
+            if owner_user_id is not None:
+                query = query.where(ResearchRunModel.owner_user_id == owner_user_id)
+            identifiers = session.scalars(query.order_by(
                 ResearchRunModel.created_at.desc(), ResearchRunModel.id.desc()).limit(limit)).all()
         return [summary for identifier in identifiers if (summary := self.get_summary(identifier))]
 

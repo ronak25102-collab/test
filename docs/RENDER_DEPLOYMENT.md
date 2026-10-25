@@ -1,6 +1,9 @@
 # Deploy Beyond on Render with one Docker container
 
 The root `Dockerfile` builds React, then serves the built website and API from FastAPI.
+It also configures [Clerk sign-in and personal run history](CLERK_AUTH.md). The
+supplied public Clerk development key is the default build argument; no secret key
+is committed or required for public-key session verification.
 The worker runs in the same process with `AUTO_START_WORKER=true`. Keep one Uvicorn
 worker. Production browser requests use the same origin, so no frontend API URL or
 additional CORS origin is required. Existing report links use query parameters and

@@ -14,6 +14,7 @@ def configuration(request: Request):
     if settings.pipeline_mode == "precomputed":
         from signal_research.precomputed.catalog import index_entries
         return {"ready": True, "issues": [], "warnings": [], "provider": "none",
+                "authentication_enabled": bool(settings.clerk_publishable_key),
                 "mode": "precomputed", "max_run_seconds": settings.replay_duration_seconds,
                 "max_concurrent_runs": settings.max_precomputed_runs,
                 "demo_time_warning": False, "cost_policy": "No outbound calls",

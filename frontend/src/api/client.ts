@@ -2,12 +2,21 @@ import type { Company, Report, RunSummary } from './generated'
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.PROD ? '' : 'http://127.0.0.1:8000')
 
+let accessToken: (() => Promise<string | null>) | null = null
+export function setAccessTokenGetter(getter: () => Promise<string | null>) { accessToken = getter }
+export async function authenticatedFetch(url: string, init?: RequestInit) {
+  const headers = new Headers(init?.headers)
+  const token = await accessToken?.()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  return fetch(url, { ...init, headers })
+}
+
 export class RequestError extends Error {
   constructor(message: string, public readonly status: number) { super(message) }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}/api/v1${path}`, init)
+  const response = await authenticatedFetch(`${API_BASE}/api/v1${path}`, init)
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
     const fallback = [502, 503, 504].includes(response.status)

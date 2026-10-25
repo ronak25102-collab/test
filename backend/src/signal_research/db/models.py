@@ -54,6 +54,7 @@ class ResearchRunModel(Base):
     __tablename__ = "research_runs"
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     company_id: Mapped[str] = mapped_column(ForeignKey("companies.id"), index=True)
+    owner_user_id: Mapped[str | None] = mapped_column(String(128), nullable=True)
     as_of: Mapped[date] = mapped_column(Date, index=True)
     mode: Mapped[str] = mapped_column(String(20))
     status: Mapped[str] = mapped_column(String(30), index=True)
@@ -76,6 +77,7 @@ class ResearchRunModel(Base):
     report_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
     company: Mapped[CompanyModel] = relationship()
+    __table_args__ = (Index("ix_run_owner_created_at", "owner_user_id", "created_at"),)
 
 
 class RunEventModel(Base):

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from datetime import datetime
 from typing import Annotated
 from uuid import UUID
@@ -10,6 +11,8 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, R
 from signal_research.db.repositories import Store
 from signal_research.domain.enums import RunMode
 from signal_research.domain.schemas import RunCreate
+
+from .auth import current_user
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -58,10 +61,14 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
                     "message": " ".join(readiness["issues"]), "issues": readiness["issues"]})
     try:
         settings = http_request.app.state.settings
+        owner_user_id = current_user(http_request)
+        if owner_user_id and idempotency_key:
+            idempotency_key = "user:" + hashlib.sha256(f"{owner_user_id}\0{idempotency_key}".encode()).hexdigest()
         run_id = store.create_run(company, request.as_of, request.mode, idempotency_key,
                                   cold_start=request.cold_start,
                                   pipeline_mode=settings.pipeline_mode,
-                                  replay_duration_seconds=settings.replay_duration_seconds)
+                                  replay_duration_seconds=settings.replay_duration_seconds,
+                                  owner_user_id=owner_user_id)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(exc)})
     wake_worker(http_request)
@@ -70,19 +77,19 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
 
 
 @router.get("/queue")
-def queue_status(store: Store = Depends(get_store)):
-    return {"queued_count": store.queued_run_count()}
+def queue_status(request: Request, store: Store = Depends(get_store)):
+    return {"queued_count": store.queued_run_count(current_user(request))}
 
 
 @router.post("/queue/clear")
-def clear_queue(store: Store = Depends(get_store)):
-    run_ids = store.clear_queue()
+def clear_queue(request: Request, store: Store = Depends(get_store)):
+    run_ids = store.clear_queue(current_user(request))
     return {"cancelled_count": len(run_ids), "run_ids": run_ids}
 
 
 @router.get('/history')
-def run_history(limit: int = Query(12, ge=1, le=50), store: Store = Depends(get_store)):
-    return {'items': [run.model_dump(mode='json') for run in store.run_history(limit)]}
+def run_history(request: Request, limit: int = Query(12, ge=1, le=50), store: Store = Depends(get_store)):
+    return {'items': [run.model_dump(mode='json') for run in store.run_history(limit, current_user(request))]}
 
 
 @router.get("/{run_id}")

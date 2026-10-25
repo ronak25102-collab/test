@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./data/signal.db"
     data_dir: Path = Path("./data")
     frontend_dist_dir: Path | None = None
+    clerk_publishable_key: str = ""
+    auth_required: bool = False
+    clerk_authorized_parties: list[str] = Field(default_factory=lambda: [
+        "https://beyond-gtg4.onrender.com", "http://127.0.0.1:5173", "http://localhost:5173",
+    ])
     pipeline_mode: Literal["precomputed", "live"] = "precomputed"
     replay_duration_seconds: float = Field(default=147, ge=0)
     precomputed_dir: Path = Path(__file__).parent / "precomputed"

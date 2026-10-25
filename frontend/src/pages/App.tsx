@@ -12,10 +12,25 @@ import { ResearchProgress } from './ResearchProgress'
 import { RunHistory } from './RunHistory'
 import { useAppRoute } from '../appRoute'
 import './research-pages.css'
+import { AccountActions, useSiteAuth } from '../auth/AuthProvider'
+import { AuthPage } from '../auth/AuthPage'
 
 const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
 
 export function App() {
+  const auth = useSiteAuth()
+  const { route, navigate } = useAppRoute()
+  const authRoute = route.view === 'sign-in' || route.view === 'sign-up'
+  useEffect(() => {
+    if (auth.enabled && auth.loaded && auth.signedIn && authRoute) navigate({ view: 'workspace' }, { replace: true })
+  }, [auth.enabled, auth.loaded, auth.signedIn, authRoute, navigate])
+  if (authRoute || (auth.enabled && route.view !== 'home' && (!auth.loaded || !auth.signedIn))) {
+    return <AuthPage signUp={route.view === 'sign-up'} />
+  }
+  return <ResearchApp key={auth.userId || 'anonymous'} />
+}
+
+function ResearchApp() {
   const { route, navigate } = useAppRoute()
   const landingVisible = route.view === 'home'
   const [motionPaused, setMotionPaused] = useState(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches)
@@ -189,7 +204,7 @@ export function App() {
 
   return <div ref={shellRef} className={`shell ${motionPaused ? 'motion-paused' : ''} ${landingVisible ? 'with-landing' : 'workspace-view'}`}>
     <a className="skip-link" href={landingVisible ? '#platform' : '#research'}>{landingVisible ? 'Skip to main content' : 'Skip to research'}</a>
-    <header className="topbar"><a className="brand" href="/" aria-label="Beyond home"><BeyondMark /><span>beyond<span className="brand-period">.</span></span></a><nav aria-label="Main navigation">{[['platform', 'Platform'], ['how-it-works', 'How it works'], ['why-beyond', 'Our approach']].map(([id, label]) => <a key={id} href={landingVisible ? `#${id}` : `/#${id}`} aria-current={landingVisible && activeSection === id ? 'location' : undefined}>{label}</a>)}</nav><div className="header-actions"><button className="button-dark header-launch" onClick={launchWorkspace}>{landingVisible ? 'Launch workspace' : workspaceVisible ? 'Research workspace' : 'New research'}<Arrow diagonal /></button></div><span className="reading-progress" aria-hidden="true" /></header>
+    <header className="topbar"><a className="brand" href="/" aria-label="Beyond home"><BeyondMark /><span>beyond<span className="brand-period">.</span></span></a><nav aria-label="Main navigation">{[['platform', 'Platform'], ['how-it-works', 'How it works'], ['why-beyond', 'Our approach']].map(([id, label]) => <a key={id} href={landingVisible ? `#${id}` : `/#${id}`} aria-current={landingVisible && activeSection === id ? 'location' : undefined}>{label}</a>)}</nav><div className="header-actions"><AccountActions /><button className="button-dark header-launch" onClick={launchWorkspace}>{landingVisible ? 'Launch workspace' : workspaceVisible ? 'Research workspace' : 'New research'}<Arrow diagonal /></button></div><span className="reading-progress" aria-hidden="true" /></header>
     <main className="app-main">
       {landingVisible && <Landing onLaunch={launchWorkspace} motionPaused={motionPaused} />}
       <div className={`workspace-container research-page ${reportVisible ? 'report-page' : progressVisible ? 'progress-page' : 'setup-page'}`} id="research" hidden={landingVisible}>

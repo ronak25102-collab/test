@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from signal_research.api import companies, evidence, exports, health, runs
+from signal_research.api.auth import install_auth
 from signal_research.db.models import Base
 from signal_research.db.repositories import Store
 from signal_research.db.session import build_engine, session_factory
@@ -52,7 +53,8 @@ def create_app(settings=None, store_override=None):
 
     application = FastAPI(title="Beyond", version="0.2.0", lifespan=lifespan)
     application.state.settings = settings
-    application.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"], allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Idempotency-Key"])
+    application.add_middleware(CORSMiddleware, allow_origins=["http://127.0.0.1:5173", "http://localhost:5173"], allow_methods=["GET", "POST"], allow_headers=["Content-Type", "Idempotency-Key", "Authorization"])
+    install_auth(application, settings)
     for router in (companies.router, runs.router, evidence.router, exports.router, health.router):
         application.include_router(router, prefix="/api/v1")
 

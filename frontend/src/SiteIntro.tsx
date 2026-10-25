@@ -4,6 +4,7 @@ import { PAGE_REVEALED_EVENT } from './pageReveal'
 
 const shouldPlay = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   && new URLSearchParams(location.search).get('print') !== '1'
+  && !['sign-in', 'sign-up'].includes(new URLSearchParams(location.search).get('view') || '')
 
 // Safety net: the intro always releases the page shortly after its 5.4s animation.
 const INTRO_TIMEOUT_MS = 5800

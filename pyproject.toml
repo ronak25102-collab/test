@@ -23,6 +23,7 @@ dependencies = [
   "pypdfium2>=4,<6",
   "reportlab>=4,<5",
   "truststore>=0.10,<1",
+  "pyjwt[crypto]>=2.10,<3",
 ]
 
 [project.optional-dependencies]
