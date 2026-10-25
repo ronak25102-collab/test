@@ -56,7 +56,12 @@ def check():
                 size += len(chunk)
             return size
 
-    with tempfile.TemporaryDirectory(prefix="beyond-memory-") as directory:
+    # Modern Linux runners mount /tmp as tmpfs. A growing SQLite database there
+    # consumes unreclaimable RAM, unlike Render's external Postgres database.
+    # Keep this isolated test database on the workspace's disk filesystem.
+    scratch = Path.cwd() / ".review-cache"
+    scratch.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="beyond-memory-", dir=scratch) as directory:
         database = str(Path(directory) / "isolated.db")
         with open(Path(directory) / "server.log", "w+") as log:
             process = subprocess.Popen([sys.executable, __file__, "--serve", database,
@@ -86,6 +91,7 @@ def check():
                         time.sleep(.1)
                 companies = [request("/companies/resolve", {"query": symbol}, decode=True)["resolved"]
                              for symbol in ("KOTAKBANK", "HDFCBANK", "ICICIBANK", "AXISBANK")]
+                print("Server ready; starting concurrent publications", flush=True)
 
                 def create(company):
                     return request("/runs", {"company_id": company["id"], "as_of": "2026-10-24"},
@@ -104,6 +110,8 @@ def check():
                             assert process.poll() is None, "Server died during publication"
                             time.sleep(.1)
                         jobs = []
+                        print(f"Batch {round_number + 1} published; starting downloads; "
+                              f"peak RSS {peak[0] / 1024 ** 2:.1f} MiB", flush=True)
                         # Repeated reports, ZIPs and evidence requests compete with
                         # publication of the next batch of four investigations.
                         for run_id in runs:
@@ -118,7 +126,7 @@ def check():
                             runs = [job.result() for job in next_runs]
                     assert request("/health/ready", decode=True)["database"] == "ok"
                 print(json.dumps({"completed_runs": 8, "concurrent_clients": 16,
-                                  "server_peak_rss_mib": round(peak[0] / 1024 ** 2, 1)}))
+                                  "server_peak_rss_mib": round(peak[0] / 1024 ** 2, 1)}), flush=True)
                 cgroup = Path("/proc/self/cgroup")
                 if cgroup.is_file() and cgroup.read_text().startswith("0::"):
                     root = Path("/sys/fs/cgroup") / cgroup.read_text().strip().split("::", 1)[1].lstrip("/")
