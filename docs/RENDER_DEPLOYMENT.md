@@ -68,6 +68,11 @@ See <https://render.com/docs/free> and the current Neon plan limits.
 
 ## External keep-alive
 
+For a Neon-hosted scheduler, use the prepared
+[Neon Function](../functions/neonkeepalive/README.md). It checks the same endpoint
+without querying Postgres. A Neon account sign-in is required to deploy the
+function; the database URI alone does not grant function management access.
+
 The `Keep Beyond awake` GitHub Actions workflow checks the public `/api/v1/health/live`
 endpoint every five minutes. This endpoint does not query Neon or create research
 runs. The workflow needs no database password or API key. It also runs when its

@@ -1,4 +1,6 @@
 .env
+.neon
+.neon.local
 .venv/
 __pycache__/
 *.py[cod]
