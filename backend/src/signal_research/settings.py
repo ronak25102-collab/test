@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     data_dir: Path = Path("./data")
     frontend_dist_dir: Path | None = None
     pipeline_mode: Literal["precomputed", "live"] = "precomputed"
-    replay_duration_seconds: float = Field(default=120, ge=0)
+    replay_duration_seconds: float = Field(default=147, ge=0)
     precomputed_dir: Path = Path(__file__).parent / "precomputed"
     llm_provider: Literal["openai", "gemini", "nvidia", "codecraft"] = "openai"
     codecraft_api_key: str = Field(default="", repr=False)

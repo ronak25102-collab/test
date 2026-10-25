@@ -3,7 +3,7 @@
 **An evidence-first research workbench for listed financial businesses.**
 
 The backend now defaults to **stored evidence playback** (`PIPELINE_MODE=precomputed`).
-It shows the existing progress stages for `REPLAY_DURATION_SECONDS=120`, then saves a
+It shows the existing progress stages for `REPLAY_DURATION_SECONDS=147`, then saves a
 reviewed published report under the new run ID. Playback makes no search, model or
 source-fetch requests and requires no provider keys or rate card. Existing endpoints,
 report schema, exports, synthetic SYNTHBANK replay and the frontend are unchanged.

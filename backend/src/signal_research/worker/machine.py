@@ -4,6 +4,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
+from signal_research.db.errors import public_failure_message
 from signal_research.db.repositories import Store
 from signal_research.domain.enums import PublicationStatus, ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.errors import BudgetExceeded
@@ -71,7 +72,7 @@ class ResearchMachine:
                     return
                 logger.exception("precomputed playback %s failed", run_id)
                 self.store.update_run(run_id, status=RunStatus.FAILED, stage=RunStatus.FAILED.value,
-                                      limitations=[str(exc)], ended=True)
+                                      limitations=[public_failure_message(exc)], ended=True)
                 self.store.append_event(run_id, RunStatus.FAILED.value, "run_failed",
                                         "Stored evidence playback failed; no live research was attempted",
                                         error_code=getattr(exc, "code", "STAGE_FAILED"))
@@ -151,7 +152,7 @@ class ResearchMachine:
                     if self._cancelled(run_id) or self.store.has_report(run_id):
                         return
                     exc = recovery_error
-            self.store.update_run(run_id, status=RunStatus.FAILED, stage=RunStatus.FAILED.value, limitations=[str(exc)], ended=True)
+            self.store.update_run(run_id, status=RunStatus.FAILED, stage=RunStatus.FAILED.value, limitations=[public_failure_message(exc)], ended=True)
             self.store.append_event(run_id, RunStatus.FAILED.value, "run_failed", "Research stopped because a stage failed", error_code=getattr(exc, "code", "STAGE_FAILED"))
 
     def _preserve_evidence_at_limit(self, run_id, budget, error, limitations) -> bool:

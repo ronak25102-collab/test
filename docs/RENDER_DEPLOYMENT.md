@@ -36,7 +36,7 @@ Choose a region close to your Neon database. Add these environment variables:
 | `DATABASE_URL` | Your private `postgresql+psycopg://...` Neon URI |
 | `PIPELINE_MODE` | `precomputed` |
 | `AUTO_START_WORKER` | `true` |
-| `REPLAY_DURATION_SECONDS` | `120` |
+| `REPLAY_DURATION_SECONDS` | `147` |
 | `FREE_SERVICES_ONLY` | `true` |
 | `MAX_RUN_COST_USD` | `0` |
 
@@ -52,7 +52,7 @@ Click **Deploy Web Service**. When live, open its `https://...onrender.com` URL.
 Check `/api/v1/health/configuration` for `ready: true` and `mode: precomputed`.
 After the worker starts, `/api/v1/health/ready` should return `database: ok` and
 `worker: fresh`. Start an HDFC Bank investigation using today's cutoff and Live
-mode; stored evidence playback should complete after approximately two minutes.
+mode; stored evidence playback runs for 147 seconds before saving the report.
 
 The Free service sleeps after 15 minutes without inbound traffic and can take
 about a minute to wake. Files written inside the container are temporary; saved

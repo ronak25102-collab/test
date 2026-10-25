@@ -159,6 +159,36 @@ def test_guard_blocks_every_provider_and_fetch(tmp_path):
     require_network_allowed()
 
 
+def test_database_failure_is_readable_in_new_and_existing_run_summaries(offline_app, monkeypatch):
+    from signal_research.db.errors import DATABASE_FAILURE_MESSAGE
+    from signal_research.domain.enums import RunStatus
+    from sqlalchemy.exc import DataError
+
+    client, store, settings, fixture = offline_app
+    settings.replay_duration_seconds = 147
+    response = client.post('/api/v1/runs', json={
+        'company_id': str(fixture.company.id), 'as_of': '2026-10-08'})
+    run_id = response.json()['run_id']
+    assert store.lease_next('failed-publication')
+    clock = fake_clock(monkeypatch, store, run_id)
+    failure = DataError('INSERT INTO passages VALUES (...)', {'column_label': 'private-bound-value'},
+                        Exception('value too long for type character varying(300)'))
+
+    def fail_save(report):
+        raise failure
+
+    monkeypatch.setattr(store, 'save_report', fail_save)
+    ResearchMachine(store, settings).process(run_id)
+    assert clock['elapsed'] >= 147
+    summary = client.get(f'/api/v1/runs/{run_id}').json()
+    assert summary['status'] == 'failed'
+    assert summary['limitations'] == [DATABASE_FAILURE_MESSAGE]
+    # Failed runs stored by an older deployment must also hide their raw SQL.
+    store.update_run(run_id, status=RunStatus.FAILED, limitations=[str(failure)])
+    assert client.get(f'/api/v1/runs/{run_id}').json()['limitations'] == [DATABASE_FAILURE_MESSAGE]
+    assert client.get('/api/v1/runs/history').json()['items'][0]['limitations'] == [DATABASE_FAILURE_MESSAGE]
+
+
 @pytest.mark.parametrize('symbol', [entry['symbol'] for entry in
                                   read_json(FIXTURE_DIR / 'index.json')['companies']])
 def test_real_fixture_report_evidence_exports_and_history(symbol, tmp_path, monkeypatch):

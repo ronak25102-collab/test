@@ -432,6 +432,8 @@ class Store:
         return [summary for identifier in identifiers if (summary := self.get_summary(identifier))]
 
     def get_summary(self, run_id: UUID | str) -> RunSummary | None:
+        from .errors import public_failure_message
+
         with self.session_factory() as session:
             row = session.get(ResearchRunModel, str(run_id))
             if not row:
@@ -440,7 +442,9 @@ class Store:
             return RunSummary(
                 id=UUID(row.id), company=company_schema(company), as_of=row.as_of, mode=row.mode,
                 status=row.status, outcome=row.outcome, stage=row.stage, progress=row.progress_json or {},
-                budget=row.budget_json or {}, limitations=row.limitations or [], started_at=row.started_at,
+                budget=row.budget_json or {},
+                limitations=[public_failure_message(value) for value in (row.limitations or [])],
+                started_at=row.started_at,
                 ended_at=row.ended_at, cold_start=bool((row.config_json or {}).get('cold_start', False)),
             )
 
