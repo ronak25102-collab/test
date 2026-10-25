@@ -138,7 +138,7 @@ export function ResearchResult({ report, onClaim, section, onNavigate }: { repor
     <div className="report-export-slot"><ReportExport report={report} /></div>
     <nav className="report-navigation" aria-label="Report sections">{nav.map(([key, label], index) => <a key={key} href={routeHref({ view: 'report', runId: report.run_id, section: key })} aria-current={section === key ? 'page' : undefined} onClick={event => { if (event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(key) } }}><span>0{index + 1}</span>{label}</a>)}</nav>
     {section === 'overview' && <>
-    <header className="report-hero"><div className="report-hero-top"><span className="report-eyebrow">{discovery ? 'PRIMARY DISCOVERY' : report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}<span> / {String(report.source_coverage.mode || 'mode unrecorded').toUpperCase()}</span></span></div>
+    <header className="report-hero"><div className="report-hero-top"><span className="report-eyebrow">{discovery ? 'PRIMARY DISCOVERY' : report.outcome === 'partial' ? 'PARTIAL RESEARCH' : 'RESEARCH COMPLETE'}</span></div>
       <div className="report-company"><span>{report.company.symbols.join(' · ')}</span><span>Cutoff {report.cutoff}</span>{report.source_coverage.synthetic === true && <span>Synthetic replay</span>}</div>
       <h2>{discovery ? 'Discovery published' : report.facts.length ? 'Verified evidence collected' : report.outcome === 'partial' ? 'Investigation incomplete' : 'More evidence needed'}</h2>
       {discovery
