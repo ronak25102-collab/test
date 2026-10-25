@@ -68,19 +68,18 @@ See <https://render.com/docs/free> and the current Neon plan limits.
 
 ## External keep-alive
 
-For a Neon-hosted scheduler, use the prepared
-[Neon Function](../functions/neonkeepalive/README.md). It checks the same endpoint
-without querying Postgres. A Neon account sign-in is required to deploy the
-function; the database URI alone does not grant function management access.
+The deployed [Neon Function](../functions/neonkeepalive/README.md), `beyondkeepalive`,
+is invoked every five minutes by the production branch's `beyond-keepalive`
+scheduled Function Trigger. It calls the public `/api/v1/health/live` endpoint
+without querying Postgres or creating research runs. Neon can fire the schedule
+while Postgres is suspended. A scheduled invocation has been verified successfully.
 
-The `Keep Beyond awake` GitHub Actions workflow checks the public `/api/v1/health/live`
-endpoint every five minutes. This endpoint does not query Neon or create research
-runs. The workflow needs no database password or API key. It also runs when its
-workflow file is pushed, and can be started from GitHub Actions with **Run workflow**.
-Disable it from its GitHub Actions page when it is no longer needed.
+The GitHub workflow **Check Beyond health manually** is available from Actions →
+Run workflow for troubleshooting, but it no longer has an automatic schedule.
 
 This helps prevent Render's inactivity sleep; it does not guarantee 24/7 uptime.
-GitHub schedules can be delayed, and public-repository schedules are disabled after
-60 days without repository activity. Render can restart free instances and enforces
-shared monthly compute, bandwidth and build limits. Neon compute and storage quotas
-still apply when the application is used. No paid plan or automatic upgrade is enabled.
+Render can restart free instances and enforces shared monthly compute, bandwidth
+and build limits. Neon Functions have their own usage allowances; database compute
+and storage quotas still apply when the application is used. No paid plan or
+automatic upgrade is enabled. To stop the recurring check, disable `beyond-keepalive`
+in Neon Console → Functions → beyondkeepalive → Manage Triggers.

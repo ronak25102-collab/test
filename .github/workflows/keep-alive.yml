@@ -1,14 +1,9 @@
-name: Keep Beyond awake
+name: Check Beyond health manually
 
 on:
-  schedule:
-    # Avoid the start of the hour, when GitHub schedules are busiest.
-    - cron: '3,8,13,18,23,28,33,38,43,48,53,58 * * * *'
+  # Recurring checks run in Neon's beyondkeepalive scheduled Function Trigger.
+  # Keep this workflow available only as a manual diagnostic fallback.
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/keep-alive.yml'
 
 permissions: {}
 
