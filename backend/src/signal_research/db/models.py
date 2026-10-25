@@ -70,7 +70,9 @@ class ResearchRunModel(Base):
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     fencing_token: Mapped[int] = mapped_column(Integer, default=0)
     idempotency_key: Mapped[str | None] = mapped_column(String(200), nullable=True, unique=True)
-    report_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
+    # Progress, leases and history only need the run metadata. Large evidence
+    # payloads are loaded explicitly when a report or export is requested.
+    report_json: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True, deferred=True)
     report_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now_utc)
     company: Mapped[CompanyModel] = relationship()

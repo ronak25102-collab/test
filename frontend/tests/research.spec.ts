@@ -303,7 +303,7 @@ test('lost creation response reuses the same idempotency key on retry', async ({
   expect(keys[0]).toBe(keys[1])
 })
 
-test('saved run polling reconnects after a temporary local API failure', async ({ page }) => {
+test('saved run polling reconnects after a temporary hosting failure', async ({ page }) => {
   let polls = 0
   let apiRecovered = false
   await page.emulateMedia({ reducedMotion: 'no-preference' })
@@ -314,12 +314,12 @@ test('saved run polling reconnects after a temporary local API failure', async (
     if (path.endsWith('/companies') || path.endsWith('/events')) return route.fulfill({ json: { items: [] } })
     if (path.endsWith('/health/configuration')) return route.fulfill({ json: { ready: true, issues: [], demo_time_warning: false } })
     polls++
-    if (!apiRecovered) return route.fulfill({ status: 503, json: { message: 'Controlled temporary API outage' } })
+    if (!apiRecovered) return route.fulfill({ status: 502, contentType: 'text/html', body: '<html><title>502 Bad Gateway</title></html>' })
     return route.fulfill({ json: { id: report.run_id, company: report.company, as_of: report.cutoff, mode: 'live', status: 'queued', stage: 'queued', progress: {}, limitations: [] } })
   })
   await page.goto(`/?run=${report.run_id}`)
   await page.getByRole('button', { name: 'Skip intro' }).click()
-  await expect(page.getByRole('alert')).toContainText('Controlled temporary API outage')
+  await expect(page.getByRole('alert')).toContainText('The server is temporarily unavailable. Please try again shortly.')
   // Restore the mock service after the error is observed, independently of intro timing.
   apiRecovered = true
   await expect(page.getByRole('status')).toContainText('Research is queued', { timeout: 10000 })

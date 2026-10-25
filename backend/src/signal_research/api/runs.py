@@ -114,7 +114,7 @@ def resume(run_id: UUID, store: Store = Depends(get_store)):
 @router.get("/{run_id}/report")
 def report(run_id: UUID, store: Store = Depends(get_store)):
     require_summary(run_id, store)
-    value = store.get_report(run_id)
-    if not value:
+    value = store.get_report_json(run_id)
+    if value is None:
         raise HTTPException(status_code=409, detail={"code": "REPORT_NOT_READY", "message": "report is not available yet"})
-    return value.model_dump(mode="json")
+    return Response(content=value, media_type="application/json")

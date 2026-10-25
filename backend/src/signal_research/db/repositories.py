@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 
-from sqlalchemy import func, or_, select, update
+from sqlalchemy import Text, cast, func, or_, select, update
 
 from signal_research.domain.enums import ResearchOutcome, RunMode, RunStatus
 from signal_research.domain.schemas import Company, ResearchReport, RunEvent, RunSummary
@@ -401,6 +401,16 @@ class Store:
         with self.session_factory() as session:
             row = session.get(ResearchRunModel, str(run_id))
             return ResearchReport.model_validate(row.report_json) if row and row.report_json else None
+
+    def get_report_json(self, run_id: UUID | str) -> str | None:
+        """Read the published JSON without decoding and rebuilding its evidence graph.
+
+        save_report already stores the complete validated report. Casting to text
+        also avoids the driver's JSON decoder before the HTTP response encodes it.
+        """
+        with self.session_factory() as session:
+            return session.scalar(select(cast(ResearchRunModel.report_json, Text)).where(
+                ResearchRunModel.id == str(run_id), ResearchRunModel.report_json.is_not(None)))
 
     def historical_reports(self, company_id: UUID, cutoff: date, limit: int = 3) -> list[ResearchReport]:
         """Prior completed live observations; never select synthetic replay work."""

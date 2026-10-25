@@ -10,7 +10,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}/api/v1${path}`, init)
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new RequestError(body.message || body.detail?.message || (typeof body.detail === 'string' ? body.detail : 'Request failed'), response.status)
+    const fallback = [502, 503, 504].includes(response.status)
+      ? 'The server is temporarily unavailable. Please try again shortly.'
+      : 'Request failed'
+    throw new RequestError(body.message || body.detail?.message || (typeof body.detail === 'string' ? body.detail : fallback), response.status)
   }
   return response.json()
 }
