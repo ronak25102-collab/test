@@ -61,7 +61,7 @@ function MoneyJourney({ run, events }: { run: RunSummary; events: RunEvent[] }) 
 
   return <div className={`money-journey ${moving ? 'journey-moving' : 'journey-still'} ${stopped ? 'journey-stopped' : ''}`}>
     <div className="journey-heading"><div><span className="journey-kicker">FOLLOW THE EVIDENCE</span><h3>Following the money.<br /><span>Checking the story.</span></h3></div><span className="journey-live"><i />{state}</span></div>
-    <p className="journey-live-metrics" role="timer" aria-label="Live research measurements">Stage: {run.stage} · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')} elapsed · {run.progress.facts_verified || 0} facts verified · {run.progress.facts_reused || 0} reused / {run.progress.facts_fresh || 0} fresh</p>
+    <p className="journey-live-metrics" role="timer" aria-label="Live research measurements">Stage: {run.stage} · {Math.floor(elapsed / 60)}:{String(elapsed % 60).padStart(2, '0')} elapsed · {run.progress.facts_verified || 0} facts verified</p>
     <div className="journey-caption" aria-live="polite"><strong>{caption}</strong><span>{run.company.legal_name} · {run.mode === 'replay' ? 'Synthetic replay' : 'Public financial research'}</span></div>
     <div className="finance-scene" aria-hidden="true" ref={scene}>
       <svg viewBox="0 0 960 280" fill="none">

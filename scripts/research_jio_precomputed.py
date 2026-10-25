@@ -348,6 +348,7 @@ def main():
                 temporal_reasoning={'onset_status': 'unknown', 'note': report.historical_coverage})
     review_time = datetime.now(UTC).isoformat()
     data = {'schema_version': '1.0', 'company': report.company.model_dump(mode='json'),
+            'publication_policy': 'source_verified_discovery_v2',
             'data_as_of': str(report.cutoff), 'bse_code': '543940',
             'reviewed_report': report.model_dump(mode='json'),
             'facts': expanded_fact_inputs(report),

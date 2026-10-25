@@ -84,12 +84,37 @@ calculation, document passages, HTML/JSON/CSV/ZIP exports and history. Existing
 frontend tabs, dialogs and print layout consume the same `ResearchReport` and
 evidence response structure; no frontend file changes are permitted.
 
-The strict coverage contract is at least 6 documents, 300 passages, 15 facts,
+The original strict coverage target is at least 6 documents, 300 passages, 15 facts,
 8 calculations, 2 verified matched peers and 3 fiscal years represented by
 actual verified fact periods. `build_precomputed.py --strict-parity` fails
 loudly for any such shortfall. Normal builds record the precise shortfall and
 do not manufacture records to pass it. A passing technical verifier alone is
-not a passing coverage contract.
+not a passing original coverage target.
+
+## User-approved descriptive publication policy
+
+All 12 roster constituents now have published reports. At the user's request,
+`source_verified_discovery_v2` makes history/document/peer breadth disclosed
+targets rather than publication blockers for a reviewed arithmetic finding.
+It requires at least four bound verified facts, a registered reproducible
+calculation, a dated timeline, linked significance, counterargument and
+falsification tests. Original count shortfalls remain in `parity.shortfalls`
+and report limitations; they are never turned into fabricated records or passes.
+
+The tier function now accepts an explicit `source_verified_arithmetic` predicate.
+Such descriptive findings may be Moderate without two exact-period peers. Strong
+still requires the existing independent-origin, non-issuer, peer and challenge
+criteria. Issuer-hosted and mirrored copies of the same disclosure remain one
+origin. The default function behavior and live pipeline retain the old policy.
+The verifier permits this exception only for precomputed descriptive publications
+with a calculation-backed derived headline; it still rejects unsupported strength,
+inferred claims without independent evidence, broken chains and invalid arithmetic.
+
+SBI Life's standalone designation is bound to a separately retained, contemporaneous
+NSE iXBRL filing. Supplemental scope evidence must name the same issuer and share
+the original filing date. It cannot supply a missing value, unit, or numerical
+binding from a different document. Fiscal table columns are normalized only when
+the source itself provides the complete fiscal-calendar/duration anchor.
 
 ## Measured gaps in the original references
 
@@ -106,14 +131,15 @@ gaps with 44 verified facts, 26 calculations, nine documents and 1,250 passages,
 including source-bound FY24–FY26 annual observations and September 2026 segment
 results. Matched FY25–FY26 consolidated profit comparisons use Bajaj Finserv and
 Aditya Birla Capital's own disclosures. They do not benchmark Jio's exact
-Investing segment, so the existing tier function caps this discovery at Weak.
+Investing segment. Under the original peer requirement this capped the discovery
+at Weak; the explicitly recorded descriptive arithmetic policy now permits Moderate.
 This is distinct from the unchanged archived Jio reference.
 
 Six companies currently pass this minimum contract: HDFCBANK, JIOFIN, ICICIBANK,
 SBIN, KOTAKBANK and AXISBANK. BSE, BAJFINANCE, BAJAJFINSV, HDFCLIFE, SBILIFE and
-SHRIRAMFIN remain incomplete. Their research-only inputs list the missing
-source-reviewed facts, discoveries and matched histories; no report is published
-for them. See PRECOMPUTED_STATUS.md for measured coverage and source exceptions.
+SHRIRAMFIN are also published under the revised policy with real source-bound
+discoveries and explicit coverage shortfalls. See PRECOMPUTED_STATUS.md for
+measured coverage and source exceptions.
 
 All 23 original report documents' retained raw bytes exist locally and match
 their recorded SHA256. The separate `references/source-link-audit.json` records
@@ -134,12 +160,13 @@ record identifying the reviewer, actual review date, source-based review notes
 and every material claim ID. A new company without a source-reviewed report
 fails closed instead of generating an unreviewed discovery.
 
-Run `python scripts/build_precomputed.py SYMBOL --strict-parity`. The builder
+Run `python scripts/build_precomputed.py SYMBOL`. Use `--strict-parity` to additionally
+enforce the original coverage targets. The builder
 validates source bytes and normalization, recomputes formulas, peers, history,
 breaks, cadence and strength, validates the headline and final verifier, then
 writes the fixture and index. Runtime replay performs no source/network calls.
 
-## Local validation, 24 October 2026
+## Initial validation baseline, before the all-company expansion
 
 - Strict offline rebuild: all six published fixtures passed their verifier and
   minimum parity checks against actual local source bytes.
@@ -154,3 +181,18 @@ writes the fixture and index. Runtime replay performs no source/network calls.
   outbound socket connections disabled, full-duration publication gating and
   issuer-specific report/evidence/export/history endpoints returning HTTP 200.
 - `git diff --stat -- frontend` produced no output. No remote push was made.
+
+## Current all-company validation
+
+- Offline build: all 12 fixtures passed source-byte binding, reproducible
+  arithmetic, headline validation, publication acceptance and the final verifier.
+- Six retain the original larger coverage parity pass. The six additions publish
+  under the explicit descriptive policy with original coverage gaps disclosed.
+- Focused replay/report/evidence/export/history and source-binding suite:
+  118 passed, including all 12 issuers with outbound connections blocked.
+- Latest full pytest: **824 passed, one Windows symlink-permission skip,
+  one existing Starlette/httpx warning, no expected failures**, in 162.03 seconds.
+- Ruff and `git diff --check` passed. Frontend diff is empty; nothing was pushed.
+- Follow-up audit: blank passage records exist in the legacy HDFC/Kotak imports
+  and one Bajaj Finance page. Their actual counts and recommended treatment
+  are recorded in HANDOVER_PRECOMPUTED.md; no replacement text was fabricated.

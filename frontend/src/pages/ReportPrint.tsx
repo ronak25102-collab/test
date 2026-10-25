@@ -102,7 +102,6 @@ export function ReportPrint({ report }: { report: Report }) {
       ? 'Partial research coverage'
       : 'Insufficient eligible coverage'
 
-  const cache = report.generation_metadata?.cache_usage
   const officialFilings = report.documents.filter(d => d.cutoff_eligibility === 'official' || d.origin_family_id?.includes('issuer')).length
   const originFamilies = new Set(report.documents.map(d => d.origin_family_id)).size
   const supportingDocs = new Set(
@@ -119,10 +118,6 @@ export function ReportPrint({ report }: { report: Report }) {
     { value: String(officialFilings), label: 'official issuer filings' },
     { value: String(originFamilies), label: 'retrieved source families' },
     { value: String(supportingDocs), label: 'documents supporting verified facts' },
-    {
-      value: cache ? `${cache.reused} / ${cache.reused + cache.fresh}` : `0 / ${report.facts.length}`,
-      label: `facts reused / fetched fresh${cache?.cold_start ? ' (cold start)' : ''}`,
-    },
   ]
 
   // Build the verified-figure comparison from the metric that has the most comparable snapshots.

@@ -69,6 +69,25 @@ def test_funding_mix_template_keeps_denominator_scope_and_actual_quarter_span():
     assert not validate_headline(text, company.legal_name, facts, calculations)
 
 
+def test_growth_gap_labels_follow_formula_input_order_when_report_facts_are_interleaved():
+    from signal_research.domain.schemas import Calculation
+    from signal_research.research.headline import template_headline
+    entity = uuid4()
+    facts = [Fact(id=uuid4(), entity_id=entity, metric_key=metric, value_decimal=value,
+                  unit_normalized='INR_crore', currency='INR', period_type='duration',
+                  scope='standalone', period_start=f'{year}-04-01', period_end=f'{year}-06-30',
+                  definition_id=metric, passage_id=uuid4(), status='verified')
+             for metric, year, value in [('revenue', 2026, 200), ('net_profit', 2026, 40),
+                                         ('revenue', 2025, 100), ('net_profit', 2025, 30)]]
+    result = calculate('growth_gap', [numeric_fact(facts[i]) for i in [1, 3, 0, 2]])
+    assert result.available
+    calculation = Calculation(id=result.id, formula_id=result.formula_id,
+        formula_version=result.formula_version, input_fact_ids=result.input_fact_ids,
+        output_value=result.output_value, unit=result.unit)
+    text, _ = template_headline(SimpleNamespace(legal_name='Example Finance'), facts, [calculation])
+    assert 'net profit versus revenue growth gap' in text
+
+
 def reviewed_headline_fixture(store):
     from signal_research.research.live import LiveResearch
     from signal_research.research.report_builder import build_synthetic_report

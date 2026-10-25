@@ -35,13 +35,15 @@ def expanded_fact_inputs(report):
 
 
 def observed_report(report, calculation, *, significance, counterargument, review_note,
-                    peer_sources=(), limitations=()):
+                    peer_sources=(), limitations=(), headline_text=None,
+                    context_fact_ids=(), context_calculation_ids=()):
     """An author must review all supplied prose and the exact source bindings.
 
     This is editorial assembly, not a semantic review service or a substitute for
     the builder's numeric/source checks. Caller-provided prose is saved verbatim.
     """
     headline, _ = template_headline(report.company, report.facts, [calculation])
+    headline = headline_text or headline
     facts = {f.id: f for f in report.facts}
     passages = {p.id: p for p in report.passages}
     report.claims, report.timeline_events = [], []
@@ -56,10 +58,12 @@ def observed_report(report, calculation, *, significance, counterargument, revie
         report.claims.append(result)
         return result
 
-    inputs = [facts[i] for i in calculation.input_fact_ids]
-    lead = claim(headline, inputs, [calculation])
-    why = [claim(text, inputs, [calculation]) for text in significance]
-    objection = claim(counterargument, inputs, [calculation])
+    inputs = [facts[i] for i in dict.fromkeys([*calculation.input_fact_ids, *context_fact_ids])]
+    context_calculations = [c for c in report.calculations if c.id in context_calculation_ids]
+    linked = [calculation, *context_calculations]
+    lead = claim(headline, inputs, linked)
+    why = [claim(text, inputs, linked) for text in significance]
+    objection = claim(counterargument, inputs, linked)
     for end in sorted({f.period_end for f in inputs}):
         selected = [f for f in inputs if f.period_end == end]
         documents = {passages[f.passage_id].document_id for f in selected}

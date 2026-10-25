@@ -1,6 +1,6 @@
 .research-page[hidden] { display: none; }
-.research-breadcrumbs { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; color: #8b967f; font-size: 11px; }
-.research-breadcrumbs a { color: #49673b; text-decoration: none; }
+.research-breadcrumbs { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; color: #4b5243; font-size: 11px; }
+.research-breadcrumbs a { color: #3f5833; text-decoration: none; }
 .research-breadcrumbs a:hover { text-decoration: underline; }
 .research-page .workspace-heading h1 { outline-offset: 8px; }
 .research-page .workspace-heading h1:focus { outline: none; }
@@ -8,10 +8,10 @@
 .research-page.progress-page { width: min(1160px, 90vw); }
 .research-page.progress-page .progress-card { margin-top: 20px; }
 /* Advisory, non-blocking notice (e.g. provider credits refused in the last run). */
-.research-warning { margin: 0 0 20px; padding: 14px 18px; border: 1px solid #e6d3a8; border-radius: 8px; background: #fbf4e2; color: #7a5a24; font-size: 12px; line-height: 1.6; }
+.research-warning { margin: 0 0 20px; padding: 14px 18px; border: 1px solid #e6d3a8; border-radius: 8px; background: #fbf4e2; color: #664b1e; font-size: 12px; line-height: 1.6; }
 .research-warning strong { color: #5f4316; }
-.research-queue-note { margin: 20px 0; padding: 15px 18px; border: 1px solid #dce4cf; border-radius: 8px; background: #edf2e5; color: #627750; font-size: 12px; line-height: 1.6; }
-.research-page-loading { padding: 36px; margin-block: 24px; border: 1px solid #dce4cf; border-radius: 12px; background: #fbfcf7; color: #6d7e5c; font-size: 12px; line-height: 1.7; }
+.research-queue-note { margin: 20px 0; padding: 15px 18px; border: 1px solid #dce4cf; border-radius: 8px; background: #edf2e5; color: #465539; font-size: 12px; line-height: 1.6; }
+.research-page-loading { padding: 36px; margin-block: 24px; border: 1px solid #dce4cf; border-radius: 12px; background: #fbfcf7; color: #49553e; font-size: 12px; line-height: 1.7; }
 .research-loading-line { display: block; width: 140px; height: 3px; margin-bottom: 18px; border-radius: 3px; background: linear-gradient(90deg, #99b078, #dce6ce, #99b078); background-size: 200% 100%; animation: research-loading 1.8s ease-in-out infinite; }
 @keyframes research-loading { to { background-position: -200% 0; } }
 .report-page .report-navigation { position: sticky; top: 88px; z-index: 5; background: #fcfdf7; border-radius: 15px 15px 0 0; }
@@ -22,7 +22,7 @@
 .report-page-turner a.turn-next { margin-left: auto; text-align: right; }
 .report-page-turner a.turn-previous { text-align: left; }
 .report-page-turner a:hover { background: #f0f4e7; border-color: #bac9a6; }
-.report-page-turner small { font-size: 8px; letter-spacing: .12em; color: #8c9b7c; }
+.report-page-turner small { font-size: 8px; letter-spacing: .12em; color: #4b5440; }
 .report-page-turner strong { font-size: 17px; font-weight: 400; letter-spacing: -.4px; color: #254f39; white-space: nowrap; }
 .report-page .report-body { min-height: 340px; }
 /* Compact report header: the dark green summary fits in the first viewport without scrolling. */
@@ -54,11 +54,11 @@
 .report-page .report-hero .best-candidate details ul { margin: 6px 0; padding-left: 0; }
 .report-page .report-hero .best-candidate details button { margin-top: 4px; padding: 6px 10px; border: 1px solid #20372a40; border-radius: 6px; background: transparent; color: #203d2e; font-size: 12px; }
 .report-dashboard .research-audit > .audit-insight { margin-top: 24px; }
-.report-dashboard .research-audit > .audit-insight > h3 { color: #6c805b; font-size: 12px; }
-.report-dashboard .research-audit > .audit-insight > p { font-size: 12px; color: #869376; line-height: 1.75; }
-.report-temporal > p { font-size: 12px; line-height: 1.65; color: #536e46; }
-.report-temporal > p.muted { color: #869376; }
-.report-temporal > button { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; border: 0; border-bottom: 1px solid #bcc9ad; background: none; color: #47643a; font-size: 11px; cursor: pointer; }
+.report-dashboard .research-audit > .audit-insight > h3 { color: #48553c; font-size: 12px; }
+.report-dashboard .research-audit > .audit-insight > p { font-size: 12px; color: #4c5442; line-height: 1.75; }
+.report-temporal > p { font-size: 12px; line-height: 1.65; color: #415737; }
+.report-temporal > p.muted { color: #4c5442; }
+.report-temporal > button { display: inline-flex; align-items: center; gap: 8px; padding: 4px 0; border: 0; border-bottom: 1px solid #bcc9ad; background: none; color: #3e5733; font-size: 11px; cursor: pointer; }
 .report-temporal > button > svg { width: 14px; height: 14px; }
 @media (max-width: 760px) {
  .report-page-turner { gap: 10px; }
@@ -78,17 +78,17 @@
 /* Single reporting date in the "How the relationship developed" cards. */
 .story-sparklines .spark-single { display: grid; gap: 4px; height: 60px; align-content: center; }
 .story-sparklines .spark-single strong { font-size: 18px; font-weight: 400; color: #315b3e; font-variant-numeric: tabular-nums; }
-.story-sparklines .spark-single small { font-size: 10px; color: #68795c; }
-.story-sparklines .spark-single span { font-size: 10px; color: #8a9a7c; }
+.story-sparklines .spark-single small { font-size: 10px; color: #495540; }
+.story-sparklines .spark-single span { font-size: 10px; color: #495440; }
 
 /* Source passage in the figure inspector. */
 .inspector-passage blockquote { line-height: 1.65; font-variant-numeric: tabular-nums; }
 .inspector-passage blockquote .passage-fragment { display: none; }
-.inspector-passage blockquote.show-fragments .passage-fragment { display: inline; color: #a8b79a; }
+.inspector-passage blockquote.show-fragments .passage-fragment { display: inline; color: #48553d; }
 .inspector-passage blockquote .passage-match { display: inline-block; width: 100%; margin: 2px -6px; padding: 2px 6px; border-radius: 4px; background: #e2ebd2; color: #254f39; font-weight: 600; }
 .inspector-passage blockquote mark { background: #c9dab0; color: inherit; border-radius: 3px; padding: 0 2px; }
-.inspector-passage .passage-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 10px; color: #8a9a7c; }
-.inspector-passage .passage-note button { flex-shrink: 0; padding: 5px 9px; border: 1px solid #c9d4bb; border-radius: 6px; background: transparent; color: #4e6d40; font-size: 10px; cursor: pointer; }
+.inspector-passage .passage-note { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 8px; font-size: 10px; color: #495440; }
+.inspector-passage .passage-note button { flex-shrink: 0; padding: 5px 9px; border: 1px solid #c9d4bb; border-radius: 6px; background: transparent; color: #3f5834; font-size: 10px; cursor: pointer; }
 
 /* Compact live-progress page: the stage progress bar is visible without scrolling.
    The page heading stays in the DOM for screen readers and focus, but is hidden visually. */

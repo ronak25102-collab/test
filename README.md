@@ -8,16 +8,26 @@ reviewed published report under the new run ID. Playback makes no search, model 
 source-fetch requests and requires no provider keys or rate card. Existing endpoints,
 report schema, exports, synthetic SYNTHBANK replay and the frontend are unchanged.
 
-Currently available: **HDFC Bank, Jio Financial Services, ICICI Bank, State Bank of
-India, Kotak Mahindra Bank and Axis Bank**. These six fixtures pass the numerical
-verifier and minimum document/passage/fact/calculation/history/peer parity checks.
-The official roster has **12** Track A constituents: BSE, Bajaj Finance, Bajaj
-Finserv, HDFC Life, SBI Life and Shriram Finance remain incomplete and return the
-existing unsupported error instead of another issuer's report. See the
+All **12** official Track A constituents are available: **HDFC Bank, Jio Financial
+Services, ICICI Bank, State Bank of India, Bajaj Finance, Kotak Mahindra Bank,
+Axis Bank, BSE, Bajaj Finserv, HDFC Life, SBI Life and Shriram Finance**. Every fixture
+passes source binding, registered Decimal arithmetic, final verification and the
+publication policy. See the
 [verified roster](docs/PRECOMPUTED_COMPANIES.md), [parity contract](docs/PARITY_CHECKLIST.md)
-and [measured coverage](docs/PRECOMPUTED_STATUS.md) for exact shortfalls. A parity
-pass is not a claim that all five annual years/eight quarters or every live source
-link are available.
+and [measured coverage](docs/PRECOMPUTED_STATUS.md) for exact shortfalls.
+
+The user-requested `source_verified_discovery_v2` policy permits reviewed arithmetic
+findings with at least four bound facts, a registered calculation, significance,
+timeline, counterargument and falsification tests. Missing document/history/peer
+breadth is disclosed instead of blocking publication. Six fixtures also meet the
+original larger coverage targets; those diagnostic counts remain visible. Full
+five-year/eight-quarter coverage and every legacy URL are not claimed.
+
+Publication and evidence strength are separate. Under the revised descriptive
+policy, source-verified arithmetic can earn **Moderate** without two exact-period
+peers. **Strong** still requires independent corroboration and the existing stronger
+criteria; a hosted copy of an issuer filing is not an independent origin. Live-mode
+grading and numerical/source verification gates retain their original requirements.
 
 To restore the original provider-backed execution, set `PIPELINE_MODE=live` in
 `.env` and restart the API and worker. Its original credential, budget and rate-card
@@ -30,7 +40,9 @@ To refresh a stored company, edit
 source documents and a recorded source-based editorial review, then run:
 
 ```powershell
-uv run python scripts/build_precomputed.py HDFCBANK JIOFIN ICICIBANK SBIN KOTAKBANK AXISBANK --strict-parity
+uv run python scripts/build_precomputed.py
+# Optional: enforce the original broader coverage targets for a selected issuer.
+uv run python scripts/build_precomputed.py HDFCBANK --strict-parity
 ```
 
 The builder is offline. It checks original source-byte hashes, numerical/date/scope
@@ -40,7 +52,9 @@ strength and final verification. Raw downloaded PDFs/HTML stay local; use
 missing source bytes before rebuilding. Changed remote bytes fail rather than silently
 replacing a cited document. To add a company, supply the same source inputs and a
 reviewed report without changing the report schema; an incomplete research-only YAML
-cannot be published. Building all inputs reports unfinished companies and exits nonzero.
+cannot be published. `scripts/research_remaining_precomputed.py` records the reviewed
+raw transcriptions used for the six added issuers. Rebuilding all inputs now publishes
+all 12; `--strict-parity` still fails on any unmet original coverage target.
 
 Beyond investigates banks, NBFCs, insurers, exchanges and diversified financial groups from public
 evidence. It reads original filings, binds every figure to its source, runs registered Decimal

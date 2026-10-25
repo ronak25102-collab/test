@@ -86,11 +86,11 @@
 }
 .pr-callout.pr-callout-published { border-left-color: var(--pr-olive); }
 .pr-callout strong {
-  color: #8a6f2f;
+  color: #604d21;
   font-size: 12px;
   letter-spacing: 0.06em;
 }
-.pr-callout.pr-callout-published strong { color: #3f6049; }
+.pr-callout.pr-callout-published strong { color: #3a5843; }
 .pr-callout p { margin: 0; color: #4a4a38; }
 
 /* Numbered section heading with a dark square badge. */
@@ -176,11 +176,11 @@
 .pr-table tbody tr:nth-child(even) td { background: #efeddf; }
 .pr-table a { color: #2f5540; text-decoration: underline; overflow-wrap: anywhere; }
 .pr-register .pr-num { width: 36px; color: var(--pr-muted); }
-.pr-unknown { color: #9aa390; }
+.pr-unknown { color: #4c5345; }
 .pr-unknown sup { font-size: 9px; }
 
 .pr-note { color: var(--pr-muted); font-size: 11px; line-height: 1.6; margin: 10px 0 0; }
-.pr-footnote { color: #9aa390; font-size: 10px; margin: 8px 0 0; }
+.pr-footnote { color: #4c5345; font-size: 10px; margin: 8px 0 0; }
 
 /* Lists and headline used by the discovery sections. */
 .pr-list { margin: 0; padding-left: 20px; }
@@ -251,7 +251,7 @@
     padding: 4mm 14mm 6mm;
     font-size: 8px;
     letter-spacing: 0.04em;
-    color: #6a7560;
+    color: #4c5344;
   }
   .pr-running-footer { padding: 5mm 14mm 8mm; }
   .pr-running-footer span:first-child { border-top: 0; }

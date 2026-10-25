@@ -58,6 +58,7 @@ def validate_candidate(
     entity_id: UUID,
     profile: Profile,
     entity_name: str | None = None,
+    scope_context: str | None = None,
 ) -> FactValidation:
     metric = METRICS.get(candidate.metric_key)
     if metric is None:
@@ -97,12 +98,17 @@ def validate_candidate(
                         and (passage.row_label or '').lower() == 'sub total'
                         and re.search(r'\bsegment\s+revenue\b', lowered)
                         and re.search(r'(?im)^\s*sub\s+total\s+\d', text))
-    if not segment_subtotal and not any(re.search(r"\b" + re.escape(alias.lower()) + r"\b", lowered) for alias in aliases):
+    compact_persistency = (candidate.metric_key in {'persistency_13m', 'persistency_61m'}
+                          and passage.extraction_method == 'pdf_table'
+                          and re.fullmatch(r'13M\s*/\s*61M\s+Persistency', passage.row_label or '', re.I)
+                          and re.search(r'13M\s*/\s*61M\s+Persistency', text, re.I))
+    if not (segment_subtotal or compact_persistency) and not any(re.search(r"\b" + re.escape(alias.lower()).replace(r'\ ', r'\s+') + r"\b", lowered) for alias in aliases):
         return FactValidation(None, "metric label is absent from the cited span")
     if not numeric_token_present(candidate.value_raw, text):
         return FactValidation(None, "raw value does not occur in the cited passage")
-    if not date_in_text(candidate.period_end, text, allow_month_end=profile == Profile.BANK and candidate.period_type.value == "instant",
-                        allow_quarter_duration=candidate.period_type.value == 'duration'):
+    if not (date_in_text(candidate.period_end, text, allow_month_end=profile == Profile.BANK and candidate.period_type.value == "instant",
+                        allow_quarter_duration=candidate.period_type.value == 'duration')
+            or any(p['period_end'] == candidate.period_end for p in reviewed_table_column_periods(passage))):
         return FactValidation(None, "period end is absent from the cited span")
     if candidate.period_type.value == "duration":
         declared = any(p['period_start'] == candidate.period_start and p['period_end'] == candidate.period_end
@@ -110,7 +116,7 @@ def validate_candidate(
                                  *abbreviated_quarter_periods(text), *reviewed_table_column_periods(passage)])
         if not declared:
             return FactValidation(None, "duration start/end are not bound to one explicit reporting interval")
-    if not scope_in_text(candidate.scope, text):
+    if not scope_in_text(candidate.scope, text) and not (scope_context and scope_in_text(candidate.scope, scope_context)):
         return FactValidation(None, "scope is absent from the cited span")
     if candidate.segment != "all" and candidate.segment.lower() not in lowered:
         return FactValidation(None, "segment is absent from the cited span")

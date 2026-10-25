@@ -1492,8 +1492,8 @@
           ]
         }
       ],
-      "evidence_strength": "Weak",
-      "strength_rationale": "Tier describes corroboration and unresolved alternatives, not investment advice or proof of causality. All verified issuer-company figures originate with the issuer: maximum Moderate. Same-period figures from at least two peers could not be verified: maximum Weak."
+      "evidence_strength": "Moderate",
+      "strength_rationale": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality. All verified issuer-company figures originate with the issuer: maximum Moderate. Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
     }
   ],
   "limitations": [
@@ -1501,7 +1501,7 @@
     "Borrowings are the issuer’s reported balance, including subordinated debt where the source says so. Other liabilities are excluded from the funding-share denominator.",
     "The earlier annual observations and current quarter do not establish true onset. A full eight-quarter comparable history has not been independently established.",
     "Publication dates not established in the source are unknown; actual dated retrieval receipts establish availability only at this snapshot cutoff.",
-    "Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak."
+    "Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established."
   ],
   "generation_metadata": {
     "pipeline": "precomputed-reviewed-evidence-v1",
@@ -79987,18 +79987,19 @@
         "counterargument_searched": true,
         "counterargument_addressed": true,
         "two_origins_or_peer_comparison": false,
-        "limitations_disclosed": true
+        "limitations_disclosed": true,
+        "source_verified_arithmetic": true
       },
       "origin_families": [
         "issuer:f7853dc2-1208-5cae-96b0-9393751f375c"
       ],
       "caps": [
         "All verified issuer-company figures originate with the issuer: maximum Moderate.",
-        "Same-period figures from at least two peers could not be verified: maximum Weak."
+        "Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
       ],
-      "rating": "Weak",
+      "rating": "Moderate",
       "numerical_gates": "passed",
-      "note": "Tier describes corroboration and unresolved alternatives, not investment advice or proof of causality."
+      "note": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality."
     },
     "tiered_publication": true,
     "falsification_tests": {
@@ -81493,6 +81494,13 @@
       ],
       "missing": []
     },
+    "publication_policy": {
+      "id": "source_verified_discovery_v2",
+      "coverage_thresholds_block_publication": false,
+      "source_verified_arithmetic": true,
+      "note": "User-requested descriptive publication policy: source binding, arithmetic and verifier remain mandatory; history and peer breadth are disclosed coverage targets.",
+      "accepted": true
+    },
     "mode": "precomputed",
     "generated_at": "2026-10-24T16:35:57.027339+00:00",
     "data_as_of": "2026-10-24",
@@ -81776,7 +81784,7 @@
       "passed": true,
       "shortfalls": []
     },
-    "verification_digest": "ca50d22ac785fae821baef831c239dc048176b6ff76d4ad69e0b7627f9488abe"
+    "verification_digest": "68d7760b927ee379a2dfa179eeddb6171863ba47cedb65f10b1629338f1290a1"
   },
   "claims": [
     {

@@ -1,0 +1,2108 @@
+{
+  "schema_version": "1.0",
+  "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+  "company": {
+    "id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+    "legal_name": "BSE",
+    "symbols": [
+      "BSE"
+    ],
+    "isin": "INE118H01025",
+    "exchange": "NSE",
+    "aliases": [
+      "BSE",
+      "BSE Ltd."
+    ],
+    "verified_ir_domains": [
+      "bseindia.com"
+    ],
+    "business_profiles": [
+      "exchange"
+    ],
+    "identity_source_ids": [],
+    "universe_snapshot_age_days": null
+  },
+  "cutoff": "2026-10-24",
+  "historical_coverage": "Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.",
+  "source_coverage": {
+    "historical_series": [
+      {
+        "metric": "transaction_revenue",
+        "scope": "consolidated",
+        "segment": "all",
+        "definition_id": "transaction_revenue_as_reported_v1",
+        "unit": "INR_crore",
+        "currency": "INR",
+        "period_type": "duration",
+        "cadence": "annual_endpoint",
+        "observations": [
+          {
+            "fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+            "period_start": "2025-04-01",
+            "period_end": "2025-06-30",
+            "value": "737.5",
+            "passage_id": "85d89345-432d-5576-8046-8681af65f2d6"
+          },
+          {
+            "fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+            "period_start": "2026-04-01",
+            "period_end": "2026-06-30",
+            "value": "1327.7",
+            "passage_id": "f85c252c-730b-5832-a089-0350228f0f38"
+          }
+        ],
+        "comparable_periods": 2,
+        "coverage": "two_snapshots",
+        "limitations": [
+          "Observed snapshots do not establish when a trend began or prove a causal mechanism."
+        ]
+      },
+      {
+        "metric": "revenue",
+        "scope": "consolidated",
+        "segment": "all",
+        "definition_id": "revenue_as_reported_v1",
+        "unit": "INR_crore",
+        "currency": "INR",
+        "period_type": "duration",
+        "cadence": "annual_endpoint",
+        "observations": [
+          {
+            "fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+            "period_start": "2025-04-01",
+            "period_end": "2025-06-30",
+            "value": "958",
+            "passage_id": "bc359c85-8949-54ac-a7aa-96a9dd794ffa"
+          },
+          {
+            "fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+            "period_start": "2026-04-01",
+            "period_end": "2026-06-30",
+            "value": "1566.1",
+            "passage_id": "5fe6f971-24cd-5315-a8db-711a4a9e63b9"
+          }
+        ],
+        "comparable_periods": 2,
+        "coverage": "two_snapshots",
+        "limitations": [
+          "Observed snapshots do not establish when a trend began or prove a causal mechanism."
+        ]
+      },
+      {
+        "metric": "transaction_revenue",
+        "scope": "consolidated",
+        "segment": "all",
+        "definition_id": "transaction_revenue_as_reported_v1",
+        "unit": "INR_crore",
+        "currency": "INR",
+        "period_type": "duration",
+        "cadence": "annual_endpoint",
+        "observations": [
+          {
+            "fact_id": "698ffe41-6e8a-5add-92db-df4f9a3e9f1d",
+            "period_start": "2026-01-01",
+            "period_end": "2026-03-31",
+            "value": "1311",
+            "passage_id": "0a77c840-2d45-5eb4-b342-fe37c0a7acbb"
+          }
+        ],
+        "comparable_periods": 1,
+        "coverage": "single_snapshot",
+        "limitations": [
+          "Observed snapshots do not establish when a trend began or prove a causal mechanism."
+        ]
+      },
+      {
+        "metric": "revenue",
+        "scope": "consolidated",
+        "segment": "all",
+        "definition_id": "revenue_as_reported_v1",
+        "unit": "INR_crore",
+        "currency": "INR",
+        "period_type": "duration",
+        "cadence": "annual_endpoint",
+        "observations": [
+          {
+            "fact_id": "490505b2-ed10-52bb-a4ec-cc22dd0ddaca",
+            "period_start": "2026-01-01",
+            "period_end": "2026-03-31",
+            "value": "1563.5",
+            "passage_id": "018b5dab-4e40-59fd-926e-c44592716fa0"
+          }
+        ],
+        "comparable_periods": 1,
+        "coverage": "single_snapshot",
+        "limitations": [
+          "Observed snapshots do not establish when a trend began or prove a causal mechanism."
+        ]
+      }
+    ],
+    "documents_found": 2,
+    "documents_used": 1,
+    "eligible_origin_families": 1,
+    "primary_source": true,
+    "mode": "precomputed",
+    "synthetic": false,
+    "data_as_of": "2026-10-24"
+  },
+  "outcome": "discovery",
+  "publication_status": "published",
+  "discoveries": [
+    {
+      "id": "1e54f929-7a24-5da9-b94e-a90c4c8b2eb8",
+      "discovery_sentence": "BSE recorded a 16.55 percentage point transaction charges versus operating revenue growth gap from June 2025 to June 2026 on a consolidated basis.",
+      "why_it_matters": [
+        {
+          "text": "Transaction charges grew faster than operating revenue, increasing the importance of activity-sensitive income within the disclosed operating mix.",
+          "claim_id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db"
+        },
+        {
+          "text": "The revenue composition should be assessed separately from total income, which also contains investment and other income.",
+          "claim_id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a"
+        },
+        {
+          "text": "Activity-sensitive charges can vary with turnover and pricing, so revenue growth alone does not establish a stable recurring-income mix.",
+          "claim_id": "5e362440-750d-5bc3-ab14-727f1f0b87c6"
+        }
+      ],
+      "evidence_claim_ids": [
+        "9500ead4-deed-5574-9c30-748c4bb86e82",
+        "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+        "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+        "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+        "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+        "db37ddb5-c296-5a99-8f81-de20aa18368c",
+        "e9279a42-46ae-5d13-96b0-bc09afb268da"
+      ],
+      "timeline_event_ids": [
+        "fbec035c-45f3-5b3b-88f8-4f3480780726",
+        "89546239-86f4-547c-8f74-2efb2f4dd127"
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "calculation_explanation": null,
+      "counterargument": {
+        "statement": "Transaction fees depend on trading activity and pricing; a strong quarter does not establish a durable trend or show that recurring listing revenue has disappeared.",
+        "evidence_claim_ids": [
+          "78b46b5e-3325-5a3a-9280-c3a9894f4c4a"
+        ],
+        "search_attempted": true,
+        "search_summary": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+        "unresolved": true
+      },
+      "falsification_rules": [
+        {
+          "id": "71e5fa9c-5294-5df0-8384-0360cafef0c1",
+          "observable_metric_or_event": "A reversal of the observed arithmetic direction in the next matching quarterly disclosure.",
+          "operator": "<=",
+          "threshold": "0",
+          "unit": "percentage_points",
+          "required_periods": 1,
+          "expected_source_type": "Original issuer financial statements",
+          "interpretation": "Compare the same metric, scope, definition and duration; a reversal challenges continuation and does not erase the historical observation.",
+          "dependencies": [
+            "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+          ]
+        }
+      ],
+      "evidence_strength": "Moderate",
+      "strength_rationale": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality. All verified issuer-company figures originate with the issuer: maximum Moderate. Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
+    }
+  ],
+  "limitations": [
+    "The management presentation contains rounded figures and regroupings. Exact same-period exchange peer inputs and a complete quarterly history are not bound.",
+    "Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.",
+    "Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.",
+    "Stored evidence coverage shortfall: documents: 2 < 6",
+    "Stored evidence coverage shortfall: passages: 54 < 300",
+    "Stored evidence coverage shortfall: facts: 6 < 15",
+    "Stored evidence coverage shortfall: verified matched peers: 0 < 2",
+    "Stored evidence coverage shortfall: fiscal years with verified facts: 2 < 3 ([2026, 2027])"
+  ],
+  "generation_metadata": {
+    "pipeline": "precomputed-reviewed-evidence-v1",
+    "configured_provider": "none",
+    "configured_model_id": null,
+    "routing": "offline stored evidence",
+    "models_used": [],
+    "provider": "none",
+    "model_id": null,
+    "search_queries": [],
+    "opposing_queries": [],
+    "context_searches": [],
+    "research_decisions": [],
+    "challenge_reviews": [],
+    "novelty_status": "additional_supported_synthesis",
+    "novelty_rationale": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+    "published_explanation": "BSE recorded a 16.55 percentage point transaction charges versus operating revenue growth gap from June 2025 to June 2026 on a consolidated basis.",
+    "non_obvious_synthesis_reviewed": true,
+    "temporal_reasoning": {
+      "onset_status": "unknown",
+      "note": "Observed endpoints do not identify true onset."
+    },
+    "historical_cache": [],
+    "cache_usage": {
+      "cold_start": false,
+      "reused": 6,
+      "fresh": 0
+    },
+    "structural_breaks": [],
+    "peer_benchmark": {
+      "sources": [],
+      "status": "inconclusive",
+      "comparisons": [],
+      "limitations": [
+        "The management presentation contains rounded figures and regroupings. Exact same-period exchange peer inputs and a complete quarterly history are not bound.",
+        "Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.",
+        "Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating."
+      ],
+      "missing": [
+        "At least two peers with independently verified matching metric, definition, scope, unit and period endpoints."
+      ],
+      "headline_comparison_status": "inconclusive",
+      "headline_missing_fact_ids": [
+        "530400cb-1375-5086-8059-a0d4bdafeb59",
+        "95b43921-0e60-5180-bef5-8867fdc435ae",
+        "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+        "a6b84dfb-a57e-5990-9087-ff019846aa6a"
+      ]
+    },
+    "submission_checklist": {
+      "version": "1.0",
+      "discovery_ready": false,
+      "items": [
+        {
+          "key": "discovery",
+          "label": "The Discovery",
+          "status": "complete",
+          "reason": "A reviewed non-obvious sentence."
+        },
+        {
+          "key": "significance",
+          "label": "Why It Matters",
+          "status": "complete",
+          "reason": "Three to five verified significance statements."
+        },
+        {
+          "key": "evidence",
+          "label": "Evidence",
+          "status": "complete",
+          "reason": "Independent relevant support must back the finding; retrieved families alone do not qualify."
+        },
+        {
+          "key": "timeline",
+          "label": "Timeline",
+          "status": "limited",
+          "reason": "3 observed reporting dates; onset is not established by snapshots alone. The verified narrative explicitly leaves emergence unresolved."
+        },
+        {
+          "key": "numbers",
+          "label": "Numbers",
+          "status": "complete",
+          "reason": "8 independently reproducible calculations; arithmetic alone is not a discovery."
+        },
+        {
+          "key": "counterargument",
+          "label": "Counterargument",
+          "status": "complete",
+          "reason": "An active opposing search and a reviewed strongest alternative."
+        },
+        {
+          "key": "falsification",
+          "label": "Falsification Condition",
+          "status": "complete",
+          "reason": "An observable condition, observation window and expected source."
+        },
+        {
+          "key": "strength",
+          "label": "Evidence Strength",
+          "status": "complete",
+          "reason": "A justified Strong, Moderate or Weak rating for a published finding."
+        }
+      ],
+      "historical_coverage": {
+        "target": "Five-year context; quarterly detail where available. A target is not verified coverage.",
+        "longest_comparable_series": 2,
+        "observed_dates": [
+          "2025-06-30",
+          "2026-03-31",
+          "2026-06-30"
+        ]
+      }
+    },
+    "headline": {
+      "claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+      "technical_claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+      "technical_detail": "BSE recorded a 16.55 percentage point transaction charges versus operating revenue growth gap from June 2025 to June 2026 on a consolidated basis.",
+      "method": "verified_arithmetic_template",
+      "validation_errors": []
+    },
+    "strength_trace": {
+      "rules": {
+        "three_independent_origins": false,
+        "non_issuer_support": false,
+        "peer_comparison_verified": false,
+        "no_unresolved_structural_break": true,
+        "counterargument_searched": true,
+        "counterargument_addressed": true,
+        "two_origins_or_peer_comparison": false,
+        "limitations_disclosed": true,
+        "source_verified_arithmetic": true
+      },
+      "origin_families": [
+        "issuer:4437d831-562b-5fad-8d42-960fab6ebeab"
+      ],
+      "caps": [
+        "All verified issuer-company figures originate with the issuer: maximum Moderate.",
+        "Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
+      ],
+      "rating": "Moderate",
+      "numerical_gates": "passed",
+      "note": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality."
+    },
+    "tiered_publication": true,
+    "falsification_tests": {
+      "cadence": {
+        "next_quarter_end": "2026-09-30",
+        "expected_disclosure_date": null,
+        "estimated_lag_days": null,
+        "confidence": "Unknown",
+        "samples": [
+          {
+            "period_end": "2026-06-30",
+            "published": "2026-08-04",
+            "lag_days": 35,
+            "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938"
+          }
+        ],
+        "missing": [
+          "Two source-owned quarterly filing dates linked to their actual latest reporting periods."
+        ],
+        "note": "Cadence estimate, not an announced or guaranteed publication date."
+      },
+      "conditions": [
+        {
+          "kind": "next_quarter",
+          "metric": "period_change",
+          "operator": "<=",
+          "threshold": "0",
+          "unit": "percent",
+          "calculation_id": "1e410fff-edb1-562b-8cf7-f5bc7454eeaf",
+          "fact_ids": [
+            "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+            "698ffe41-6e8a-5add-92db-df4f9a3e9f1d"
+          ],
+          "window": "2026-09-30",
+          "expected_disclosure_date": null,
+          "source_type": "Issuer quarterly results with matching scope, definition and duration",
+          "checkable_now": false,
+          "status": "pending",
+          "interpretation": "A comparable reversal of this observed direction challenges its continuation; it does not erase the historical measurement."
+        },
+        {
+          "kind": "next_annual",
+          "metric": "period_change",
+          "operator": "<=",
+          "threshold": "0",
+          "unit": "percent",
+          "calculation_id": "1e410fff-edb1-562b-8cf7-f5bc7454eeaf",
+          "fact_ids": [
+            "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+            "698ffe41-6e8a-5add-92db-df4f9a3e9f1d"
+          ],
+          "window": "Next annual disclosure after the cutoff",
+          "source_type": "Issuer annual financial statements and reconciliation notes",
+          "checkable_now": false,
+          "status": "pending",
+          "interpretation": "Secondary test of the same observed direction over a longer reporting window."
+        },
+        {
+          "kind": "current_reconciliation",
+          "metric": "material structural reconciliation disclosed",
+          "operator": "=",
+          "threshold": "1",
+          "unit": "documented event",
+          "checkable_now": true,
+          "source_type": "Original issuer merger, acquired-balance, restatement or reclassification notes",
+          "window": "2026-10-24",
+          "status": "not_checked",
+          "interpretation": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+        }
+      ]
+    },
+    "timeline_story": {
+      "events": [
+        {
+          "date": "2025-06-30",
+          "metric": "revenue",
+          "scope": "consolidated",
+          "fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "passage_id": "bc359c85-8949-54ac-a7aa-96a9dd794ffa",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "958",
+          "unit": "INR_crore",
+          "calculation_id": null,
+          "change": null,
+          "change_unit": null,
+          "what_changed": "revenue was disclosed for this reporting date.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        },
+        {
+          "date": "2025-06-30",
+          "metric": "transaction_revenue",
+          "scope": "consolidated",
+          "fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "passage_id": "85d89345-432d-5576-8046-8681af65f2d6",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "737.5",
+          "unit": "INR_crore",
+          "calculation_id": null,
+          "change": null,
+          "change_unit": null,
+          "what_changed": "transaction revenue was disclosed for this reporting date.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        },
+        {
+          "date": "2026-03-31",
+          "metric": "revenue",
+          "scope": "consolidated",
+          "fact_id": "490505b2-ed10-52bb-a4ec-cc22dd0ddaca",
+          "passage_id": "018b5dab-4e40-59fd-926e-c44592716fa0",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "1563.5",
+          "unit": "INR_crore",
+          "calculation_id": null,
+          "change": null,
+          "change_unit": null,
+          "what_changed": "revenue was disclosed for this reporting date.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        },
+        {
+          "date": "2026-03-31",
+          "metric": "transaction_revenue",
+          "scope": "consolidated",
+          "fact_id": "698ffe41-6e8a-5add-92db-df4f9a3e9f1d",
+          "passage_id": "0a77c840-2d45-5eb4-b342-fe37c0a7acbb",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "1311",
+          "unit": "INR_crore",
+          "calculation_id": null,
+          "change": null,
+          "change_unit": null,
+          "what_changed": "transaction revenue was disclosed for this reporting date.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        },
+        {
+          "date": "2026-06-30",
+          "metric": "revenue",
+          "scope": "consolidated",
+          "fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "passage_id": "5fe6f971-24cd-5315-a8db-711a4a9e63b9",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "1566.1",
+          "unit": "INR_crore",
+          "calculation_id": "16a03897-a7d6-5f61-868b-4593997e2a8b",
+          "change": "63.47599164926931106471816280",
+          "change_unit": "percent",
+          "what_changed": "revenue changed relative to the preceding comparable observation.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        },
+        {
+          "date": "2026-06-30",
+          "metric": "transaction_revenue",
+          "scope": "consolidated",
+          "fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "passage_id": "f85c252c-730b-5832-a089-0350228f0f38",
+          "source_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+          "source_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "value": "1327.7",
+          "unit": "INR_crore",
+          "calculation_id": "b6f3438a-fd37-5b0d-a048-b57af5f013da",
+          "change": "80.02711864406779661016949150",
+          "change_unit": "percent",
+          "what_changed": "transaction revenue changed relative to the preceding comparable observation.",
+          "why_it_matters": "Tests the observed relationship across time; this measurement does not establish its cause."
+        }
+      ],
+      "breaks": [],
+      "onsets": [],
+      "missing": [
+        "At least three consecutive verified quarter ends with matching metric, definition, scope and duration; annual endpoints cannot establish quarterly onset."
+      ]
+    },
+    "publication_policy": {
+      "id": "source_verified_discovery_v2",
+      "coverage_thresholds_block_publication": false,
+      "source_verified_arithmetic": true,
+      "note": "User-requested descriptive publication policy: source binding, arithmetic and verifier remain mandatory; history and peer breadth are disclosed coverage targets.",
+      "accepted": true
+    },
+    "mode": "precomputed",
+    "generated_at": "2026-10-24T18:42:04.789165+00:00",
+    "data_as_of": "2026-10-24",
+    "reference_review": {
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "verification_digest": null,
+      "provenance": {
+        "configured_provider": "none",
+        "routing": "offline editorial research",
+        "configured_model_id": null,
+        "models_used": [],
+        "provider": "none",
+        "model_id": null,
+        "search_queries": [],
+        "opposing_queries": [],
+        "context_searches": []
+      },
+      "note": "Archived review; no new model review is claimed."
+    },
+    "editorial_review": {
+      "reviewer": "Codex source-based editorial review",
+      "reviewed_at": "2026-10-24T18:42:04.789165+00:00",
+      "method": "source-based editorial review",
+      "claim_ids": [
+        "9500ead4-deed-5574-9c30-748c4bb86e82",
+        "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+        "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+        "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+        "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+        "db37ddb5-c296-5a99-8f81-de20aa18368c",
+        "e9279a42-46ae-5d13-96b0-bc09afb268da"
+      ],
+      "notes": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+    },
+    "model_usage": {
+      "calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "estimated_cost_usd": 0,
+      "note": "No model used by this replay."
+    },
+    "provider_usage": {
+      "search_calls": 0,
+      "fetch_calls": 0,
+      "model_calls": 0
+    },
+    "stage_durations": {},
+    "budget": {
+      "search_calls": 0,
+      "fetch_documents": 0,
+      "model_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "reserved_cost_usd": 0
+    },
+    "source_receipts": [
+      {
+        "http_code": 200,
+        "url_effective": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+        "content_type": "application/pdf",
+        "size_download": 3402924,
+        "time_total": 4.068995,
+        "url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+        "retrieved_at": "2026-10-24T18:12:27.775432+00:00",
+        "curl_exit_code": 0,
+        "sha256": "34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d",
+        "local_object_key": "data/precomputed-sources/34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d.pdf"
+      },
+      {
+        "http_code": 200,
+        "url_effective": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf",
+        "content_type": "application/pdf",
+        "size_download": 1514284,
+        "time_total": 3.571536,
+        "url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf",
+        "retrieved_at": "2026-10-24T18:10:35.228559+00:00",
+        "curl_exit_code": 0,
+        "sha256": "52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc",
+        "local_object_key": "data/precomputed-sources/52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc.pdf",
+        "symbol": "BSE",
+        "title": "BSE Q1 FY27 financial results"
+      }
+    ],
+    "publication_status": "published",
+    "cutoff": "2026-10-24",
+    "parity": {
+      "passed": false,
+      "shortfalls": [
+        "documents: 2 < 6",
+        "passages: 54 < 300",
+        "facts: 6 < 15",
+        "verified matched peers: 0 < 2",
+        "fiscal years with verified facts: 2 < 3 ([2026, 2027])"
+      ]
+    },
+    "verification_digest": "b230f29e1b5826007735f22a8086fc2640254dfd0a06069b94f7352bb15d7466"
+  },
+  "claims": [
+    {
+      "id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "BSE recorded a 16.55 percentage point transaction charges versus operating revenue growth gap from June 2025 to June 2026 on a consolidated basis.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "9500ead4-deed-5574-9c30-748c4bb86e82",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "Transaction charges grew faster than operating revenue, increasing the importance of activity-sensitive income within the disclosed operating mix.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "2ee2df94-24e4-5074-a0b2-a846a6e8c4db",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "The revenue composition should be assessed separately from total income, which also contains investment and other income.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "19cccad8-1f05-5d3d-96f8-23b767c80a5a",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "Activity-sensitive charges can vary with turnover and pricing, so revenue growth alone does not establish a stable recurring-income mix.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "5e362440-750d-5bc3-ab14-727f1f0b87c6",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "Transaction fees depend on trading activity and pricing; a strong quarter does not establish a durable trend or show that recurring listing revenue has disappeared.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "78b46b5e-3325-5a3a-9280-c3a9894f4c4a",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [
+        "4b1bac74-3acc-5778-bf3d-b9324f36b947"
+      ],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "db37ddb5-c296-5a99-8f81-de20aa18368c",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "Source-bound consolidated observations as at 2025-06-30; exact inputs are linked.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "db37ddb5-c296-5a99-8f81-de20aa18368c",
+          "passage_or_fact_id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "db37ddb5-c296-5a99-8f81-de20aa18368c",
+          "passage_or_fact_id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    },
+    {
+      "id": "e9279a42-46ae-5d13-96b0-bc09afb268da",
+      "run_id": "7facf99b-4396-5b67-9d6e-94f9c15bdf31",
+      "text": "Source-bound consolidated observations as at 2026-06-30; exact inputs are linked.",
+      "kind": "derived",
+      "material": true,
+      "evidence_links": [
+        {
+          "claim_id": "e9279a42-46ae-5d13-96b0-bc09afb268da",
+          "passage_or_fact_id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        },
+        {
+          "claim_id": "e9279a42-46ae-5d13-96b0-bc09afb268da",
+          "passage_or_fact_id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+          "relation": "supporting",
+          "reason": "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision.",
+          "entailment_status": "supported"
+        }
+      ],
+      "calculation_ids": [],
+      "verification_status": "supported",
+      "verification_reasons": [
+        "Read the Q1 FY27 presentation business-model discussion and consolidated income table. Compared the same quarter, scope and million-rupee units for transaction charges and operating revenue; retained issuer rounding rather than replacing it with another statement’s precision."
+      ]
+    }
+  ],
+  "timeline_events": [
+    {
+      "id": "fbec035c-45f3-5b3b-88f8-4f3480780726",
+      "event_date": "2025-06-30",
+      "date_precision": "day",
+      "published_at": null,
+      "description": "Source-bound consolidated observations as at 2025-06-30; exact inputs are linked.",
+      "claim_ids": [
+        "db37ddb5-c296-5a99-8f81-de20aa18368c"
+      ],
+      "source_ids": [
+        "4acfa27c-f9c4-5410-9737-887a56a3a938"
+      ]
+    },
+    {
+      "id": "89546239-86f4-547c-8f74-2efb2f4dd127",
+      "event_date": "2026-06-30",
+      "date_precision": "day",
+      "published_at": null,
+      "description": "Source-bound consolidated observations as at 2026-06-30; exact inputs are linked.",
+      "claim_ids": [
+        "e9279a42-46ae-5d13-96b0-bc09afb268da"
+      ],
+      "source_ids": [
+        "4acfa27c-f9c4-5410-9737-887a56a3a938"
+      ]
+    }
+  ],
+  "calculations": [
+    {
+      "id": "b6f3438a-fd37-5b0d-a048-b57af5f013da",
+      "formula_id": "yoy_growth",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+        "95b43921-0e60-5180-bef5-8867fdc435ae"
+      ],
+      "parameters": {},
+      "output_value": "80.02711864406779661016949150",
+      "unit": "percent",
+      "period": "2026-06-30 / 2025-06-30",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "1e410fff-edb1-562b-8cf7-f5bc7454eeaf",
+      "formula_id": "period_change",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+        "698ffe41-6e8a-5add-92db-df4f9a3e9f1d"
+      ],
+      "parameters": {},
+      "output_value": "1.273836765827612509534706300",
+      "unit": "percent",
+      "period": "2026-06-30 / 2026-03-31",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "16a03897-a7d6-5f61-868b-4593997e2a8b",
+      "formula_id": "yoy_growth",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+        "530400cb-1375-5086-8059-a0d4bdafeb59"
+      ],
+      "parameters": {},
+      "output_value": "63.47599164926931106471816280",
+      "unit": "percent",
+      "period": "2026-06-30 / 2025-06-30",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "b1509183-ae1f-583f-b8d2-90ed06fd1133",
+      "formula_id": "period_change",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+        "490505b2-ed10-52bb-a4ec-cc22dd0ddaca"
+      ],
+      "parameters": {},
+      "output_value": "0.166293572113847137831787700",
+      "unit": "percent",
+      "period": "2026-06-30 / 2026-03-31",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "4b1bac74-3acc-5778-bf3d-b9324f36b947",
+      "formula_id": "growth_gap",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+        "95b43921-0e60-5180-bef5-8867fdc435ae",
+        "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+        "530400cb-1375-5086-8059-a0d4bdafeb59"
+      ],
+      "parameters": {},
+      "output_value": "16.55112699479848554545132870",
+      "unit": "percentage_points",
+      "period": "2026-06-30 / 2025-06-30 / 2026-06-30 / 2025-06-30",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "0af8ced1-dd67-53dd-8184-13815a73df50",
+      "formula_id": "transaction_revenue_share",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+        "a6b84dfb-a57e-5990-9087-ff019846aa6a"
+      ],
+      "parameters": {},
+      "output_value": "84.77747270289253559798224890",
+      "unit": "percent",
+      "period": "2026-06-30 / 2026-06-30",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "52527b64-bb4f-5800-9d57-ff3ce850e226",
+      "formula_id": "transaction_revenue_share",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "95b43921-0e60-5180-bef5-8867fdc435ae",
+        "530400cb-1375-5086-8059-a0d4bdafeb59"
+      ],
+      "parameters": {},
+      "output_value": "76.98329853862212943632567850",
+      "unit": "percent",
+      "period": "2025-06-30 / 2025-06-30",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    },
+    {
+      "id": "4aa72b88-5651-5ebb-bd26-3c6ea5d2140d",
+      "formula_id": "transaction_revenue_share",
+      "formula_version": "1.0",
+      "input_fact_ids": [
+        "698ffe41-6e8a-5add-92db-df4f9a3e9f1d",
+        "490505b2-ed10-52bb-a4ec-cc22dd0ddaca"
+      ],
+      "parameters": {},
+      "output_value": "83.85033578509753757595139111",
+      "unit": "percent",
+      "period": "2026-03-31 / 2026-03-31",
+      "scope": "consolidated",
+      "precision": 2,
+      "comparability_checks": [
+        "same entity, unit, currency, scope, segment and period type",
+        "formula-specific metric and period checks passed"
+      ],
+      "limitations": [],
+      "available": true
+    }
+  ],
+  "facts": [
+    {
+      "id": "a53682d5-26ab-55e6-95a5-67e10f419fc5",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "transaction_revenue",
+      "value_raw": "13,277",
+      "value_decimal": "1327.7",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2026-04-01",
+      "period_end": "2026-06-30",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "transaction_revenue_as_reported_v1",
+      "passage_id": "f85c252c-730b-5832-a089-0350228f0f38",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "a6b84dfb-a57e-5990-9087-ff019846aa6a",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "revenue",
+      "value_raw": "15,661",
+      "value_decimal": "1566.1",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2026-04-01",
+      "period_end": "2026-06-30",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "revenue_as_reported_v1",
+      "passage_id": "5fe6f971-24cd-5315-a8db-711a4a9e63b9",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "95b43921-0e60-5180-bef5-8867fdc435ae",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "transaction_revenue",
+      "value_raw": "7,375",
+      "value_decimal": "737.5",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2025-04-01",
+      "period_end": "2025-06-30",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "transaction_revenue_as_reported_v1",
+      "passage_id": "85d89345-432d-5576-8046-8681af65f2d6",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "530400cb-1375-5086-8059-a0d4bdafeb59",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "revenue",
+      "value_raw": "9,580",
+      "value_decimal": "958",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2025-04-01",
+      "period_end": "2025-06-30",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "revenue_as_reported_v1",
+      "passage_id": "bc359c85-8949-54ac-a7aa-96a9dd794ffa",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "698ffe41-6e8a-5add-92db-df4f9a3e9f1d",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "transaction_revenue",
+      "value_raw": "13,110",
+      "value_decimal": "1311",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2026-01-01",
+      "period_end": "2026-03-31",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "transaction_revenue_as_reported_v1",
+      "passage_id": "0a77c840-2d45-5eb4-b342-fe37c0a7acbb",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    },
+    {
+      "id": "490505b2-ed10-52bb-a4ec-cc22dd0ddaca",
+      "entity_id": "4437d831-562b-5fad-8d42-960fab6ebeab",
+      "metric_key": "revenue",
+      "value_raw": "15,635",
+      "value_decimal": "1563.5",
+      "unit_raw": "INR million",
+      "unit_normalized": "INR_crore",
+      "currency": "INR",
+      "period_start": "2026-01-01",
+      "period_end": "2026-03-31",
+      "period_type": "duration",
+      "scope": "consolidated",
+      "segment": "all",
+      "accounting_basis": "issuer_reported",
+      "definition_id": "revenue_as_reported_v1",
+      "passage_id": "018b5dab-4e40-59fd-926e-c44592716fa0",
+      "status": "verified",
+      "missing_reason": null,
+      "restates_fact_id": null,
+      "extraction_confidence": "1"
+    }
+  ],
+  "documents": [
+    {
+      "id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "canonical_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+      "final_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+      "publisher": "BSE",
+      "origin_family_id": "issuer:4437d831-562b-5fad-8d42-960fab6ebeab",
+      "title": "BSE Q1 FY27 investor presentation",
+      "document_type": "issuer_filing",
+      "published_at": "2026-08-04T00:00:00Z",
+      "retrieved_at": "2026-10-24T18:12:27.775432Z",
+      "period_start": null,
+      "period_end": null,
+      "content_hash": "34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d",
+      "mime_type": "application/pdf",
+      "local_object_key": "data/precomputed-sources/34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d.pdf",
+      "access_status": "ok",
+      "cutoff_eligibility": "eligible",
+      "cutoff_eligibility_basis": "publication_date"
+    },
+    {
+      "id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "canonical_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf",
+      "final_url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf",
+      "publisher": "BSE",
+      "origin_family_id": "issuer:4437d831-562b-5fad-8d42-960fab6ebeab",
+      "title": "BSE Q1 FY27 reviewed financial results",
+      "document_type": "issuer_filing",
+      "published_at": "2026-08-04T00:00:00Z",
+      "retrieved_at": "2026-10-24T18:10:35.228559Z",
+      "period_start": null,
+      "period_end": null,
+      "content_hash": "52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc",
+      "mime_type": "application/pdf",
+      "local_object_key": "data/precomputed-sources/52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc.pdf",
+      "access_status": "ok",
+      "cutoff_eligibility": "eligible",
+      "cutoff_eligibility_basis": "publication_date"
+    }
+  ],
+  "passages": [
+    {
+      "id": "597afc69-d3c0-57ef-b576-97e26fe44910",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 0,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nThe Power of Vibrance \r\n \r\n \r\n \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number : L67120MH2005PLC155188\r\nBSE - PUBLIC \r\nAugust 4, 2026 \r\nTo, \r\nListing Department \r\nNational Stock Exchange of India Limited \r\nExchange Plaza, 5th Floor, Plot No. C/1 \r\nG Block, Bandra-Kurla Complex, Bandra (E) \r\nMumbai – 400 051 \r\nSymbol: BSE ISIN: INE118H01025 \r\nSub: Investor Presentation – Q1 FY27 \r\nDear Madam/Sir, \r\nWith reference to above captioned subject, please find attached herewith Investor Presentation \r\n– Q1 FY27. \r\nThis intimation is also being made available on the website of the Company at www.bseindia.com \r\nThis is for your information and record. \r\nThanking you, \r\nYours faithfully, \r\nFor BSE Limited \r\nVishal Bhat \r\nCompany Secretary & Compliance Officer\r\nACS-41136",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "503b4eb9-13cb-54c5-b806-7db698e2e0fe",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 1,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "150 \r\nYears of Dedicated \r\nService to the Nation \r\n•••34/\r\n/\r\n4\r\nanewirt \r\nAtvaii\r\naway am% i I \r\nIn i\r\nBSE3 \r\nINVESTOR \r\nPRESENTATION\r\nQ1 FY27",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "9b810ce3-17eb-58b6-966a-c2bbee18aae7",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 2,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "The Power of Vibrance \r\nThis presentation and the discussion may contain certain words or phrases that are forward - looking statements, which are tentative, based\r\non current expectations of the management of BSE Limited or any of its subsidiaries and associate companies (“BSE”). Actual results may\r\nvary significantly from the forward-looking statements contained in this presentations due to various risks and uncertainties. These risks and\r\nuncertainties include competitive landscape, stakeholders' preferences, effect of economic and political conditions in India and outside\r\nIndia, volatility in interest rates and in the securities market, new regulations and Government policies that may impact the businesses of BSE\r\nas well as the ability to implement its strategy.\r\nThe information contained herein is as of the date referenced and BSE does not undertake any obligation to update these statements. BSE\r\nhas obtained all market data and other information from sources believed to be reliable or are its internal estimates, although its accuracy or\r\ncompleteness cannot be guaranteed. Competition numbers are based on published results and management analysis. For the purpose of\r\ncomparison, following stock exchanges are considered – National Stock Exchange of India Limited, Metropolitan Stock Exchange of India\r\nLimited, NSE IFSC Limited, Indian Commodity Exchange Limited, Multi Commodity Exchange of India Ltd and MF Utilities India Pvt Ltd. The\r\npresentation relating to financial performance herein is reclassified/regrouped based on Management estimates and may not directly\r\ncorrespond to published data. The numbers have also been rounded off in the interest of easier understanding. Prior period figures have been\r\nregrouped/reclassified wherever necessary. All information in this presentation has been prepared solely by the company and has not been\r\nindependently verified by anyone else.\r\nThis presentation is for information purposes only and does not constitute an offer or recommendation to buy or sell any securities of BSE.\r\nAny action taken by you on the basis of the information contained herein is your responsibility alone and BSE or its directors or employees will\r\nnot be liable in any manner for the consequences of such action taken by you.\r\nThe distribution of this document in certain jurisdictions may be restricted by law and persons into whose possession this presentation\r\ncomes should inform themselves about, and observe, any such restrictions.\r\nDisclaimer\r\n2",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "11572647-9229-5b92-9298-ff00e31d8d68",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 3,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "RAP' \r\n0 \r\nA \r\nIndex\r\n1.About BSE\r\nBusiness\r\nKey Growth Drivers & Other Initiatives\r\nFinancial Highlights & Investor Information\r\n2.\r\n4.\r\n3.\r\n3",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "b4affc99-9c89-5045-9880-e6d858ba7f4a",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 4,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nName Bio Name Bio\r\nJustice (Retired) \r\nShiavax Jal \r\nVazifdar\r\nPublic Interest \r\nDirector\r\nOn BSE Board \r\nsince 2022\r\n◼Retired Chief Justice of the Punjab & Haryana\r\nHigh Court\r\n◼Practiced as advocate in the Bombay High\r\nCourt\r\n◼Appointed Additional Judge of High Court in\r\n2001\r\nShri \r\nSundararaman \r\nRamamurthy \r\nManaging \r\nDirector & CEO\r\nTook charge in \r\nJan 2023\r\n◼Diverse experience of 40+ years in Indian\r\ncapital market and banking sectors\r\n◼Prior to joining BSE, he was the MD & COO in\r\nIndian arm of Bank of America\r\n◼Senior member of NSE since its inception,\r\nwhere he was responsible for significant\r\ntransformation of the Indian capital markets\r\nfor over 20 years\r\nAbout BSE – Board & Management Team\r\nBoard of Directors\r\n4\r\nProf. Subhasis \r\nChaudhuri\r\nChairman (Public \r\nInterest Director)\r\nOn BSE Board \r\nsince 2022\r\n◼Former Director of IIT Bombay and K.N. Bajaj\r\nChair Professor, Dept. of Electrical\r\nEngineering\r\n◼He has 110 journal publications and over 240\r\nconference presentations, has authored 7\r\nmonographs and 13 National/International\r\nPatents\r\nShri Gopalan S \r\nRaghavan\r\nExecutive \r\nDirector – Vertical \r\n2\r\nTook charge in \r\nJune 2026\r\n◼30+ years in India’s capital markets and\r\nfinancial infrastructure\r\n◼Former NSDL Executive Director and member\r\nof SEBI’s founding team.\r\n◼Board-level leader with experience across\r\nBSE, MCX, and key market institutions.\r\nDr. Padmini \r\nSrinivasan\r\nPublic Interest \r\nDirector\r\nOn BSE Board \r\nsince 2023\r\n◼Faculty in the Finance and Accounting Area at\r\nthe IIM, Bangalore (IIMB)\r\n◼Chairperson Centre for Corporate Governance\r\nand Citizenship.\r\n◼PhD from the National Law School of India,\r\nFellow member of the ICAI, and an Associate\r\nMember of the ICSI",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "c8a4815c-b60c-5618-b7bd-9eb0f3b4db42",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 5,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nAbout BSE – Board & Management Team\r\nBoard of Directors\r\n5\r\nShri Jagannath \r\nMukkavilli\r\nNon-Independent \r\nDirector\r\nOn BSE Board \r\nsince 2024\r\n◼Former Managing Director of Life Insurance\r\nCorporation of India\r\n◼Under his stewardship, the South-Central Zone\r\nZone scripted newer heights in New Business\r\ngrowth\r\n◼Previously served as MD & CEO of LIC (Lanka)\r\nLtd., Colombo, Sri Lanka between 2009 and\r\n2013\r\nShri Shamanna \r\nBalasubramanya\r\nPublic Interest \r\nDirector\r\nOn BSE Board \r\nsince 2025\r\n◼Over 38 years of international experience with\r\nexpertise in solution implementation and\r\nmanagement across\r\n◼BE in Mechanical Engineering from University of\r\nMysore and Master of Technology in Industrial\r\nManagement from IIT Madras\r\n◼Previously worked with Tata Consultancy\r\nServices Limited and PSI Data Systems\r\nName Bio Name Bio\r\nShri Rajiv Bansal\r\nPublic Interest \r\nDirector\r\nOn BSE Board \r\nsince 2025\r\n◼Former Secretary, Ministry of Civil Aviation, with\r\na distinguished career in key government\r\nministries and regulatory bodies, including\r\nroles in Petroleum, IT, Energy, and Heavy\r\nIndustries\r\n◼Led major initiatives in M&A, disinvestment,\r\ndigital transformation, and public sector\r\nreforms;\r\n◼Served as CMD of Air India and held board\r\npositions in top PSEs like ONGC, GAIL, and\r\nBHEL.\r\nDr. Santanu Paul\r\nPublic Interest \r\nDirector\r\nOn BSE Board \r\nsince Jan 2026\r\n◼Founding CEO of the digital upskilling platform\r\nTalentSprint between 2009 and 2024.\r\n◼Currently serves on the Board of various\r\ncompanies in diverse sectors such as financial\r\nservices and design systems\r\n◼Dr. Paul earned his B.Tech. from IIT Madras and\r\nPh.D. in Computer Science from the University\r\nof Michigan",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "5f4c8737-ed8c-5e8f-b332-24836ccccdce",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 6,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "The Power of Vibrance \r\n1111111110 \r\n1111111111* \r\nName Designation\r\nAbout BSE – Board & Management Team\r\nKey Management Personnel\r\n6\r\nShri Sundararaman Ramamurthy • Managing Director & CEO\r\nMs. Kamala K • Chief-Special Duty\r\nShri Sunil Ramrakhiani • Chief Business Officer\r\nShri Viral Davda • Chief Technology Officer\r\nShri Ketan Jantre • Head Trading Operations\r\nShri Shailesh Jain • Head Legal\r\nShri Ramesh Gurram • Chief Information Security Officer\r\nShri Rudresh Kunde • Chief-Product, Policy & Strategy\r\nName Designation\r\nShri Gopalan S Raghavan • Executive Director – Vertical 2*\r\nMs. Geetha Gangadharan • Chief Regulatory Officer\r\nShri Deepak Goel • Chief Financial Officer\r\nShri Sanjay Jain • Chief Risk Officer\r\nShri Vishal Bhat • Company Secretary\r\nSmt. Radha Kirthivasan • Head Listing & SME\r\nDr. Vivek Jain • Chief of Staff and HR Strategy\r\n*Vertical 2 (Regulatory, Compliance, Risk Management & Investor Grievances)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "4d0bcbe7-5594-57e5-8999-885677ebef6d",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 7,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE° The Power of Vibrance \r\nO \r\n• \r\nO \r\n• \r\n• \r\n• \r\n• \r\n• \r\n00 \r\nCtf \r\nAbout BSE Business – Overview\r\nBSE at a Glance\r\nMarket Capitalization of \r\nBSE Listed Companies\r\nUSD 5.01 Tn\r\nRegistered \r\nInvestors\r\n255 Mn+ Rs. 99,553 Mn\r\nEquity Cash \r\nADTV\r\nMembers \r\nRegistered\r\n1,283\r\nMutual Funds \r\nRegistered\r\n50\r\nMutual Funds \r\nOrders\r\n234.4 Mn\r\nCities \r\ncovered\r\n721\r\nMutual Fund \r\nDistributors\r\n84,150\r\nEQD - Highest Single\r\nDay T/o\r\nMutual Fund \r\nOrder Value\r\nRs. 949 Tn\r\nRs. 2.96 Tn\r\nEQD – Total Contracts \r\nTraded\r\n9.34 Bn\r\nEQD Average Daily \r\nTurnover\r\nRs. 237 Tn\r\nFunds \r\nMobilized\r\nRs. 6.24 Tn\r\nConsolidated EPS –\r\nQ1 FY27\r\nCons. Net Worth –\r\nQ1 FY27\r\nCons. Revenue –\r\nQ1 FY27\r\nRs. 17,068 Mn\r\nCons. EBITDA –\r\nQ1 FY27\r\nCons. Net Margin –\r\nQ1 FY27\r\nRs. 21.22 Rs. 75,468 Mn Rs. 11,867 Mn 51%\r\nNote: Data is for the period April 26 to June 26 7",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e97ea95d-3835-5917-aa83-fb210fe332b1",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 8,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "MEM \r\nMal \r\nMEI \r\nMEI \r\nI \r\nThe Power of Vibrance \r\nAbout BSE Business – Overview\r\nBSE Group\r\n8\r\nBSE Group\r\nIndia \r\nInternational \r\nClearing \r\nCorporation \r\n(IFSC) Limited -\r\n60.53%\r\nIndia \r\nInternational \r\nBullion \r\nHolding IFSC \r\nLimited^ -\r\n10%\r\nIndia \r\nInternational \r\nExchange (IFSC) \r\nLimited – 65.27%\r\nIndia INX Global \r\nAccess IFSC \r\nLimited – 100%\r\nIndia International \r\nBullion Holding \r\nIFSC Limited^ -\r\n10%\r\nBSE \r\nTechnologies \r\nPrivate Limited -\r\n100% \r\nCountrywide Commodity \r\nRepository Limited* - 24%\r\nEBIX Insurance Broking \r\nPrivate Limited – 40%\r\nHindustan Power \r\nExchange Limited –\r\n22.62%\r\nOpen Network for Digital \r\nCommerce – 4.63%\r\nBSE E-Agricultural \r\nMarkets Limited – 26.09%\r\nBIL Ryerson Technology \r\nStartups Incubator \r\nFoundation – 51%\r\nBIL Ryerson Futures \r\nPrivate Limited – 10.43%\r\nBSE CSR \r\nIntegrated \r\nFoundation –\r\n100%\r\nCentral \r\nDepository \r\nServices (India) \r\nLimited – 15%\r\nBSE Index \r\nServices Private \r\nLimited – 100%\r\nBSE Clearing \r\nLimited– 100%\r\nBFSI Sector \r\nSkill Council\r\nof India –\r\n48.78%\r\n^India International Bullion Exchange IFSC Limited is a wholly owned subsidiary of India \r\nInternational Bullion Holding IFSC Limited\r\n*Countrywide Commodity Repository Limited is a Group companies of CDSL\r\nBSE Investments Limited and BSE Administration & Supervision Limited got merged into \r\nBSE Technologies Private Limited with effect from April 23, 2026\r\nHolding as on June 2026",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "5fc8330b-a177-52b7-bf50-40b623c367f5",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 9,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BeSr of Vibrance\r\nF \r\nThe \r\nPow \r\nTrading &\r\nClearing\r\nDistribution\r\nServices to \r\nCorporates\r\nOther Services\r\n• Equity\r\n• Debt\r\n• Equity Derivatives\r\n• Currency Derivatives\r\n• Commodity Derivatives\r\n• SME & Startups\r\n• Interest Rate Futures\r\n• Spot Markets\r\n• Mutual Funds\r\n• Book-building services for IPO\r\n• Offer to Buy\r\n• Offer for Sell\r\n• New Bond platform\r\n• Insurance\r\n• Equity Listing\r\n• Listing of Debt Securities\r\n• ETF Listing\r\n• Listing of Commercial Papers\r\n• Social Stock Exchange\r\n• Co-Location Services\r\n• Data feed \r\n• Index Services\r\n• Software Services\r\nAbout BSE Business – Overview\r\nDiversified Lines of Business ..\r\n9",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "3894804f-e823-5a32-b5bd-d50cd6baa667",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 10,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE The Power of Vibrance \r\nillistww VI= \r\nAbout BSE Business – Overview\r\n..Reflected in Revenue Stream\r\n10\r\n13,277\r\n1,007\r\n400\r\n977\r\n1,352\r\n55\r\n13,110\r\n1,188\r\n403\r\n935 617\r\n50\r\n7,375\r\n1,054\r\n454\r\n697 791\r\n74\r\n0\r\n2,000\r\n4,000\r\n6,000\r\n8,000\r\n10,000\r\n12,000\r\n14,000\r\nTransaction\r\nCharges\r\nListing\r\nServices\r\nTreasury\r\nIncome on\r\nC&S Funds\r\nOther\r\nOperating\r\nIncome\r\nInvestment\r\nIncome\r\nOther Income\r\nConsolidated (₹ Mn)\r\nJun'26 Mar’26 Jun'25\r\n12,939\r\n1,004 797\r\n1,182\r\n93\r\n12,728\r\n1,187\r\n765\r\n1,068\r\n85\r\n7,142\r\n1,054\r\n536 654\r\n99\r\n0\r\n2,000\r\n4,000\r\n6,000\r\n8,000\r\n10,000\r\n12,000\r\n14,000\r\nTransaction\r\nCharges\r\nListing Services Other Operating\r\nIncome\r\nInvestment\r\nIncome\r\nOther Income\r\nStandalone (₹ Mn)\r\nJun'26 Mar’26 Jun'25",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "0503bc27-d3cc-5ea4-b1c1-b15a4d155e02",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 11,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "qEw of \r\n0 \r\nIndex\r\n1. About BSE\r\nBusiness\r\nKey Growth Drivers & Other Initiatives\r\nFinancial Highlights & Investor Information\r\n2.\r\n4.\r\n3.\r\n11",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "edf35752-f5ad-5e9e-a4a4-2d62765b4c62",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 12,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE• The Power of Vibrance \r\nI I\r\nI \r\nI 1 \r\n• • \r\nBusiness – Segment Update\r\nEquity Cash - Performance\r\n12\r\n26,757 \r\n41,971 \r\n53,961 \r\n41,320 \r\n66,221 \r\n77,666 79,500 \r\n71,801 \r\n99,553 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nAverage Daily Turnover (₹ million)\r\n467 \r\n616 \r\n891 \r\n705 \r\n1,190 \r\n1,394 1,451 \r\n324 446 \r\n211 \r\n390 \r\n1,130 \r\n820 \r\n1,405 \r\n1,624 \r\n1,044 \r\n224 \r\n208 \r\n678 \r\n1,006 \r\n2,021 \r\n1,525 \r\n2,595 \r\n3,018 \r\n2,495 \r\n548 \r\n654 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nTransaction Charges Income (₹ million)\r\nNormal Rate Special Rate Total",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "2d18d4c8-9262-5cac-b24b-8561d00ac894",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 13,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "PE` of \r\nT r \r\n• • IP 7 • • \r\nTill 111 i ( I \r\nw if' \r\nBusiness – Segment Update\r\nEquity Derivatives - Performance\r\n13 BSE is expanding its monthly derivatives suite with the launch of derivatives on the BSE Focused IT Index on 11th May 2026\r\n468 7,684 25,507\r\n46,301\r\n71,617 82,034 87,584\r\n1,17,827\r\n1,50,838\r\n1,50,045\r\n1,94,591\r\n2,89,207\r\n2,96,154\r\nQ1\r\nFY24\r\nQ2\r\nFY24\r\nQ3\r\nFY24\r\nQ4\r\nFY24\r\nQ1\r\nFY25\r\nQ2\r\nFY25\r\nQ3\r\nFY25\r\nQ4\r\nFY25\r\nQ1\r\nFY26\r\nQ2\r\nFY26\r\nQ3\r\nFY26\r\nQ4\r\nFY26\r\nQ1\r\nFY27\r\nAD Premium T/o (₹ million) \r\n2 48 576 1,137\r\n2,422\r\n3,456 3,530\r\n4,748\r\n5,980 6,242\r\n7,842\r\n11,279 11,550\r\nQ1\r\nFY24\r\nQ2\r\nFY24\r\nQ3\r\nFY24\r\nQ4\r\nFY24\r\nQ1\r\nFY25\r\nQ2\r\nFY25\r\nQ3\r\nFY25\r\nQ4\r\nFY25\r\nQ1\r\nFY26\r\nQ2\r\nFY26\r\nQ3\r\nFY26\r\nQ4\r\nFY26\r\nQ1\r\nFY27\r\nTotal Revenue (₹ million) \r\n0.62 14 46 70 98 128 105 112 131 164\r\n210\r\n245 237\r\n0.98\r\n20\r\n68\r\n94\r\n126\r\n153\r\n128\r\n83 82\r\n100\r\n125\r\n151 156\r\nQ1\r\nFY24\r\nQ2\r\nFY24\r\nQ3\r\nFY24\r\nQ4\r\nFY24\r\nQ1\r\nFY25\r\nQ2\r\nFY25\r\nQ3\r\nFY25\r\nQ4\r\nFY25\r\nQ1\r\nFY26\r\nQ2\r\nFY26\r\nQ3\r\nFY26\r\nQ4\r\nFY26\r\nQ1\r\nFY27\r\n Avg Daily Notional T/o (in Rs. Tn) Average Daily Lots (Mn)\r\n200\r\n306\r\n365 391 422 453 479 505 528 550 567 586 600\r\n0.1 0.6 1.7 3.1 4.4\r\n5.6 6.2\r\n7.1\r\n7.9\r\n8.7\r\n9.5\r\n10.4\r\n11.2\r\n0\r\n100\r\n200\r\n300\r\n400\r\n500\r\n600\r\n700\r\n0.0\r\n2.0\r\n4.0\r\n6.0\r\n8.0\r\n10.0\r\n12.0\r\nQ1\r\nFY24\r\nQ2\r\nFY24\r\nQ3\r\nFY24\r\nQ4\r\nFY24\r\nQ1\r\nFY25\r\nQ2\r\nFY25\r\nQ3\r\nFY25\r\nQ4\r\nFY25\r\nQ1\r\nFY26\r\nQ2\r\nFY26\r\nQ3\r\nFY26\r\nQ4\r\nFY26\r\nQ1\r\nFY27\r\n Members UCC (Mn)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "4d091620-263d-578d-84e7-60b22ef657d7",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 14,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "AM 1111•111 293\r\nMillion\r\nRegistered Investors\r\nMutual Funds Registered\r\nSchemes Available\r\nNetwork of Distributors Cities/towns covered\r\n50\r\n84,150 721\r\nData as on Jun 26\r\n15,504\r\nBusiness – Segment Update\r\nBSE StAR Mutual Fund Platform – Pan-India Reach & Coverage\r\n14",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "f927be68-1219-5a87-a4ea-8d0dac98a037",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 15,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\n1 I I \r\nW' \r\nW \r\nI I I I \r\n• 1 447 \r\n341 \r\n504 \r\n786 \r\n1,281 \r\n2,307 \r\n2,852 \r\n612 \r\n733 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nMutual Fund Revenue (₹ million)\r\n57 \r\n94 \r\n185 \r\n265 \r\n411 \r\n663 \r\n841 \r\n183 \r\n234 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nNumber of Orders (million)\r\nBusiness – Segment Update\r\nBSE StAR Mutual Fund Platform – Performance \r\n15\r\n28% 20%",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "42ad65c4-f6cd-5dde-979b-a9bb09691d0f",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 16,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nir \r\n- \r\nII I\r\nC ■ \r\nBusiness – Segment Update\r\nListing Services - Performance\r\n16\r\n1,580 1,520 1,559 1,688 1,928 2,243 2,415 \r\n572 630\r\n300 335 643 640 \r\n865 \r\n1,279 \r\n1,396 \r\n255 251 \r\n1,880 1,855 \r\n2,202 2,328 \r\n2,793 \r\n3,522 \r\n3,811 \r\n827 881 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nListing Related Income (₹ million)\r\nAnnual Listing Fee Listing processing and Other Listing fees Total\r\n182 \r\n345 \r\n560 447 476 \r\n954 1,040 \r\n190 101\r\n58 \r\n55 \r\n98 \r\n129 \r\n226 \r\n408 338 \r\n36 \r\n23 \r\n240 \r\n400 \r\n658 \r\n576 \r\n702 \r\n1,362 1,378 \r\n226 \r\n124 \r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nBook Building & Other Services (₹ million)\r\nBook Building Fees Other Services Fees Total\r\n30 13 33\r\n63 58\r\n78\r\n146\r\n12 24\r\n3 \r\n1 \r\n4 \r\n10 \r\n15 \r\n27 \r\n62 \r\n4 \r\n9 \r\n -\r\n 10\r\n 20\r\n 30\r\n 40\r\n 50\r\n 60\r\n 70\r\n0\r\n20\r\n40\r\n60\r\n80\r\n100\r\n120\r\n140\r\n160\r\nFY20 FY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nSME Listings\r\nSME IPO No. of IPO SME IPO Fund Raised (Rs Bn)\r\n14 \r\n29 \r\n51 \r\n39 \r\n76 79 \r\n109 \r\n9 8 \r\n206 \r\n306 \r\n1,114 \r\n532 \r\n619 \r\n1,625 \r\n1,771 \r\n139 47 \r\n -\r\n 200\r\n 400\r\n 600\r\n 800\r\n 1,00 0\r\n 1,20 0\r\n 1,40 0\r\n 1,60 0\r\n 1,80 0\r\n 2,00 0\r\n -\r\n 20\r\n 40\r\n 60\r\n 80\r\n 100\r\n 120\r\nFY 20 FY 21 FY 22 FY 23 FY 24 FY 25 FY 26 Q1 FY26 Q1 FY27\r\nMain board Listings\r\nMainboard IPO No. of IPOs Mainboard IPO Fund Raised (Rs Bn)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "30c1aab6-68a6-544d-a907-ae98dd1fba4a",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 17,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nI I libilidiill 1111111 \r\n• • \r\nJIIIIIiIllIl I \r\nBusiness – Segment Update\r\nBSE Clearing Limited (BSECL)\r\n17\r\nBSECL, a wholly-owned subsidiary of BSE Ltd., was established in 2007. Recognized by Securities and Exchange Board of India (SEBI) under the Securities Contracts Regulations \r\n(2018), BSECL serves as the clearing corporation for BSE, managing Collateral, Risk Management, Clearing, and Settlement functions. \r\nQuantitative Reforms\r\nUpgraded Real￾Time Risk \r\nManagement \r\nSystem for Equity & \r\nDerivatives\r\nTrades/Second per \r\nmember per client \r\nimproved: 9x (3,000 \r\n→ 27,000), enabling \r\nfaster trade \r\nprocessing\r\nDaily Trade \r\ncapacity scaled: \r\nEquity: 2 Cr → 10 Cr \r\n& Derivatives: 4 Cr \r\n→ 9 Cr\r\nFocus on Quality\r\nISO 22301 \r\n(Business \r\nContinuity) & ISO \r\n27001 (Information \r\nSecurity)\r\nAAA credit ratings \r\n(India Ratings & \r\nCare Ratings)\r\nUpgrading \r\nEnterprise Risk \r\nManagement (ERM) \r\nfor unified risk \r\noversight\r\nMember-Centric \r\nApproach\r\nEngaged 160+ \r\nmembers to \r\nstrengthen \r\necosystem\r\nConducted \r\nwebinars for \r\noperational ease & \r\ninclusive growth\r\n998\r\n2,319\r\n2,854\r\n2,819\r\n2,369\r\n2,918\r\n2,843\r\n2,541\r\n2,751\r\n3,305\r\n3,364\r\n3,171\r\n3,942\r\n3,867\r\n3,907\r\n2,284\r\n3,921\r\n4,808\r\n4,653\r\n3,991\r\n4,309\r\n4,655\r\n3,930\r\n3,988\r\n5,024\r\n5,224\r\n5,676\r\n4,708\r\n4,336\r\n4,027\r\n0\r\n100 0\r\n200 0\r\n300 0\r\n400 0\r\n500 0\r\n600 0\r\nApr-25 May-25 Jun-25 Jul-25 Aug-25 Sep-25 Oct-25 Nov-25 Dec-25 Jan-26 Feb-26 Mar-26 Apr-26 May-26 Jun-26\r\nMonthly Settled Turnover in Rs. Bn\r\nEQT EQD\r\n0.19\r\n0.63\r\n1.06\r\n1.20\r\n1.07\r\n1.26\r\n1.34\r\n1.09\r\n1.21\r\n1.49\r\n1.36 1.40 1.35\r\n1.25\r\n1.36\r\n0.0 0\r\n0.2 0\r\n0.4 0\r\n0.6 0\r\n0.8 0\r\n1.0 0\r\n1.2 0\r\n1.4 0\r\n1.6 0\r\nApr-25 May-25 Jun-25 Jul-25 Aug-25 Sep-25 Oct-25 Nov-25 Dec-25 Jan-26 Feb-26 Mar-26 Apr-26 May-26 Jun-26\r\nEQD - No. of Contracts Settled (in Bn)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e6a53ff6-f352-531d-b60c-179acceddb89",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 18,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nI i \r\nL L L \r\nBusiness – Segment Update\r\nBSE Index Services Private Limited\r\n18\r\nBSE Index Services Pvt. Ltd. (formerly Asia Index Pvt. Ltd) is a wholly owned subsidiary of BSE Ltd. Its flagship index, which is also the oldest in India, the SENSEX, is one of the most \r\npopular barometers of the Indian economy, reflecting the performance of 30 of the most well established and financially sound companies listed on the exchange\r\nSolutions & Offerings\r\n➢ Product offerings: Customized index solutions as well as licensing and subscription\r\nof our index data\r\n➢ Other Services: Provide iNAV calculation solution for ETFs\r\n➢ Host of indices: We have 200+ indices across broad, sectoral, thematic, strategic\r\nequity indices and fixed income indices\r\n➢ Total AUM: INR 9.78 Lakh Crores tracked by passive products and active\r\nbenchmarking\r\n➢ Passive products: 103 Passive Products tracking 36 indices with an AUM of INR 2.6\r\nLakh Crores linked to it\r\nKey Highlights\r\n➢ Strategic transition: BISPL became a wholly owned subsidiary w.e.f 1st June 2024\r\n➢ Client acquisition: Addition of 200+ clients post takeover\r\n➢ Productinnovation: Launch of 70+ new indices post acquisition\r\n➢ Sustained growth: 100% increase in Revenue from core Index Operations\r\n➢ Regulatory Compliance: Received authorization for Financial Benchmark\r\nAdministration from RBI\r\n➢ Awards and Recognition: ‘Index Provider of the Year – India’ in Best of the Best\r\nAwards 2026 by Asia Asset Management\r\nDistribution of Indices \r\nAcross Categories\r\nBroad Based\r\n56 Indices\r\nSectoral & Industry\r\n52 Indices\r\nThematics\r\n32 Indices\r\nStrategy\r\n63 Indices\r\nFixed Income\r\n5 Indices",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "18c08ae6-4898-5ffe-8b7c-ec299d81b626",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 19,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\n• \r\n• \r\n• \r\n• I\r\n♦ \r\n• \r\n• \r\n• \r\n• \r\n♦ \r\n,IM\r\n_ \r\nMr \r\nINDIA INX INDIA INX – Global Access\r\nA well-diversified portfolio of financial services and products to compete \r\ninternationally\r\nAccess to 135+ global exchanges and products across the US, Asia-Pacific \r\nand Europe, via a single integrated terminal\r\nEquity Index Derivatives\r\nEquity Stock Derivatives\r\nCommodity Derivatives\r\nCurrency Derivatives\r\nDebt\r\nForeign Currency Bonds\r\nMasala Bonds\r\nSustainable Bonds\r\nCorporate Bonds\r\nSovereign Bonds\r\nColocation Services\r\nReal Time Data\r\nw.e.f. 3rd February 2025, Monday – Sensex Futures & Options will be available for trading at India INX\r\n100 % subsidiary of India INX, a subsidiary of BSE Ltd\r\nInvest in more than 30,000 stocks across 33 countries and more \r\nthan 80 global portfolios of renowned international portfolio \r\nmanagers with a minimum of $100\r\nBusiness – Segment Update\r\nBSE @ International Financial Hub\r\n19\r\nMonth Total Trades Total Contracts Value ($ Mn)\r\nJul-25 3,519 5,021 415\r\nAug-25 2,919 4,341 353\r\nSep-25 2,149 3,691 302\r\nOct-25 2,106 3,678 308\r\nNov-25 3,630 5,352 454\r\nDec-25 3,007 4,723 404\r\nJan-26 2,418 4,287 358\r\nFeb-26 2,327 4,260 355\r\nMar-26 2,138 4,007 306\r\nApr-26 2,144 4,134 319\r\nMay-26 3,117 5,084 387\r\nJun-26 9,547 16,187 1,229\r\nMonth Companies Total Trades Value ($ Mn)\r\nJul-25 790 23,445 487\r\nAug-25 677 21,582 429\r\nSep-25 840 25,088 399\r\nOct-25 895 29,459 215\r\nNov-25 581 19,458 228\r\nDec-25 544 27,306 345\r\nJan-26 571 25,168 207\r\nFeb-26 665 28,511 259\r\nMar-26 685 35,656 497\r\nApr-26 835 46,422 780\r\nMay-26 1,523 57,782 572\r\nJun-26 1,487 56,381 584",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "f28da9f7-203b-5b6b-b49c-cc1fe071ebe5",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 20,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "qEw of \r\n0 \r\n1. About BSE\r\nBusiness\r\nKey Growth Drivers & Other Initiatives\r\nFinancial Highlights & Investor Information\r\n2.\r\n4.\r\n3.\r\nIndex\r\n20",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "8716ee2e-4b14-5637-9c22-0b212b732988",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 21,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\n• \r\n• \r\n• \r\n• \r\n/ \r\n• \r\n• \r\n1 \r\nKey Growth Drivers & Other Initiatives\r\nKey Milestones – The transformation over time\r\n1875 - 2011\r\n2012 - 2015\r\n2016 - 2017\r\n2023 - 2025\r\n• Started as The Native Share &\r\nStockbroker's Association\r\n• BSE corporatized\r\n• Launch of StAR MF\r\n• Launch of SME Platform\r\n• Launch of Currency Derivatives\r\n• Launch of Interest Rate\r\nDerivatives\r\n• Launch of New Debt segment\r\n• Trading of Sovereign Gold Bonds\r\ncommenced\r\n• Launch of “BSE–BOND”- Electronic\r\nBook Mechanism\r\n• Launch of India International Exchange\r\n(IFSC) Ltd\r\n• First listed exchange in India\r\n• Launch of Commodity Derivatives\r\n• JV with Ebix Inc for insurance broking\r\nbusiness\r\n• JV with PTC and ICICI Bank to set up a\r\npower exchange\r\n• Launch of StAR MF mobile application\r\n• Launch of “BSE E-Agricultural Markets”\r\n• Commencement of Power Trading by HPX\r\n• Launch of EGR Segment\r\n• Equity Derivatives relaunch - 15th May 2023\r\n• Bankex moves to Monday - 16th October 2023\r\n• Acquisition of 50% stake in AIPL, making it wholly\r\nowned subsidiary of BSE\r\n• FM Unveils BSE Coin, Logo, Index\r\nCommemorating 150 Years of Building Market\r\nTrust\r\n• W.e.f 04/09/2025 – Sensex: Weekly Expiry\r\n(Thursday) & Bankex: Monthly Expiry (Thursday)\r\n• 11th Jan 2026 – MoU with Department of Post\r\nfor distributing Mutual Funds\r\n• 22nd April 2026 – Launch of BSE StAR NPS\r\n• 11th May 2026 - Launch of BSE Focused IT\r\nDerivatives\r\n2026 \r\nonwards\r\n2018 - 2022\r\n21",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "c14c70b7-6784-5ea1-ab20-d4eb88792eb0",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 22,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\n• \r\n01 02 03\r\n• Focussed to increase market￾share across all segments\r\n• Market is growing vastly in terms of\r\nnumber of registered investors and\r\nturnover\r\n• Increasing disposable household\r\nincomes and preference for\r\nfinancial savings – an advantage\r\n• Focus on innovation and launch of\r\nunique products across segments\r\n• Savings in cost and convenience\r\n• Strong network of intermediaries\r\n• Good network connectivity across\r\ncountry\r\n• Increasing household incomes and\r\nfinancial savings\r\n• StAR MF Plus - a premium platform\r\nfor distributors and advisors\r\n• Supports Demat & Non-Demat\r\ntransactions\r\n• Purchase/Redeem/SIP/Switch Mutual\r\nFunds without filling lengthy forms\r\n• Expansion of services from current\r\ne-platforms like book-building for\r\nIPO, Offer to Buy, Offer for Sell, New\r\nBond platform, etc.\r\n• Leadership position in Fund-raising\r\nfor India Inc. across all segments\r\nincluding Equity, Bonds,\r\nCommercial papers etc.\r\nTrading Segments Mutual Fund Platform Services\r\nKey Growth Drivers & Other Initiatives\r\nKey Growth Drivers – Existing Business\r\n22",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "1b1443bd-5868-58a5-9279-5ab9c5654a57",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 23,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "qEw of \r\n0 \r\n1. About BSE\r\nBusiness\r\nKey Growth Drivers & Other Initiatives\r\nFinancial Highlights & Investor Information\r\n2.\r\n4.\r\n3.\r\nIndex\r\n23",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "13f689ec-7e06-5042-a551-b17ff0a0e58c",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 24,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE\" The Power of Vibrance \r\n=NEM MEM MINIM MIIMM \r\nBSEb BSE ICCL BSE \r\nThe Power of Vibrance The Power of vibrance 5 T A R M F\r\n• \r\n• \r\n• \r\n• \r\n• \r\n• \r\nTransaction Charges\r\n◼ To an extent \r\nlinked to Market \r\nActivity\r\n◼ Linked to market activity levels and household savings and investments\r\nTreasury Income on Clearing \r\nand Settlement Funds\r\n◼ Linked to Market \r\nActivity to an \r\nExtent\r\n◼ Linked to interest rates and, to an extent, market activity since that would lead to more margin \r\nbeing deposited by members\r\nOther Securities Services ◼ Recurring ◼ Primarily consists of charges recovered from members for network connectivity\r\nListing Services ◼ Recurring\r\n◼ Mostly derived from listing income that is not impacted by market activity\r\n◼ Dependent on number of listed entities and hence is a recurring revenue stream\r\n◼ Potential for increase if amount charged is increased\r\nData Dissemination Fees ◼ Recurring\r\n◼ Impacted primarily due to level of subscriptions and revision in pricing policies\r\n◼ Contributes only 4-5% in India compared to 10-25% in developed markets\r\nIncome From Investments and \r\nDeposits\r\n◼ Recurring ◼ Linked to investment yields\r\nOther Income ◼ Recurring ◼ Mostly derived from rent and training institute etc., which are stable sources of income\r\nMultiple contact points with members and market participants provides the ability to generate revenue from multiple levels of the business\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\nLinked to Market Activity Recurring\r\nPrimary Trading Clearing & Settlement Distribution\r\nFinancial Highlights & Investor Information\r\nIntegrated Business Model \r\n24",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "28a31d02-0119-5805-9476-005fb42bfc71",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "1831f7bd-c714-53bd-a2d8-9ee74159f8ad",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 26,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss (cont’d)\r\n(₹ in million)\r\n26\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n16 Profit Before Contribution to core settlement guarantee fund (8-15) 11,700 10,733 6,851 9% 71% 33,108 17,557 89% 6,206\r\n17 Contribution to core settlement guarantee fund 259 207 0 25% 770 900 -14% 917\r\n18 Profit Before Tax, Exceptional Items And Share Of Associates (16-17) 11,441 10,526 6,851 9% 67% 32,339 16,657 94% 5,289\r\n19 Exceptional Item – (net of tax of ₹ 391) 0 0 0 0 0 3,675\r\n20 Share of profits From Associates 195 109 163 79% 20% 654 826 -21% 718\r\n21 Tax Expenses 2,910 2,680 1,752 9% 66% 8,238 4,312 91% 1,844\r\n22 Net Profit from continuing operations (18+19+20-21) 8,727 7,956 5,262 10% 66% 24,755 13,171 88% 7,839\r\n23 Profit from discontinued operation 0 0 120 120 53 127% 30\r\n24 Net Profit from total operations (22+23) 8,727 7,956 5,381 10% 62% 24,874 13,224 88% 7,868\r\n25 Net Profit Ex. Excp item & Disc. Ops (24-23-19) 8,727 7,956 5,262 10% 66% 24,755 13,171 88% 4,164\r\n26 Net Profit Attributable To Shareholders 8,740 7,973 5,394 10% 62% 24,970 13,259 88% 7,784\r\n27 Net Profit Attributable To Shareholders (Ex. Excp item & Disc. Ops) 8,740 7,973 5,275 10% 66% 24,850 13,206 88% 4,079\r\n28 Operating EBITDA Including Core SGF 10,460 10,407 6,255 1% 67% 30,787 14,997 105% 3,989\r\n29 Operating EBITDA Margin Including Core SGF (28/5 in %) 67% 67% 65% 64% 51% 29%\r\n30 Operating EBITDA Excluding Core SGF 10,719 10,614 6,255 1% 71% 31,557 15,897 99% 4,907\r\n31 Operating EBITDA Margin Excluding Core SGF (30/5 in %) 68% 68% 65% 65% 54% 36%\r\n32 Net Profit Margin (Continuing Operations) (22/8 in %) 51% 49% 50% 48% 41% 49%\r\n33 Net Profit Margin (Ex. Excp item & Disc. Ops) (25/8 in %) 51% 49% 50% 48% 41% 26%",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "ea1182b3-9c51-559e-8a78-514c175088a5",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 27,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance (₹ in million)\r\nFinancial Highlights & Investor Information\r\nStandalone Profit & Loss\r\n27\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 12,939 12,728 7,142 2% 81% 36,695 19,499 88% 5,820\r\n2 Listing Services 1,004 1,187 1,054 -15% -5% 5,189 4,885 6% 3,499\r\n3 Other Operating Income 797 765 536 4% 49% 2,811 1,681 67% 891\r\n4 Revenue From Operations (1+2+3) 14,740 14,680 8,732 0.41% 69% 44,695 26,064 71% 10,210\r\n5 Investment Income 1,182 1,068 654 11% 81% 3,311 2,769 20% 2,368\r\n6 Other Income 93 85 99 9% -6% 357 294 21% 341\r\n7 Total Income (4+5+6) 16,015 15,833 9,485 1% 69% 48,363 29,128 66% 12,918\r\n8 Employee benefits expenses 539 396 466 36% 16% 1,919 1,564 23% 1,099\r\n9 Technology expenses 583 516 504 13% 16% 2,016 1,665 21% 1,635\r\n10 Regulatory Contribution 1,927 1,996 1,162 -3% 66% 6,398 4,103 56% 2,362\r\n11 Clearing and settlement expenses 1,178 1,145 707 3% 67% 3,719 3,897 -5% 2,066\r\n12 Other Expenses 438 415 324 6% 35% 1,476 1,342 10% 861\r\n13 Depreciation Expense 359 469 219 -23% 64% 1,353 905 50% 750\r\n14 Total Operating Expenses (8+9+10+11+12+13) 5,024 4,935 3,382 2% 49% 16,881 13,476 25% 8,773",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "4b08e904-9dda-588c-83e3-8b8b975a7d0d",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 28,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance (₹ in million)\r\nFinancial Highlights & Investor Information\r\nStandalone Profit & Loss (cont’d)\r\n28\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n15 Profit Before Contribution to core settlement guarantee fund (7-14) 10,991 10,898 6,103 1% 80% 31,483 15,652 101% 4,145\r\n16 Contribution to core settlement guarantee fund 259 405 0 770 900 -14% 0\r\n17 Profit Before Exceptional Item and Tax (15-16) 10,732 10,493 6,103 2% 76% 30,713 14,752 108% 4,145\r\n18 Exceptional Item 0 0 159 159 0 5,042\r\n19 Tax Expenses - Continuing Operations 2,720 2,502 1,552 9% 75% 7,531 3,627 108% 1,653\r\n20 Tax Expenses - Exceptional Item 0 0 25\r\n21 Net Profit After Tax (17+18-19-20) 8,012 7,991 4,685 0.3% 71% 23,342 11,125 110% 7,534\r\n22 Net Profit After Tax excluding exceptional item & tax on it (17-19) 8,012 7,991 4,551 0.3% 76% 23,183 11,125 108% 2,883\r\n23 Operating EBITDA Including Core SGF 9,816 9,808 5,569 0% 76% 28,398 12,593 126% 2,187\r\n24 Operating EBITDA Margin Including Core SGF (23/4 in %) 67% 67% 64% 64% 48% 32% 21%\r\n25 Operating EBITDA Excluding Core SGF 10,075 10,213 5,569 -1% 81% 29,168 13,493 116% 2,187\r\n26 Operating EBITDA Margin Excluding Core SGF (25/4 in %) 68% 70% 64% 65% 52% 26% 21%\r\n27 Net Profit Margin (21/7 in %) 50% 50% 49% 48% 38% 26% 58%\r\n28 Net Profit Margin (excluding exceptional item) (22/7 in %) 50% 50% 48% 48% 38% 26% 22%",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "c46ca614-777d-51d0-8bb5-03f81cb22093",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 29,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw The Power of Vibrance \r\nL\\ r \r\n• i i . \r\nV \r\nr \r\n, \r\nr r \r\nL \r\nn n \r\nL \r\nI s￾n r-- \r\nii \r\nr r \r\nw mr_ N, N-4 \r\nn r n n \r\n, \r\nr \r\n, \r\ni Illmill6 \r\nFor im \r\n5,651 7,240 7,424 \r\n12,918 \r\n29,128 \r\n48,363\r\n9,484 \r\n16,014 \r\n973 1,951 1,669 2,883 \r\n11,125 \r\n23,342\r\n4,684 \r\n8,012 \r\n17%\r\n27%\r\n22% 22%\r\n38%\r\n48% 49% 50%\r\n0%\r\n10%\r\n20%\r\n30%\r\n40%\r\n50%\r\n60%\r\n -\r\n 10,000\r\n 20,000\r\n 30,000\r\n 40,000\r\n 50,000\r\n 60,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nStandalone Key Performance Indicators\r\nTotal Revenue Net Profit Net Margin\r\n6,547 8,635 9,539 \r\n15,960 \r\n32,363 \r\n51,481 \r\n10,445 \r\n17,068 \r\n1,417 \r\n2,449 2,057 \r\n4,164 \r\n13,171 \r\n24,755 \r\n5,262 \r\n8,727 \r\n22%\r\n28%\r\n22%\r\n26%\r\n41%\r\n48%\r\n50% 51%\r\n0%\r\n10%\r\n20%\r\n30%\r\n40%\r\n50%\r\n60%\r\n -\r\n 10,000\r\n 20,000\r\n 30,000\r\n 40,000\r\n 50,000\r\n 60,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nConsolidated Key Performance Indicators\r\nTotal Revenue Net Profit Net Margin\r\nFinancial Highlights & Investor Information\r\nFinancial Overview \r\n* Net profit & EPS from Continuing operation and excluding Gain from CDSL Stake Sale & BSE Institute\r\nPost Bonus issue, earnings per share (EPS) for all periods presented have been adjusted and restated\r\n(₹ in million) (₹ in million)\r\n* Net profit & EPS from Continuing operation and excluding Gain from CDSL Stake Sale & BSE Institute\r\nEPS 3.51 6.17 5.35 9.90 32.18\r\n29\r\n60.61\r\n1,921 3,335 3,359 \r\n6,239 \r\n17,787 \r\n33,928 \r\n7,120 \r\n11,867 \r\n -\r\n 5,000\r\n 10,000\r\n 15,000\r\n 20,000\r\n 25,000\r\n 30,000\r\n 35,000\r\n 40,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nConsolidated EBITDA (₹ million)\r\n12.80 21.22 2.36 4.73 4.05 7.00 27.00 56.66 10.98 19.45\r\n1,819 3,025 2,866 4,895 \r\n15,657\r\n32,066\r\n6,321 \r\n11,091 \r\n -\r\n 5,000\r\n 10,000\r\n 15,000\r\n 20,000\r\n 25,000\r\n 30,000\r\n 35,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nStandalone EBITDA (₹ million)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "66574d4a-e94d-5bfe-873a-bcdba446daec",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 30,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "The Power of Vibrance \r\n1 \r\n; \r\n#Dividend pay-out ratio is calculated based on Standalone Profit excluding gain on sale of strategic investment\r\nFinancial Highlights & Investor Information\r\nFinancial Overview (cont’d)\r\nFinancial Year Dividend (Including DDT) # \r\n(₹ million)\r\nBuyback (Incl transactions \r\ncost & Tax) -\r\n(₹ million)\r\nTotal\r\n(₹ million)\r\n2015-16 937 - 937 \r\n2016-17 765 - 765 \r\n2017-18 1,733 450 2,183 \r\n2018-19 2,255 1,230 3,485 \r\n2019-20 1,584 4,762 6,346 \r\n2020-21 779 - 779\r\n2021-22 962 - 962\r\n2022-23 1,851 - 1,851\r\n2023-24 1,649 93 1,742\r\n2024-25 2,060 - 2,060\r\n2025-26 3,158 - 3,158\r\nTotal 17,733 6,535 24,268\r\n#Dividend Distribution Tax 30\r\n15\r\n28\r\n36\r\n30\r\n17\r\n21\r\n13.50 12\r\n15\r\n23\r\n74%\r\n93% 95% 97% 95% 99% 95% 99%\r\n71%\r\n28%\r\n0%\r\n20%\r\n40%\r\n60%\r\n80%\r\n100%\r\n120%\r\n0\r\n5\r\n10\r\n15\r\n20\r\n25\r\n30\r\n35\r\n40\r\n2015-16 2016-17 2017-18 2018-19 2019-20 2020-21 2021-22 2022-23 2023-24 2024-25\r\nDividend per share* (₹) & Pay-out Ratio\r\nDividend Per Share Dividend Payout Ratio\r\n24,924 26,545 27,012 \r\n33,023 \r\n44,237 \r\n66,730 \r\n49,617 \r\n75,468 \r\n -\r\n 10,000\r\n 20,000\r\n 30,000\r\n 40,000\r\n 50,000\r\n 60,000\r\n 70,000\r\n 80,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nConsolidated Net Worth (₹ million)\r\n21,872 22,872 22,690 \r\n28,440 \r\n37,476 \r\n57,665 \r\n42,152 \r\n65,679 \r\n -\r\n 10,000\r\n 20,000\r\n 30,000\r\n 40,000\r\n 50,000\r\n 60,000\r\n 70,000\r\nFY21 FY22 FY23 FY24 FY25 FY26 Q1 FY26 Q1 FY27\r\nStandalone Net Worth (₹ million)",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "71ff6f06-4e55-5afe-a699-2c0c9003f718",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 31,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "The Power of Vibrance \r\nBusiness\r\nShareholding Pattern \r\nMARKET DATA\r\nMarket Capitalization* (₹ Mn) 15,69,933\r\nPrice* (₹) 3,866\r\nNo. of Shares Outstanding 40,61,29,077\r\nFace Value (₹) 2.00\r\nAvg. Daily Trading Value#\r\n(₹ Mn) 15,851\r\nAvg. Daily Trading Volume#\r\n(Mn shares) 4.22\r\n52-week High-Low (₹) 4,447 – 2,022\r\n*Market data as of June 30, 2026\r\n#For the period of Apr 2026 to Jun 2026\r\nTOP 10 SHAREHOLDERS (As of June 2026) \r\nLIFE INSURANCE CORPORATION OF INDIA 5.57%\r\nKOTAK FLEXICAP FUND 1.79%\r\nSIDDHARTH BALACHANDRAN . 1.70%\r\nSBI LIFE INSURANCE CO. LTD 1.65%\r\nTATA AIA LIFE INSURANCE CO LTD-WHOLE LIFE MID CAP 1.43%\r\nMOTILAL OSWAL MIDCAP FUND 1.37%\r\nHDFC LIFE INSURANCE COMPANY LIMITED 1.36%\r\nNIPPON LIFE INDIA TRUSTEE LTD- A/C NIPPON INDIA GR 1.35%\r\nINVESCO INDIA MIDCAP FUND 1.34%\r\nS GOPALAKRISHNAN 1.17%\r\n31\r\nPublic, 33.9%\r\nTrading Members, \r\n7.7%\r\nQIB, 12.1% Body Corporates, \r\n7.4%\r\nFPI's & NRI's, \r\n24.7%\r\nMutual Funds, \r\n11.8%\r\nAIF's, 0.3%\r\nOthers, 2.0%\r\n -\r\n 500\r\n 1,000\r\n 1,500\r\n 2,000\r\n 2,500\r\n 3,000\r\n 3,500\r\n 4,000\r\n 4,500\r\n 5,000\r\nOct-24\r\nNov-24\r\nDec-24\r\nJan-25\r\nFeb-25\r\nMar-25\r\nApr-25\r\nMay-25\r\nJun-25\r\nJul-25\r\nAug-25\r\nSep-25\r\nOct-25\r\nNov-25\r\nDec-25\r\nJan-26\r\nFeb-26\r\nMar-26\r\nApr-26\r\nMay-26\r\nJun-26\r\nBSE Adjusted Closing Price",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "0d0cf7c3-442c-53ad-8e7d-4076562a2882",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 32,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "gPowero \r\nBest Use of Social \r\nMedia\r\n&\r\nBest Use of \r\nProgrammatic \r\nAdvertising\r\nDerivative Exchange\r\nof the Year\r\nExchange\r\nof\r\nThe Year\r\nSecurity Practices In\r\nCapital Markets\r\nTrusted\r\nBrand 2025\r\nChampions of Capital \r\nMarket Innovation and \r\nEfficiency Asia 2025\r\nBig Impact\r\nCreator\r\nAsia Best\r\nEmployer Brand\r\nBest Investor\r\nEducation\r\nFINXX 2025 Risk Asia Awards \r\n2025\r\nWorld BFSI \r\nCongress Awards\r\nDSCI Excellence\r\nAwards 2025\r\nReader's Digest\r\nCFI \r\nAwards - 2025\r\nBig Impact Awards \r\n2026 - Big FM\r\nCMO Asia \r\nAwards 2026\r\nAsia Asset \r\nManagement 2026\r\nBusiness\r\nAwards & Recognitions\r\nWealth Creator of the \r\nYear\r\nNDTV Profit – Business \r\nLeadership Awards 2026",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e3e7c54a-1cc6-5fbc-995a-a0b0ced9a1b6",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 33,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "1 \r\nI \r\n‘.. BSE° \r\nThe Power of Vibrance \r\nUitikiivt\r\nINVESTOR RELATIONS CONTACT:\r\nAnand Sethuraman\r\nHead – Investor Relations\r\n+91 22 2272 8229\r\n bse.ir@bseindia.com\r\nTHANK YOU",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "072504a9-6e36-580e-9751-dc62d71f2a70",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 0,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nAugust 4, 2026 \r\nTo, \r\nThe Listing Department \r\nNational Stock Exchange of India Limited \r\nExchange Plaza, 5th Floor, Plot No. C/1 \r\nG Block, Bandra-Kurla Complex, Bandra (E) \r\nMumbai – 400 051 \r\nSymbol: BSE ISIN: INE118H01025\r\nRef: Regulation 30 and 33 read with Schedule III of SEBI (Listing Obligations and Disclosure \r\nRequirements) Regulations, 2015 (‘SEBI LODR’) \r\nSubject: Outcome of the Board Meeting \r\nDear Madam / Sir, \r\nThis is to inform that the Board of Directors of the Company at its meeting held on Tuesday, \r\nAugust 4, 2026 (i.e. today), inter-alia, considered and approved the following: \r\n1. Financial Results: \r\nThe Unaudited Financial Results (Consolidated and Standalone) for the quarter ended \r\nJune 30, 2026, pursuant to Regulation 33 of the SEBI LODR, along with the Limited Review \r\nReports issued by the Statutory Auditors, are enclosed herewith as ‘Annexure A’. \r\n2. Appointment of Statutory Auditors: \r\nThe appointment of M/s KKC & Associates LLP, Chartered Accountants, ICAI Firm \r\nRegistration No.105146W/W100621 as the Statutory Auditors of the Company for a term \r\nof five years, commencing from the conclusion of the 22nd Annual General Meeting and \r\ncontinuing until the conclusion of the 27th Annual General Meeting, subject to the \r\napproval of the Shareholders of the Company. \r\nThe disclosure required pursuant to SEBI Master Circular No. HO/49/14/14(7)2025-CFD￾POD2/I/3762/2026 dated January 30, 2026, is enclosed herewith as ‘Annexure B’.",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "1bc51d85-88f7-5d56-aae7-c5adb391bf63",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 1,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\n3. Further acquisition of stake in India International Bullion Holding IFSC Limited (‘IIBH’): \r\nFurther acquisition of equity shares of IIBH by way of a secondary purchase from the \r\nCompany’s subsidiaries, namely, India International Exchange (IFSC) Limited and India \r\nInternational Clearing Corporation (IFSC) Limited. \r\nThe present acquisition is in addition to the 3.33% equity stake acquired by the Company, \r\nas intimated to the Stock Exchange on July 31, 2026, and is intended to consolidate the \r\nshareholding in IIBH directly in BSE Limited, instead of such shareholding being held by \r\nits subsidiaries. \r\nUpon completion of the present acquisition, BSE Limited’s direct shareholding in IIBH will \r\nincrease from 3.33% to 20%, and IIBH will consequently become a direct associate \r\ncompany of BSE Limited. \r\nThe disclosure required pursuant to SEBI Master Circular No. HO/49/14/14(7)2025-CFD￾POD2/I/3762/2026 dated January 30, 2026, is enclosed herewith as ‘Annexure C’. \r\nThe aforesaid matters were duly approved by the Board of Directors at its meeting, which \r\ncommenced at 15:50 hours and concluded at 17:30 hours. \r\nThis intimation is also being made available on the website of the Company at \r\nwww.bseindia.com. \r\n \r\nThis is for your information and records. \r\nFor BSE Limited \r\nVishal Bhat \r\nCompany Secretary & Compliance Officer \r\nACS- 41136 \r\nEncl: a/a",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "ec618e49-f872-5f84-8e7b-0c4493b1569b",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 2,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "S.R. BATLIBOI & CO. LLP \r\nChartered Accountants \r\n12th Floor, The Ruby \r\n29 Senapati Bapat Marg \r\nDadar (West) \r\nMurnbai - 400 028, India \r\nTel : +91 22 6819 8000 \r\nIndependent Auditor's Review Report on the Quarterly Unaudited Consolidated Financial Results of the \r\nCompany Pursuant to the Regulation 33 of the SEBI (Listing Obligations and Disclosure Requirements) \r\nRegulations, 2015, as amended \r\nReview Report to \r\nThe Board of Directors \r\nBSE Limited \r\n1. We have reviewed the accompanying Statement of Unaudited Consolidated Financial Results of BSE \r\nLimited (the \"Holding Company\") and its subsidiaries (the Holding Company and its subsidiaries together \r\nreferred to as \"the Group\") and its associate for the quarter ended June 30, 2026 (the \"Statement\") \r\nattached herewith, being submitted by the Holding Company pursuant to the requirements of Regulation \r\n33 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015, as amended (the \r\n\"Listing Regulations\"). \r\n2. The Holding Company's Management is responsible for the preparation of the Statement in accordance \r\nwith the recognition and measurement principles laid down in Indian Accounting Standard 34, (Ind AS \r\n34) \"Interim Financial Reporting\" prescribed under Section 133 of the Companies Act, 2013 as amended, \r\nread with relevant rules issued thereunder and other accounting principles generally accepted in India \r\nand in compliance with Regulation 33 of the Listing Regulations. The Statement has been approved by \r\nthe Holding Company's Board of Directors . Our responsibility is to express a conclusion on the Statement \r\nbased on our review. \r\n3. We conducted our review of the Statement in accordance with the Standard on Review Engagements \r\n(SRE) 2410, \"Review of Interim Financial Information Performed by the Independent Auditor of the \r\nEntity\" issued by the Institute of Chartered Accountants of India. This standard requires that we plan \r\nand perform the review to obtain moderate assurance as to whether the Statement is free of material \r\nmisstatement. A review of interim financial information consists of making inquiries, primarily of persons \r\nresponsible for financial and accounting matters, and applying analytical and other review procedures. \r\nA review is substantially less in scope than an audit conducted in accordance with Standards on Auditing \r\nand consequently does not enable us to obtain assurance that we would become aware of all significant \r\nmatters that might be identified in an audit. Accordingly, we do not express an audit opinion. \r\nWe also performed procedures in accordance with the Master Circular issued by the Securities and \r\nExchange Board of India under Regulation 33(8) of the Listing Regulations, to the extent applicable. \r\n4. The Statement includes the results of the following entities: \r\nList of Subsidiaries \r\na) BSE Technologies Private Limited \r\nb) BSE Clearing Limited (Formerly known as Indian Clearing Corporation Limited) \r\nc) India International Clearing Corporation (IFSC) Limited \r\nd) India International Exchange (IFSC) Limited \r\ne) BSE Index Services Private Limited (Formerly known as Asia Index Private Limited) \r\nf) BIL Ryerson Futures Private Limited \r\nList of associate \r\na) Central Depository Services (India) Limited \r\n5. Based on our review conducted and procedures performed as stated in paragraph 3 above and based on \r\nthe consideration of the review reports of other auditors referred to in paragraph 6 below, nothing has \r\ncome to our attention that causes us to believe that the accompanying Statement, prepared in \r\naccordance with recognition and measurement principles laid down in the aforesaid Indian Accounting \r\nStandards ('Ind AS') specified under Section 133 of the Companies Act, 2013, as amended, read with \r\nrelevant rules issued thereunder and other accounting principles generally accepted in India, has not \r\ndisclosed the information required to be disclosed in terms of the Listing Regulations, including the \r\nmanner in which it is to be disclosed, or that it contains any material misstatement. \r\nS R Batliboi & Co. LLP, a Limited Liability Partnership with LLP Identity No. AAB-4294 \r\nRegd. Office : 22, Carnac Street, Block 'B', 3rd Floor, Kolkata-700 016 \r\nAnnexure A",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "0848b0c3-fc82-598a-a09c-fe6aa564e7ed",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 3,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "S.R. BAn1B01&O0. LLP \r\nChartered Accountants \r\n6. The accompanying Statement includes the unaudited interim financial results and other unaudited \r\nfinancial information in respect of five subsidiaries, whose unaudited interim financial results includes \r\ntotal revenues of Rs 14,916 lakhs, total net profit after tax of Rs 4,585 lakhs, total comprehensive \r\nincome of Rs 4,569 lakhs, for the quarter ended June 30, 2026, as considered in the Statement, which \r\nhave been reviewed by their respective independent auditors. \r\nThe independent auditor's reports on interim financial results of these entities have been furnished to us \r\nby Management and our conclusion on the Statement, in so far as it relates to the amounts and \r\ndisclosures in respect of these subsidiaries is based solely on the report of such auditors and procedures \r\nperformed by us as stated in paragraph 3 above. \r\nOur conclusion on the Statement in respect of above matter is not modified with respect to our reliance \r\non the work done and the reports of the other auditors, \r\nFor S.R. BATLIBOI & Co. LLP \r\nChartered Accountants \r\nICAI Firm registration number: 301003E/E300005 \r\nAlma, --• \r\nektittLoo tolavk O;-- --4cO\\ \r\n..,..... \\ \r\nper Pikashoo Mutha , I \r\nPartner -1 MUM8AI r71 \r\n.s Membership No.: 131658 Is' k 7\r\nUDIN: 26131658AFESXY8719 '0. ..\"-*-/ \r\nPlace: Mumbai N:.0 A CCS____‘`\r\n- ----___-_,_—____ - Date: August 04, 2026",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e7dc59ba-eee8-52f5-a006-9a687105933a",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 4,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE' 1B 5 E \r\nBSE Limited \r\nCIN L67120MH2005PLC155188 \r\n(Formerly known as Bombay Stock Exchange Limited) \r\nRegistered office: Floor 25, P J Towers, Dalal Street, Mumbai 400001 \r\nStatement of Consolidated Financial Results for the quarter ended June 30, 2026 \r\n(4 In Lakhs) \r\nParticulars For the For the For the For the \r\nquarter quarter quarter year \r\nended ended ended ended \r\nJune March June March \r\n30, 2026 31, 2026 30, 2025 31, 2026 \r\nUnaudited Unaudited Unaudited Audited \r\nContinuing operation \r\n1 Revenue from operations 1,56,602 1,56,351 95,795 4,83,395 \r\n2 Investment income 13,518 6,169 7,906 29,030 \r\n3 Other income 552 497 744 2,385 \r\n4 Total income (1+2+3) 1,70,672 1,63,017 1,04,445 5,14,810 \r\n5 Expenses \r\na) Employee benefits expense 8,705 6,352 7,003 29,781 \r\nb) Technology expense 6,082 5,163 4,989 20,313 \r\nc) Clearing and settlement expense 9,028 8,725 5,550 28,035 \r\nd) Regulatory contribution 19,278 19,972 11,626 64,969 \r\ne) Other expenses 6,316 10,003 4,078 24,748 \r\nf) Depreciation expense 4,260 5,479 2,688 15,896 \r\nTotal expenses (5a to 5f) 53,669 L 55,694 35,934 1,83,742 \r\n6 Profit before contribution to core settlement guarantee fund (4-5) 1,17,003 \r\ns,\r\n1,07,323 68,511 3,31,068 \r\n7 Contribution to core settlement guarantee fund 2.591 2,072 7,696 \r\n8 Profit before tax and share of net profits of investments accounted for using \r\nequity method (6-7) \r\n1,14,412 1,05,251 68,511 3,23,372 \r\n9 Share of profit of associates (net of taxes) 1,954 1,094 1,629 6,542 \r\n10 Profit before tax (8+9) 1,16,366 1,06,345 70,140 3,29,914 \r\n11 Tax expense 29,100 26,798 17,518 82,384 \r\n12 Net profit after tax for the quarter / year from continuing operation (10-11) 87,266 79,547 52,622 2,47,530 \r\nDiscontinued operation (refer note 4) \r\n13 Profit before tax from discontinued operation 6 6 \r\n14 Profit on sale of subsidiary (on loss of control) 1,440 1,440 \r\n15 Profit from discontinued operation before taxes (13+14) - 1,446 1,446 \r\n16 Tax expense on discontinued operation 251 251 \r\n17 Profit from discontinued operation (15-16) - - 1.195 1,195 \r\n18 Net profit from total operation for the quarter / year (12+17) 87,266 79,547 53,817 2,48,725 \r\nNet profit attributable to the shareholders of the Holding Company 87,402 79,733 53,941 2,49,698 \r\nNet profit attributable to the non controlling interest (136) (186) (124) (973) \r\n19 Other comprehensive Income (net of taxes) (39) 2,042 (148) 3,744 \r\n20 Total comprehensive Income for the quarter / year (18+19) 87,227 81,589 53,669 2,52,469 \r\nTotal comprehensive income attributable to the shareholders of the Holding 87,377 81,030 53,799 2,52,061 \r\nCompany \r\nTotal comprehensive income attributable to the non controlling interest (150) 559 (130) 408 \r\n21 Paid up equity share capital (face value per share ₹ 2 each) 8,158 8,158 8,134 8,158 \r\n22 Other equity 6,59,143 \r\n23 Earnings per equity share (face value per share ₹ 2 each) \r\nContinuing operations \r\nBasic and diluted before and after exceptional item* (₹) 21.22 19.35 12.80 60.32 \r\nDiscontinued operations \r\nBasic and diluted before and after exceptional item* (₹) (refer note 4) 0.29 0.29 \r\nTotal operations \r\nBasic and diluted before and after exceptional item* (₹) 21.22 19.35 13.09 60.61 \r\n*Note: Basic and diluted EPS is not annualised for the quarter ended results. EPS is calculated on outstanding shares issued by BSE Limited (the \r\n\"Ho ding Company\") including shares held in abeyance. \r\n4.1 \r\nMUMBA;",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "59646659-8d5b-52c2-966f-df639a2f8287",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 5,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "1 The Consolidated financial results comprises of results of BSE Limited (\"Holding Company\") and its subsidiaries (the Holding \r\nCompany and its subsidiaries together referred to as \"the Group\") and its associates. The above consolidated financial results \r\nfor the quarter ended June 30, 2026 have been reviewed by the Audit Committee and approved by the Board of Directors on \r\nAugust 04, 2026 and the statutory auditors of the Holding Company have conducted limited review of the said consolidated \r\nfinancial results for the quarter ended June 30, 2026, \r\n2 The above consolidated financial results for the quarter ended June 30, 2026 are prepared in accordance with the Indian \r\nAccounting Standards (Ind-AS) as prescribed under Section 133 of the Companies Act, 2013, as amended. \r\n3 The Group operates only in one Business Segment i.e. \"Facilitating Trading in Securities and other related ancillary Services\", \r\nhence does not have any reportable Segments as per Ind-AS 108 \"Operating Segments\". \r\n4 The Board of Directors of the Holding Company in their meeting held on May 08, 2024 had accorded in-principle approval for \r\ndivestment of its holding in its wholly owned subsidiary, BSE Institute Limited. Pursuant to the same, the Company had \r\ncompleted the divestment (in May 2025) and profit of Rs. 1,440 Lakhs has been shown as Profit on sale of subsidiary (on loss of \r\ncontrol) under \"Discontinued operation\" in the consolidated financial results for the quarter ended June 30, 2025 and year \r\nended March 31, 2026. Tax of ₹ 249 Lakhs on the said profit is included as a part of Tax expense on discontinued operation for \r\nthe quarter ended June 30, 2025 and year ended March 31, 2026. \r\n5 The Board of Directors of the Holding Company in their meeting held on November 11, 2025 had accorded in-principle approval \r\nfor the divestment of its holding in one of the associate company. Pursuant to the same, the Holding Company is awaiting the \r\napproval from Regulatory Authority. Consequently, the disclosures required by Ind AS 105 \"Non-current Assets Held for Sale \r\nand Discontinued Operations\" have been presented in the financial results for the quarter ended June 30, 2026 and year ended \r\nMarch 31, 2026. \r\n6 Previous quarter's / year's figures have been regrouped / reclassified wherever necessary to correspond with the current \r\nquarter's / classification / disclosure. \r\n7 The figures for the quarter ended March 31, 2026 are arrived at as difference between audited figures for the year ended \r\nMarch 31, 2026 and the reviewed figures for the nine months ended December 31, 2025. \r\n8 Unaudited Financial Results of BSE Limited (Standalone Information) (₹ in Lakhs) \r\nParticulars For the \r\nquarter \r\nended \r\nJune \r\n30, 2026 \r\nFor the \r\nquarter \r\nended \r\nMarch \r\n31, 2026 \r\nFor the \r\nquarter \r\nended \r\nJune \r\n30, 2025 \r\nFor the \r\nyear \r\nended \r\nMarch 31, \r\n2026 \r\nUnaudited Unaudited Unaudited Audited \r\nTotal income 1,60,144 1,58,334 94,837 4,83,634 \r\nProfit before tax 1,07,313 1,04,926 62,605 3,08,721 \r\nProfit for the period 80,115 79,905 46,840 2,33,416 \r\nNote: The unaudited financial results of BSE Limited for the above mentioned period are available on our website, \r\nwww.bseindia.com and on the stock exchange website www.nseindia.com. The information above has been extracted from \r\nthe unaudited standalone financial results for the quarter ended June 30, 2026. \r\n_ e; \r\nIMO ,\r\n- -- \"N' For and on behalf of Board of Directors of \r\n'''''' BSE LIMITED \r\nIr t MUA;c1,4i \r\n%,...,•%... ,) ,4':: . I \r\nPlace : Mumbai \r\n.:.i,..3‘..‘\"... O, ---,-Ne • • N... ,41:1;t1t, ,•=• \r\n*--::--z—. \r\nSundararaman Ramamurthy \r\nDate : August 04, 2026 \r\n---:---\"\" \r\nManaging Director & CEO",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "4873f47e-88a5-5fa7-aba5-8ebeb6c4e01f",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 6,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "S. TLIBOI & Co. LLP \r\nChartered Accountants \r\n12th Floor, The Ruby \r\n29 Senapati Bapat Marg \r\nDadar (West) \r\nMumbai - 400 028, India \r\nTel : +91 22 6819 8000 \r\nIndependent Auditor's Review Report on the Quarterly Unaudited Standalone Financial Results of the \r\nCompany Pursuant to the Regulation 33 of the SEBI (Listing Obligations and Disclosure Requirements) \r\nRegulations, 2015, as amended \r\nReview Report to \r\nThe Board of Directors \r\nBSE Limited \r\n1. We have reviewed the accompanying statement of unaudited standalone financial results of BSE \r\nLimited (the \"Company\") for the quarter ended June 30, 2026 (the \"Statement\") attached herewith, \r\nbeing submitted by the Company pursuant to the requirements of Regulation 33 of the SEBI (Listing \r\nObligations and Disclosure Requirements) Regulations, 2015, as amended (the \"Listing Regulations\"). \r\n2. The Company's Management is responsible for the preparation of the Statement in accordance with \r\nthe recognition and measurement principles laid down in Indian Accounting Standard 34, (Ind AS 34) \r\n\"Interim Financial Reporting\" prescribed under Section 133 of the Companies Act, 2013 as amended, \r\nread with relevant rules issued thereunder and other accounting principles generally accepted in India \r\nand in compliance with Regulation 33 of the Listing Regulations. The Statement has been approved \r\nby the Company's Board of Directors. Our responsibility is to express a conclusion on the Statement \r\nbased on our review. \r\n3. We conducted our review of the Statement in accordance with the Standard on Review Engagements \r\n(SRE) 2410, \"Review of Interim Financial Information Performed by the Independent Auditor of the \r\nEntity\" issued by the Institute of Chartered Accountants of India. This standard requires that we plan \r\nand perform the review to obtain moderate assurance as to whether the Statement is free of material \r\nmisstatement. A review of interim financial information consists of making inquiries, primarily of \r\npersons responsible for financial and accounting matters, and applying analytical and other review \r\nprocedures. A review is substantially less in scope than an audit conducted in accordance with \r\nStandards on Auditing and consequently does not enable us to obtain assurance that we would become \r\naware of all significant matters that might be identified in an audit. Accordingly, we do not express an \r\naudit opinion. \r\n4. Based on our review conducted as above, nothing has come to our attention that causes us to believe \r\nthat the accompanying Statement, prepared in accordance with the recognition and measurement \r\nprinciples laid down in the aforesaid Indian Accounting Standards ('Ind AS') specified under Section \r\n133 of the Companies Act, 2013 as amended, read with relevant rules issued thereunder and other \r\naccounting principles generally accepted in India, has not disclosed the information required to be \r\ndisclosed in terms of the Listing Regulations, including the manner in which it is to be disclosed, or \r\nthat it contains any material misstatement. \r\nFor S.R. BATLIBOI & Co. LLP \r\nChartered Accountants \r\nICAI Firm registration number: 301003E/E300005 \r\nTi.tor AAUP° tw.Alit-is \r\nper Pikashoo Mutha \r\nPartner \r\nMembership No.: 131658 \r\nUDIN: 26131658POAIEB8825 \r\nPlace: Mumbai \r\nDate: August 04, 2026 \r\n~a~ 1916 B11\r\n:2,(MUNi1BA f:\\i) \r\nS.R. Batlibol & Co. LLP, a Limited Liability Partnership with LLP Identity No. AAB-4294 \r\nRegd. Office : 22, Camac Street, Block 'B', 3rd Floor, Holkata-700 016",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "ecf2e6a0-1f51-508f-83bd-ba8095a7048e",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 7,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": ".., \r\n13SE1s° \r\nBSE Limited \r\nCIN L67120MH2005PLC155188 \r\n(Formerly known as Bombay Stock Exchange Limited) \r\nRegistered office: Floor 25, P J Towers, Dalal Street, Mumbai 400001 \r\nStatement of Standalone Financial Results for the quarter ended June 30, 2026 \r\n₹ in Lakhs) \r\nParticulars For the \r\nquarter \r\nended \r\nJune \r\n30, 2026 \r\nFor the \r\nquarter \r\nended \r\nMarch \r\n31, 2026 \r\nFor the \r\nquarter \r\nended \r\nJune \r\n30, 2025 \r\nFor the \r\nyear \r\nended \r\nMarch \r\n31, 2026 \r\nUnaudited Unaudited Unaudited Audited \r\n1 Revenue from operations 1,47,402 1,46,803 87,308 4,46,951 \r\n2 Investment income 11,815 10,681 6,538 33,114 \r\n3 Other income 927 850 991 3,569 \r\n4 Total income (1+2+3) 1,60,144 1,58,334 94,837 4,83,634 \r\n5 Expenses \r\na) Employee benefits expense 5,390 3,959 4,660 19,186 \r\nb) Technology expense 5,830 5,157 5,042 20,163 \r\nc) Clearing and settlement expense 11,776 11,447 7,069 37,191 \r\nd) Regulatory contribution 19,273 19,956 11,621 63,978 \r\ne) Other expenses 4,381 4,150 3,240 14,756 \r\nf) Depreciation expense 3,590 4,685 2,190 13.533 \r\nTotal expenses (5a to 5f) 50,240 49,354 33,822 1,68,807 \r\n6 Profit before contribution to core settlement guarantee fund (4-5) 1,09,904 1,08,980 61,015 3,14,827 \r\n7 Contribution to core settlement guarantee fund 2,591 4,054 7,696 \r\n8 Profit before exceptional item and tax (6-7) 1,07,313 1,04,926 61,015 3,07,131 \r\n9 Exceptional item (refer note 4) - 1,590 1.590 \r\n10 Profit before tax (8+9) 1,07,313 1,04,926 62,605 3,08,721 \r\n11 Tax expense (refer note 4) 27,198 25,021 15,765 75,305 \r\n12 Profit for the quarter / year (10-11) 80,115 79,905 46,840 2,33,416 \r\n13 Other comprehensive income (net of taxes) 17 5 (83) 57 \r\n14 Total comprehensive income for the quarter / year (12+13) 80,132 79,910 46,757 2,33,473 \r\n15 Paid up equity share capital (face value per share ₹ 2 Each) 8,158 8,158 8,134 8,158 \r\n16 Other equity 5,68,495 \r\n17 Earnings per equity share (face value per share ₹ 2 Each) \r\nBasic and diluted before exceptional item*(₹) 19.45 19.40 10.98 56.27 \r\nBasic and diluted after exceptional item*(₹) 19.45 19.40 11.37 56.66 \r\n*Note: Basic and diluted EPS is not annualised for the quarter ended results. EPS is calculated on outstanding shares issued by BSE Limited \r\n(the \"Company\") including shares held in abeyance. \r\nfrIUMBA",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "b722ee8b-9365-5eb1-bb40-b6e848f0f8ef",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 8,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "1 The above standalone financial results for the quarter ended June 30, 2026 have been reviewed by the Audit Committee and approved \r\nby the Board of Directors on August 04, 2026 and the statutory auditors of the Company have conducted limited review of the said \r\nstandalone financial results for the quarter ended June 30, 2026. \r\n2 The above standalone financial results for the quarter ended June 30, 2026 are prepared in accordance with the Indian Accounting \r\nStandards (Ind-AS) as prescribed under Section 133 of the Companies Act, 2013, as amended. \r\n3 The Company operates only in one Business Segment i.e. \"Facilitating Trading in Securities and other related ancillary Services\", hence \r\ndoes not have any reportable Segments as per Ind-AS 108 \"Operating Segments\". \r\n4 The B6ard of Directors of the Company in their meeting held on May 08, 2024 had accorded in-principle approval for divestment of its \r\nholding in its wholly owned subsidiary, BSE Institute Limited. Pursuant to the same, the Company has completed the divestment (in \r\nMay 2025) and profit of Rs. 1,590 Lakh has been shown as an \"Exceptional Item\" in the standalone financial results for the year ended \r\nMarch 31, 2026. Tax of ₹ 249 Lakh on the said profit is included as a part of tax expenses for the year ended March 31, 2026. \r\n5 The figures for the quarter ended March 31, 2026 are arrived at as difference between audited figures for the year ended March 31, \r\n2026 and the reviewed figures for the nine months ended December 31, 2025. \r\n6 Previous quarter's / year's figures have been regrouped and rearranged wherever necessary to correspond with the current quarter's \r\nclassification / disclosure. \r\nFor and on behalf of Board of Directors of \r\nBSE LIMITED \r\nPlace : Mumbai \r\nDate : August 04, 2026 \r\nSundararaman Ramamurthy \r\nManaging Director & CEO",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "12e23dcf-366a-58bc-8ab8-f4121308e448",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 9,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nAnnexure - B \r\nDisclosure under Regulation 30 the SEBI (Listing Obligations and Disclosure Requirements) Regulations, \r\n2015 \r\nDetails of events that needs to be \r\nprovided \r\nAppointment of Statutory Auditor \r\nReason for change viz. appointment, \r\nresignaƟon, removal, death or \r\notherwise\r\nM/s S.R. Batliboi & Co. LLP, Chartered \r\nAccountants (Firm Registration No. \r\n301003E/E300005), will continue as the \r\nStatutory Auditors of the Company until the \r\nconclusion of the 22nd Annual General Meeting to \r\nbe held in the year 2027, marking the completion \r\nof their second term. \r\nThe Board has approved appointment of M/s KKC \r\n& Associates LLP, (Firm Registration Number: \r\n105146W/W100621) as the Statutory Auditors of \r\nthe Company, subject to approval of the \r\nShareholders. \r\nDate of Appointment and term of \r\nappointment \r\nBased on the recommendation of the Audit \r\nCommittee, the Board of Directors at its meeting \r\nheld today approved the appointment of M/s \r\nKKC & Associates LLP, as the Statutory Auditors \r\nof the Company for a term of five consecutive \r\nyears from the conclusion of the 22nd AGM to be \r\nheld in the FY 2027-28 till the conclusion of the \r\n27th AGM to be held in the FY 2032-33, subject to \r\napproval of the Shareholders of the Company.\r\nBrief profile M/s KKC & Associates LLP is a firm of Chartered \r\nAccountants registered with the Institute of \r\nChartered Accountants of India (ICAI). The firm \r\nwas established in the year 1936 and its \r\nregistered office is situated at Mumbai with other \r\noffices at Bengaluru, Ahmedabad, Pune, and \r\nVadodara. It has eighteen partners. It has a valid \r\npeer review certificate and is one of India’s",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "96298557-5429-5772-9efb-c18c8e8f66a0",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 10,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nDetails of events that needs to be \r\nprovided \r\nAppointment of Statutory Auditor\r\nleading audit firms providing audit and assurance \r\nservices to several large companies including \r\nsome of the top one hundred listed entities in \r\nIndia. \r\nDisclosure of relaƟonships between \r\ndirectors.\r\nNot Applicable",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e6c77275-e852-5441-a751-e7bd12b84f5f",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 11,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nAnnexure - C \r\nDisclosure under Regulation 30 the SEBI (Listing Obligations and Disclosure Requirements) \r\nRegulations, 2015 \r\nParticulars India International Bullion Holding IFSC Limited\r\nName of the target entity, details in brief \r\nsuch as size, turnover etc \r\nIndia International Bullion Holding IFSC Limited \r\n(IIBH) \r\nIIBH is the holding company for Bullion Project. \r\nIIBH manages the funding of its two subsidiaries, \r\nnamely, India International Bullion Exchange IFSC \r\nLimited and India International Depository IFSC \r\nLimited which are engaged in providing bullion \r\nimporting platform and depository functions, \r\nrespectively. \r\nConsolidated Turnover of IIBH as on March 31, \r\n2026, was ₹ 10.47 Crores. \r\na. Whether the acquisition would \r\nfall within related party \r\ntransaction(s) \r\nb. whether the promoter/ promoter \r\ngroup/ group companies have any \r\ninterest in the entity being \r\nacquired \r\nc. If yes, nature of interest and \r\ndetails thereof and whether the \r\nsame is done at “arm’s length”. \r\nYes, the transaction falls within the ambit of \r\nRelated Party Transaction. \r\nBSE Limited shall acquire 50,00,00,000 equity \r\nshares of IIBH (each fully paid-up having face \r\nvalue of ₹ 1/-) through secondary purchase from \r\nits subsidiaries, namely India International \r\nExchange (IFSC) Limited and India International \r\nClearing Corporation (IFSC) Limited. Pursuant to \r\nthis acquisition, BSE’s stake will increase to 20% \r\nin IIBH. \r\nThe transaction shall be at arm's length basis. \r\nIndustry to which the entity being \r\nacquired belongs \r\nIt is classified as an unlisted public limited \r\ncompany and is located in GIFT IFSC,",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "48b5d1d7-0808-5c83-b845-98af1bd4c33b",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 12,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSE \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nParticulars India International Bullion Holding IFSC Limited\r\nGandhinagar, Gujarat and is registered as a \r\nFinance Company from International Financial \r\nServices Centres Authority (IFSCA). \r\nObjects and impact of acquisition \r\n(including but not limited to, disclosure of \r\nreasons for acquisition of target entity, if \r\nits business is outside the main line of \r\nbusiness of the listed entity) \r\nThe primary objective of BSE's investment in IIBH\r\nis to participate in and support the development \r\nof India's international bullion market \r\ninfrastructure at GIFT City, Gujarat. \r\nThe Company's shareholding in IIBH, pursuant to \r\nthe acquisition, will increase to 20%, thereby \r\nmaking IIBH a direct associate company of BSE \r\nLimited.\r\nBrief details of any governmental or \r\nregulatory approvals required for the \r\nacquisition \r\nThe Securities Exchange Board of India (SEBI) \r\napproval vide HO/47/28/11(4)2026-MRD￾RAC24/16172/2026 dated July 13, 2026. \r\nIndicative time period for completion of \r\nthe acquisition \r\nSubject to requisite approvals\r\nConsideration - whether cash \r\nconsideration or share swap or any other \r\nform and details of the same \r\nCash Consideration\r\nCost of acquisition and/or the price at \r\nwhich the shares are acquired \r\n₹ 50.50 Crores towards acquisition of \r\n50,00,00,000 equity shares of face value of ₹ 1/- \r\neach fully paid up. \r\nPercentage of shareholding / control \r\nacquired and / or number of shares \r\nacquired \r\nExisting equity shareholding of the Company in \r\nIIBH is 3.33% \r\nPercentage of shareholding post-acquisition - \r\n20% \r\nBrief background about the entity \r\nacquired in terms of products/line of \r\nbusiness acquired, date of incorporation, \r\nhistory of last 3 years turnover, country in \r\nwhich the acquired entity has presence \r\nBackground: IIBH is a special purpose vehicle \r\nwithout having customer interface and the main \r\nobjective of which is to act as a holding company \r\nfor Bullion Exchange and Bullion Depository \r\noperating in GIFT IFSC, Gandhinagar, Gujarat.",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "e01c9db5-109f-5da7-9ed0-4e67ffd74f32",
+      "document_id": "a99b87e4-860b-5789-912a-22395645f6f6",
+      "page_index": 13,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": null,
+      "column_label": null,
+      "text": "BSEw \r\nRegistered Office: BSE Limited, Floor 25, P J Towers, Dalal Street, Mumbai - 400 001, India. T: +91 22 2272 1234/33 | E: corp.comm@bseindia.com \r\nwww.bseindia.com | Corporate Identity Number: L67120MH2005PLC155188\r\n BSE - PUBLIC \r\nParticulars India International Bullion Holding IFSC Limited\r\nand any other significant information (in \r\nbrief) \r\nDate of Incorporation: June 04, 2021\r\nHistory of last 3 years’ turnover: \r\nSr. \r\nNo \r\nFinancial \r\nYear \r\nConsolidated Turnover \r\nof IIBHL \r\n(in ₹ Crores) \r\n1 2023-24 17.55 \r\n2 2024-25 44.76\r\n3 2025-26 10.47\r\nCountry in which the entity has presence: India",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdfium",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "f85c252c-730b-5832-a089-0350228f0f38",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Transaction Charges",
+      "column_label": "Jun'26 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "5fe6f971-24cd-5315-a8db-711a4a9e63b9",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Revenue From Operations",
+      "column_label": "Jun'26 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "85d89345-432d-5576-8046-8681af65f2d6",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Transaction Charges",
+      "column_label": "Jun'25 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "bc359c85-8949-54ac-a7aa-96a9dd794ffa",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Revenue From Operations",
+      "column_label": "Jun'25 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "0a77c840-2d45-5eb4-b342-fe37c0a7acbb",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Transaction Charges",
+      "column_label": "Mar’26 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    },
+    {
+      "id": "018b5dab-4e40-59fd-926e-c44592716fa0",
+      "document_id": "4acfa27c-f9c4-5410-9737-887a56a3a938",
+      "page_index": 25,
+      "printed_page_label": null,
+      "section": null,
+      "table_id": null,
+      "row_label": "Revenue From Operations",
+      "column_label": "Mar’26 Quarter",
+      "text": "BSEw The Power of Vibrance \r\nFinancial Highlights & Investor Information\r\nConsolidated Profit & Loss\r\n(₹ in million)\r\n25\r\nSr. No. Particulars\r\nJun'26 Mar’26 Jun'25\r\nQoQ YoY\r\nFY FY\r\nYoY\r\nFY\r\nQuarter Quarter Quarter 2026 2025 2024\r\n1 Transaction Charges 13,277 13,110 7,375 1% 80% 37,950 20,299 87% 7,089\r\n2 Treasury Income on Clearing and Settlement Funds 400 403 454 -1% -12% 1,714 2,178 -21% 1,840\r\n3 Listing Services 1,007 1,188 1,054 -15% -4% 5,190 4,900 6% 3,497\r\n4 Other Operating Income 977 935 697 5% 40% 3,485 2,197 59% 1,285\r\n5 Revenue From Operations (1+2+3+4) 15,661 15,635 9,580 0.16% 63% 48,340 29,573 63% 13,711\r\n6 Investment Income 1,352 617 791 119% 71% 2,903 2,547 14% 1,971\r\n7 Other Income 55 50 74 11% -26% 239 243 -2% 277\r\n8 Total Income (5+6+7) 17,068 16,302 10,445 5% 63% 51,481 32,363 59% 15,960\r\n9 Employee benefits expenses 871 635 700 37% 24% 2,978 2,366 26% 1,991\r\n10 Technology expenses 608 516 499 18% 22% 2,031 1,643 24% 1,373\r\n11 Regulatory Contribution 1,928 1,997 1,163 -3% 66% 6,497 4,105 58% 2,369\r\n12 Clearing and settlement expenses 903 873 555 3% 63% 2,804 3,481 -19% 1,331\r\n13 Other Expenses 632 1,000 408 -37% 55% 2,473 2,082 19% 1,740\r\n14 Depreciation Expense 426 548 269 -22% 58% 1,590 1,130 41% 949\r\n15 Total Operating Expenses (9+10+11+12+13+14) 5,368 5,569 3,594 -4% 49% 18,373 14,806 24% 9,754",
+      "character_start": null,
+      "character_end": null,
+      "extraction_method": "pdf_table",
+      "extraction_quality": "good"
+    }
+  ],
+  "abstention": null
+}

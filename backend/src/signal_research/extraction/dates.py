@@ -10,7 +10,7 @@ COMPLETE_DATE = re.compile(
 
 
 def source_dates(text):
-    normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text, flags=re.I)
+    normalized = re.sub(r"(?<=\d)\s*(?:st|nd|rd|th)\b\.?", "", text, flags=re.I)
     # Explicit day/month/'YY notation in contemporary Indian disclosures.
     # Bare FY27 or Q1FY27 still cannot establish any reporting date.
     normalized = re.sub(r"(?<![\w’'])(\d{1,2})\s+(" + MONTH_NAMES + r")[’']\s*(\d{2})(?!\d)",
@@ -52,7 +52,12 @@ def abbreviated_quarter_periods(text):
         columns = list(pattern.finditer(line))
         if len(columns) < 2:
             continue
-        following = ' '.join(lines[index + 1:index + 3])
+        header_lines = []
+        for following_line in lines[index + 1:index + 9]:
+            if re.match(r'\s*\d+\s+\S', following_line):
+                break
+            header_lines.append(following_line)
+        following = ' '.join(header_lines)
         if len(re.findall(r'\bQuarter\b', following, re.I)) != len(columns):
             continue
         periods = []
@@ -71,7 +76,7 @@ def abbreviated_quarter_periods(text):
 
 def explicit_duration_ranges(text):
     """Both full dates must form one stated interval, not separate columns."""
-    normalized = re.sub(r'(?<=\d)(?:st|nd|rd|th)\b', '', text, flags=re.I)
+    normalized = re.sub(r'(?<=\d)\s*(?:st|nd|rd|th)\b\.?', '', text, flags=re.I)
     normalized = re.sub(r'\s+', ' ', normalized.replace(',', ' '))
     date_pattern = COMPLETE_DATE.pattern
     result = []
@@ -93,7 +98,7 @@ def declared_duration_periods(text):
     starting 1 April 2025. Ambiguous/mixed headings are deliberately not expanded.
     """
     text = re.sub(r'\bhalf[ -]+year\b', 'six months', text, flags=re.I)
-    normalized = re.sub(r"(?<=\d)(?:st|nd|rd|th)\b", "", text, flags=re.I)
+    normalized = re.sub(r"(?<=\d)\s*(?:st|nd|rd|th)\b\.?", "", text, flags=re.I)
     normalized = re.sub(r"\s+", " ", normalized.replace(',', ' '))
     # A uniform comparative header ('Year ended <date> | <date>') applies
     # the explicitly stated duration to each date column on that header line.
@@ -142,6 +147,31 @@ def reviewed_table_column_periods(passage):
     if passage.extraction_method != 'pdf_table' or not passage.column_label or not passage.row_label:
         return []
     label = passage.column_label
+    # A reviewed comparative FY column may be normalized only when this same
+    # source span explicitly anchors the fiscal calendar and duration. A bare FY
+    # label, publication date, or unrelated complete date remains insufficient.
+    fiscal = re.fullmatch(r'\s*(?:(Q[1-4]|H1|12M)\s*[- ]?\s*)?FY\s*(20\d{2}|\d{2})\s*', label, re.I)
+    if fiscal and passage.row_label.lower() in passage.text.lower():
+        normalized = re.sub(r'\s+', ' ', passage.text).lower()
+        literal = re.sub(r'\s+', ' ', label).strip().lower()
+        if literal not in normalized:
+            return []
+        part = (fiscal[1] or '12M').upper()
+        year = int(fiscal[2]) + (2000 if len(fiscal[2]) == 2 else 0)
+        months = 3 if part.startswith('Q') else 6 if part == 'H1' else 12
+        end_month = {'Q1': 6, 'Q2': 9, 'Q3': 12, 'Q4': 3, 'H1': 9, '12M': 3}[part]
+        anchors = declared_duration_periods(passage.text)
+        if not any(p['period_end'].month == end_month and
+                   (p['period_end'] - p['period_start']).days in range(months * 28 - 1, months * 31 + 1)
+                   and (f'fy{p["period_end"].year + (end_month > 3)}' in normalized.replace(' ', '').replace('-', '')
+                        or f'fy{(p["period_end"].year + (end_month > 3)) % 100:02}' in normalized.replace(' ', '').replace('-', ''))
+                   for p in anchors):
+            return []
+        calendar_year = year - (end_month > 3)
+        end = date(calendar_year, end_month, calendar.monthrange(calendar_year, end_month)[1])
+        index = calendar_year * 12 + end_month - months
+        return [{'period_start': date(index // 12, index % 12 + 1, 1),
+                 'period_end': end, 'source_label': label}]
     match = re.fullmatch(r'\s*(year|quarter|half[ -]+year|six months)\s+ended\s+(.+?)\s*', label, re.I)
     if not match or len(source_dates(match[2])) != 1:
         return []

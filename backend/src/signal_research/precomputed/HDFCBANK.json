@@ -51983,7 +51983,8 @@
         "counterargument_searched": true,
         "counterargument_addressed": true,
         "two_origins_or_peer_comparison": true,
-        "limitations_disclosed": true
+        "limitations_disclosed": true,
+        "source_verified_arithmetic": false
       },
       "origin_families": [
         "issuer:45f74e46-095b-5278-bd0e-32b4a89d6d90",
@@ -52448,9 +52449,16 @@
       ],
       "missing": []
     },
-    "verification_digest": "f5977a7135d2d6d3dae4fa1bad98b32540983a02594feaa8d2f707345dd23b90",
+    "verification_digest": "314a96855046ff3028c6e2e23c343287fd850f4a433d389263f6b9bba59dd943",
+    "publication_policy": {
+      "id": "full_reference_v1",
+      "coverage_thresholds_block_publication": true,
+      "source_verified_arithmetic": false,
+      "note": "Original full-reference coverage policy.",
+      "accepted": true
+    },
     "mode": "precomputed",
-    "generated_at": "2026-10-24T17:42:37.195350+00:00",
+    "generated_at": "2026-10-24T18:45:31.659279+00:00",
     "data_as_of": "2026-10-18",
     "reference_review": {
       "run_id": "d45ea5a6-8661-4b6f-a569-b122ba21ea84",

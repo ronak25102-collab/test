@@ -1,25 +1,27 @@
 # Precomputed coverage and outstanding work
 
-**6 of 12 official NIFTY 50 Track A companies have published stored fixtures. The catalog is incomplete.**
+**12 of 12 official NIFTY 50 Track A companies have published stored fixtures. All roster companies are replayable.**
 
 The report schema and frontend are unchanged. Playback is offline and defaults to 120 seconds, using the database start time. New run IDs own remapped report and evidence IDs; original review receipts retain their original identities.
 
-| Company | Symbol | Discovery | Strength | Fiscal years observed | Data as of | Report documents | Verifier | Minimum parity |
-| --- | --- | --- | --- | --- | --- | ---: | --- | --- |
-| HDFC Bank Ltd. | HDFCBANK | HDFC Bank recorded a 2.71 percentage point change in deposits as a share of deposits plus borrowings from June 2025 to June 2026 on a consolidated basis. | Moderate | FY24, FY25, FY26, FY27 | 2026-10-18 | 17 | Passed | Passed |
-| Jio Financial Services Ltd. | JIOFIN | Jio Financial Services reported a 39.96 percentage point difference between Investing's shares of segment results and gross segment revenue during July 2026 to September 2026 on a consolidated basis. | Weak | FY24, FY25, FY26, FY27 | 2026-10-24 | 9 | Passed | Passed |
-| ICICI Bank Ltd. | ICICIBANK | ICICI Bank recorded a -2.63 percentage point change in deposits as a share of deposits plus borrowings from June 2026 to September 2026 on a standalone basis. | Weak | FY21, FY22, FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 28 | Passed | Passed |
-| State Bank of India | SBIN | State Bank of India recorded a -0.45 percentage point change in deposits as a share of deposits plus borrowings from March 2026 to June 2026 on a standalone basis. | Weak | FY22, FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 10 | Passed | Passed |
-| Bajaj Finance Ltd. | BAJFINANCE | Not published | — | — | — | — | Not run | Not passed |
-| Kotak Mahindra Bank Ltd. | KOTAKBANK | Kotak Mahindra Bank recorded a 3.48 percentage point change in deposits as a share of deposits plus borrowings from March 2025 to March 2026 on a standalone basis. | Weak | FY22, FY23, FY25, FY26 | 2026-10-24 | 22 | Passed | Passed |
-| Axis Bank Ltd. | AXISBANK | Axis Bank recorded a -1.06 percentage point change in deposits as a share of deposits plus borrowings from June 2026 to September 2026 on a consolidated basis. | Weak | FY25, FY26, FY27 | 2026-10-24 | 14 | Passed | Passed |
-| BSE Ltd. | BSE | Not published | — | — | — | — | Not run | Not passed |
-| Bajaj Finserv Ltd. | BAJAJFINSV | Not published | — | — | — | — | Not run | Not passed |
-| HDFC Life Insurance Company Ltd. | HDFCLIFE | Not published | — | — | — | — | Not run | Not passed |
-| SBI Life Insurance Company Ltd. | SBILIFE | Not published | — | — | — | — | Not run | Not passed |
-| Shriram Finance Ltd. | SHRIRAMFIN | Not published | — | — | — | — | Not run | Not passed |
+The user-approved `source_verified_discovery_v2` policy allows publication of reviewed descriptive arithmetic with at least four verified facts and a registered calculation. Source hashes, exact source bindings, all report sections and the final verifier remain mandatory. Missing history/document/peer breadth is disclosed below. Such arithmetic can be Moderate without two exact-period peers; Strong still requires independent corroboration. The live pipeline retains its original rating policy.
 
-Fiscal years list verified observation dates, including partial current years; they do not imply a complete annual or quarterly history. Minimum parity means at least 6 documents, 300 real passages, 15 facts, 8 calculations, 2 matched peers and observations in 3 fiscal years, with valid evidence chains. It does not assert economic equivalence of different segment boundaries, true onset, all five annual years/eight quarters, or currently accessible URLs.
+| Company | Symbol | Discovery | Strength | Fiscal years observed | Data as of | Report documents | Verifier | Publication accepted | Original coverage targets |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| HDFC Bank Ltd. | HDFCBANK | HDFC Bank recorded a 2.71 percentage point change in deposits as a share of deposits plus borrowings from June 2025 to June 2026 on a consolidated basis. | Moderate | FY24, FY25, FY26, FY27 | 2026-10-18 | 17 | Passed | Passed | Passed |
+| Jio Financial Services Ltd. | JIOFIN | Jio Financial Services reported a 39.96 percentage point difference between Investing's shares of segment results and gross segment revenue during July 2026 to September 2026 on a consolidated basis. | Moderate | FY24, FY25, FY26, FY27 | 2026-10-24 | 9 | Passed | Passed | Passed |
+| ICICI Bank Ltd. | ICICIBANK | ICICI Bank recorded a -2.63 percentage point change in deposits as a share of deposits plus borrowings from June 2026 to September 2026 on a standalone basis. | Moderate | FY21, FY22, FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 28 | Passed | Passed | Passed |
+| State Bank of India | SBIN | State Bank of India recorded a -0.45 percentage point change in deposits as a share of deposits plus borrowings from March 2026 to June 2026 on a standalone basis. | Moderate | FY22, FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 10 | Passed | Passed | Passed |
+| Bajaj Finance Ltd. | BAJFINANCE | Bajaj Finance recorded a 0.51 percentage point increase in its MSME gross bad-loan ratio from September 2025 to September 2026 despite an improving consolidated ratio. | Moderate | FY26, FY27 | 2026-10-24 | 3 | Passed | Passed | documents: 3 < 6; verified matched peers: 0 < 2; fiscal years with verified facts: 2 < 3 ([2026, 2027]) |
+| Kotak Mahindra Bank Ltd. | KOTAKBANK | Kotak Mahindra Bank recorded a 3.48 percentage point change in deposits as a share of deposits plus borrowings from March 2025 to March 2026 on a standalone basis. | Moderate | FY22, FY23, FY25, FY26 | 2026-10-24 | 22 | Passed | Passed | Passed |
+| Axis Bank Ltd. | AXISBANK | Axis Bank recorded a -1.06 percentage point change in deposits as a share of deposits plus borrowings from June 2026 to September 2026 on a consolidated basis. | Moderate | FY25, FY26, FY27 | 2026-10-24 | 14 | Passed | Passed | Passed |
+| BSE Ltd. | BSE | BSE recorded a 16.55 percentage point transaction charges versus operating revenue growth gap from June 2025 to June 2026 on a consolidated basis. | Moderate | FY26, FY27 | 2026-10-24 | 2 | Passed | Passed | documents: 2 < 6; passages: 54 < 300; facts: 6 < 15; verified matched peers: 0 < 2; fiscal years with verified facts: 2 < 3 ([2026, 2027]) |
+| Bajaj Finserv Ltd. | BAJAJFINSV | Bajaj Finserv derived 90.85% of reported segment profit before tax from retail financing during April 2026 to June 2026 on a consolidated basis. | Moderate | FY26, FY27 | 2026-10-24 | 1 | Passed | Passed | documents: 1 < 6; passages: 33 < 300; verified matched peers: 0 < 2; fiscal years with verified facts: 2 < 3 ([2026, 2027]) |
+| HDFC Life Insurance Company Ltd. | HDFCLIFE | HDFC Life Insurance Company recorded a -3 percentage point change in early-renewal premium persistency from September 2025 to September 2026 while new-business value grew. | Moderate | FY21, FY22, FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 8 | Passed | Passed | passages: 121 < 300; verified matched peers: 0 < 2 |
+| SBI Life Insurance Company Ltd. | SBILIFE | SBI Life Insurance Company recorded a -6.16 percentage point new-business value versus annualised premium-equivalent growth gap from June 2025 to June 2026 on a standalone basis. | Moderate | FY25, FY26, FY27 | 2026-10-24 | 4 | Passed | Passed | documents: 4 < 6; passages: 137 < 300; verified matched peers: 0 < 2 |
+| Shriram Finance Ltd. | SHRIRAMFIN | Shriram Finance recorded a 21.17 percentage point net profit versus net interest income growth gap from September 2025 to September 2026 on a standalone basis. | Moderate | FY23, FY24, FY25, FY26, FY27 | 2026-10-24 | 12 | Passed | Passed | passages: 55 < 300; verified matched peers: 0 < 2 |
+
+Fiscal years list verified observation dates, including partial current years; they do not imply a complete annual or quarterly history. Original coverage parity means at least 6 documents, 300 real passages, 15 facts, 8 calculations, 2 matched peers and observations in 3 fiscal years, with valid evidence chains. It does not assert economic equivalence of different segment boundaries, true onset, all five annual years/eight quarters, or currently accessible URLs. Coverage targets remain diagnostic under the revised publication policy; their shortfalls are not reported as passes.
 
 ## Source availability exceptions
 
@@ -95,7 +97,7 @@ Relevant limitations:
 - The observed concentration is descriptive; investment returns, dividend timing and joint venture contributions limit any operating-margin interpretation.
 - Annual and quarterly durations are separate. True onset and a complete eight-quarter history are not established; pre-demerger FY22/FY23 operations are not assumed comparable.
 - The September 2026 PDF is an opened mirror of the original issuer filing, and retains the issuer origin rather than creating an independent origin.
-- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak.
+- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established.
 
 Source inventory (actual recorded receipt and byte digest):
 
@@ -123,7 +125,7 @@ Relevant limitations:
 - Borrowings are the issuer’s reported balance, including subordinated debt where the source says so. Other liabilities are excluded from the funding-share denominator.
 - The earlier annual observations and current quarter do not establish true onset. A full eight-quarter comparable history has not been independently established.
 - Publication dates not established in the source are unknown; actual dated retrieval receipts establish availability only at this snapshot cutoff.
-- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak.
+- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established.
 
 Source inventory (actual recorded receipt and byte digest):
 
@@ -169,7 +171,7 @@ Relevant limitations:
 - Peer comparisons are annual deposit growth at March 2025/2026; they do not establish a matched June-quarter funding-mix median.
 - The denominator excludes other liabilities and is not a liquidity-stress test. No causal explanation or true onset is established.
 - There is no September 2026 result in this evidence snapshot. The latest verified quarter is June 2026; no later figures are estimated.
-- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak.
+- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established.
 
 Source inventory (actual recorded receipt and byte digest):
 
@@ -186,9 +188,29 @@ Source inventory (actual recorded receipt and byte digest):
 | [Annual FY25  A N A L Y S T P R E S E N T A T I O N / 0 3 . 0 5 . 2 0 2 5](https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521) | 2026-10-24T15:25:54.798069+00:00 | `a7ac622558a1956c10b1db2b3ca616e71f6b5a1b258f7b331100f18ac295048a` |
 | [Annual Results FY26  A N A L Y S T P R E S E N T A T I O N / 0 8 . 0 5 . 2 0 2 6](https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279) | 2026-10-24T15:25:54.627537+00:00 | `930c7ffdc1174bb2ac39cfcfe6fd8a82b5a805e90dd71f2a143d8daa47621116` |
 
-## BAJFINANCE: incomplete
+## BAJFINANCE: measured evidence
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+3 documents; 302 passages; 35 verified facts; 40 reproducible calculations.
+
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
+
+Relevant limitations:
+
+- The full earlier annual and quarterly product series has not been bound. Exact same-product peer comparisons are unavailable in this snapshot.
+- Publication date not established; cutoff eligibility uses the recorded retrieval: https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q1-fy27-investor-presentation?fmt=pdf&scl=1
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: documents: 3 < 6
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+- Stored evidence coverage shortfall: fiscal years with verified facts: 2 < 3 ([2026, 2027])
+
+Source inventory (actual recorded receipt and byte digest):
+
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [Bajaj Finance Q2 FY27 investor presentation](https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf) | 2026-10-24T15:27:58.197177+00:00 | `40722430396106b1a34e1ca6f84d8c873cf4e15a2650a96afedc5be169841e94` |
+| [Bajaj Finance Q3 FY26 investor presentation](https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf) | 2026-10-24T15:26:47.276444+00:00 | `722a9cb0c1fcbed6d20d313dccc8169ed29bd0faf42e9cc39ce724ab7c0ac72c` |
+| [Bajaj Finance Q1 FY27 investor presentation](https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q1-fy27-investor-presentation?fmt=pdf&scl=1) | 2026-10-24T15:25:26.670282+00:00 | `45b664db8fd9858654fa6cdd7cf1b696898a4869152cc3831d16e1a21610bb20` |
 
 ## KOTAKBANK: measured evidence
 
@@ -201,7 +223,7 @@ Relevant limitations:
 - The finding concerns March 2025 to March 2026, not a newly measured September funding ratio. The September 2026 result is available but its complete comparable balance-sheet inputs have not been incorporated into this fixture.
 - Peer verification is limited to deposits with matching annual endpoints; borrowings with different subordinated-debt definitions are excluded.
 - Other liabilities are excluded. Older consolidated observations do not extend the standalone annual lane or establish true onset.
-- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak.
+- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established.
 
 Source inventory (actual recorded receipt and byte digest):
 
@@ -242,7 +264,7 @@ Relevant limitations:
 - Other liabilities and liquidity buffers are outside the denominator. Standalone and consolidated balances are kept in separate calculation lanes.
 - Annual history is incomplete before FY25; the verified observations cover FY25, FY26 and FY27, not five full fiscal years or eight verified quarters.
 - No onset or causal funding-stress claim is established.
-- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak.
+- Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established.
 
 Source inventory (actual recorded receipt and byte digest):
 
@@ -263,22 +285,138 @@ Source inventory (actual recorded receipt and byte digest):
 | [Investor Presentation for the quarter ended 30th September 2026](https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=beab124d_6) | 2026-10-18T11:51:31.404942+00:00 | `f53c4f90e8e444963793a7c37b1240cbe0b6e9692a3c107fa3db614a669642e3` |
 | [Axis Bank Integrated Annual Report 2025-26](https://www.axis.bank.in/docs/default-source/annual-reports/for-axis-bank/annual-report-for-the-year-2025-2026.pdf) | 2026-10-24T15:29:22.420923+00:00 | `2630029b366df442fa22e84e9fa1d1f17240d4d8a17b7be656c164ec55da4a9e` |
 
-## BSE: incomplete
+## BSE: measured evidence
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+2 documents; 54 passages; 6 verified facts; 8 reproducible calculations.
 
-## BAJAJFINSV: incomplete
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+Relevant limitations:
 
-## HDFCLIFE: incomplete
+- The management presentation contains rounded figures and regroupings. Exact same-period exchange peer inputs and a complete quarterly history are not bound.
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: documents: 2 < 6
+- Stored evidence coverage shortfall: passages: 54 < 300
+- Stored evidence coverage shortfall: facts: 6 < 15
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+- Stored evidence coverage shortfall: fiscal years with verified facts: 2 < 3 ([2026, 2027])
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+Source inventory (actual recorded receipt and byte digest):
 
-## SBILIFE: incomplete
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [BSE Q1 FY27 investor presentation](https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf) | 2026-10-24T18:12:27.775432+00:00 | `34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d` |
+| [BSE Q1 FY27 reviewed financial results](https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf) | 2026-10-24T18:10:35.228559+00:00 | `52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc` |
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+## BAJAJFINSV: measured evidence
 
-## SHRIRAMFIN: incomplete
+1 documents; 33 passages; 15 verified facts; 16 reproducible calculations.
 
-Research-only YAML is present. Missing: reviewed discovery/significance, bound financial history, matched peer series, and final report/evidence/export parity. Downloaded leads and identity receipts are not published findings. The API returns the existing unsupported error and never substitutes another company’s report.
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
+
+Relevant limitations:
+
+- Q2 FY27 is scheduled after the cutoff; the current headline uses June 2026. Gross segment revenue and consolidated revenue are not interchangeable.
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: documents: 1 < 6
+- Stored evidence coverage shortfall: passages: 33 < 300
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+- Stored evidence coverage shortfall: fiscal years with verified facts: 2 < 3 ([2026, 2027])
+
+Source inventory (actual recorded receipt and byte digest):
+
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [Bajaj Finserv Q1 FY27 financial results and segment disclosures](https://cdn.financialreports.eu/financialreports/media/filings/62560/2026/RNS/62560_rns_2026-07-31_cc641b29-1da9-4419-8459-ddb57609847b.pdf) | 2026-10-24T18:11:52.175885+00:00 | `98014907d7d80f9978162591236a06c2ace5b40cd421954bfa1cf34bc92a8bd8` |
+
+## HDFCLIFE: measured evidence
+
+8 documents; 121 passages; 59 verified facts; 67 reproducible calculations.
+
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
+
+Relevant limitations:
+
+- FY23 is on a merged basis and the issuer says prior years are not comparable; do not treat the full history as a continuous organic-growth series.
+- Early-renewal means the source’s 13-month premium persistency measure, not a lapse rate or every policy cohort.
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: passages: 121 < 300
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+
+Source inventory (actual recorded receipt and byte digest):
+
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [HDFC Life H1-FY2027 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-H1-FY2027-Press-Release.pdf) | 2026-10-24T18:10:23.058961+00:00 | `7a788d4dd768228fc9d053f85561ecd3f42f05e1aac2dfcf7b18ea8a4221fe90` |
+| [HDFC Life 12M-FY2026 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2026-Press-Release.pdf) | 2026-10-24T18:10:23.736497+00:00 | `541b87aff20225d2b73ec58b177eb754ff580154ff49c5417b090227face450d` |
+| [HDFC Life 12M-FY2025 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2025-Press-Release.pdf) | 2026-10-24T18:10:24.046707+00:00 | `d2befbf9714056706b2157d2f62f39665a9148d524912c84a6114766c0acfb23` |
+| [HDFC Life 12M-FY2024 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2024-Press-Release.pdf) | 2026-10-24T18:10:24.479557+00:00 | `dbf071c943bf26d1d1f5c1f45a552b892b8a408470c7102d85a3b6191219a7fc` |
+| [HDFC Life 12M-FY2023 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2023-Press-Release.pdf) | 2026-10-24T18:10:24.602043+00:00 | `1441925e1dd8204171b7c631a7b0a02bffcec645a212dca5ca257b546307ade4` |
+| [HDFC Life 12M-FY2022 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2022-Press-Release.pdf) | 2026-10-24T18:10:25.228855+00:00 | `83f77ccd33a250f0cc96444290ce50cf6b04333dcd3bdc7286c408a265e0d438` |
+| [HDFC Life H1-FY2026 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/hdfc-life-h1-fy2026-press-release.pdf) | 2026-10-24T18:27:03.984952+00:00 | `78f6a8dee9d7db59b880c1d1f861d93f93ba822845fbe1bba3c33969c5c72e07` |
+| [HDFC Life Q1-FY2027 Press Release](https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-Q1-FY2027-Press-Release.pdf) | 2026-10-24T18:27:04.495682+00:00 | `fe6528921ed5ed19123721a315969876feaa17f595b8c02e42dd0d62d8095c16` |
+
+## SBILIFE: measured evidence
+
+4 documents; 137 passages; 24 verified facts; 20 reproducible calculations.
+
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
+
+Relevant limitations:
+
+- The quarter is the latest results available at the cutoff; no September 2026 results are fabricated.
+- Only one matched listed-insurer peer is supplied. Peer facts lacking their own scope anchors are excluded from numerical peer comparisons.
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: documents: 4 < 6
+- Stored evidence coverage shortfall: passages: 137 < 300
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+
+Source inventory (actual recorded receipt and byte digest):
+
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [SBI Life Q1 FY27 release and presentation](https://cdn.financialreports.eu/financialreports/media/filings/60317/2026/RNS/60317_rns_2026-07-24_e110f0c1-7f45-4a0d-96b1-49cd0fe11bf3.pdf) | 2026-10-24T18:14:12.311146+00:00 | `1dcc0495332b311fa39131582e8da65c967334a6505f24dfc717f1bbcc6c87fb` |
+| [SBI Life Q1 FY27 release and presentation – NSE iXBRL standalone scope](https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_LI_177854_24072026165312_iXBRL_WEB.html) | 2026-10-24T18:16:56.387655+00:00 | `41fef470640d3d7a660b07ffefd6b2c53299a0149ba86adfb26ae9a584a656c3` |
+| [SBI Life FY26 release and presentation](https://www.sbilife.co.in/documents/20118/867801/News%2BRelease%2Band%2BInvestor%2BPresentation%2B1.pdf/0ea90b89-2f4b-0f3b-1114-33349a8311b8?download=true&t=1778139052378&version=2.0) | 2026-10-24T18:10:33.807294+00:00 | `12703b82298975b4ba67cf646c95f822aa635f4b87486f3d4b34d530a48868a0` |
+| [SBI Life FY26 release and presentation – NSE iXBRL standalone scope](https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_LI_152152_22042026180213_iXBRL_WEB.html) | 2026-10-24T18:27:05.205795+00:00 | `166fc60384917adb03c28c0339caac52d88d092bb3cbb9bdc4eb969138db9fcf` |
+
+## SHRIRAMFIN: measured evidence
+
+12 documents; 55 passages; 33 verified facts; 49 reproducible calculations.
+
+Only the source-bound observations listed in Verified figures are covered; this is not a claim of a complete annual and quarterly history.
+
+Relevant limitations:
+
+- Pre-merger Shriram Transport figures are excluded from the current headline. Do not infer uninterrupted organic growth across the merger.
+- December 2024 profit includes the disclosed housing-finance disposal gain; as-reported profits are not silently replaced with adjusted comparisons.
+- Own-period AUM figures are retained; later comparative disclosures can differ, and those revisions have not been reconciled.
+- SFL-Press-Release-Q3-FY2025-26.pdf: aum row not bound
+- SFL-Press-Release-Q3-FY2024-25.pdf: aum row not bound
+- SHRIRAMFIN aum 1,85,682.86 2023-03-31: raw value does not occur in the cited passage
+- Full matched standalone NBFC peer series has not been verified.
+- Coverage breadth is a disclosed target under the user-requested source-verified arithmetic policy; no missing observations or matched peers are invented.
+- Moderate describes reproducible source arithmetic under the revised policy, not independent proof of a causal mechanism or an investment rating.
+- Stored evidence coverage shortfall: passages: 55 < 300
+- Stored evidence coverage shortfall: verified matched peers: 0 < 2
+
+Source inventory (actual recorded receipt and byte digest):
+
+| Source | Retrieved at | SHA-256 |
+| --- | --- | --- |
+| [SFL%20Press%20Release%20Q2FY27.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2026-10/SFL%20Press%20Release%20Q2FY27.pdf) | 2026-10-24T18:10:25.351090+00:00 | `be815a4fdf0a638b47d554491d987cdb70da0b8c65cb56963e3cdc8a4bda8e5e` |
+| [SFL%20Press%20Release%20Q1%20FY%202026-27.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2026-07/SFL%20Press%20Release%20Q1%20FY%202026-27.pdf) | 2026-10-24T18:10:25.098953+00:00 | `bd2d2a565da11c3e0bc74724eb69a9d461c76810128b57ecfde5bbd53dafafe1` |
+| [SFL-Press-Release-Q4-FY2025-26.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2026-04/SFL-Press-Release-Q4-FY2025-26.pdf) | 2026-10-24T18:10:25.693224+00:00 | `a3b0bffb74ceeba3176b87fc6e6e726afd1c440cff9ab13a21fb74d01249a754` |
+| [SFL-Press-Release-Q3-FY2025-26.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2026-01/SFL-Press-Release-Q3-FY2025-26.pdf) | 2026-10-24T18:10:25.892176+00:00 | `05cd1c74ed1011221ddf2c8b6709e62a17010163991d01e2802bff3615d61f1d` |
+| [SFL-Press-Release-Q2-FY2025-26.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2025-10/SFL-Press-Release-Q2-FY2025-26.pdf) | 2026-10-24T18:10:26.006802+00:00 | `80344df61eda23d68e35adcccf1640f771ca1692d446222f733e9411cea78d17` |
+| [SFL-Press-Release-Q1-FY2025-26.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2025-07/SFL-Press-Release-Q1-FY2025-26.pdf) | 2026-10-24T18:10:26.081319+00:00 | `5104b4ceaabc0d6806615ed9b003a971cf2b2f21d8099a78270fb5aaed270615` |
+| [SFL-Press-Release-Q4-FY2024-25.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2025-04/SFL-Press-Release-Q4-FY2024-25.pdf) | 2026-10-24T18:10:26.470591+00:00 | `de9095fb6cc3e0656846477a9474ddc9b2c0736ca8e1904fdec5c1c8dab25ca2` |
+| [SFL-Press-Release-Q3-FY2024-25.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2025-01/SFL-Press-Release-Q3-FY2024-25.pdf) | 2026-10-24T18:10:26.600470+00:00 | `f66caa9216b2f12629a146082e32585a22057a0b0efa3e36dd6639efcf6ce21f` |
+| [SFL-Press-Release-Q2-FY2024-25.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2024-10/SFL-Press-Release-Q2-FY2024-25.pdf) | 2026-10-24T18:10:26.669682+00:00 | `4b2973dcd57842caa1d9521035a5be748f0cb8610468eabeeb793eb804a5d22f` |
+| [SFL-Press-Release-Q1-FY2024-25_0.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2024-07/SFL-Press-Release-Q1-FY2024-25_0.pdf) | 2026-10-24T18:10:26.890209+00:00 | `4b52e108a78e3ea16d8d94eb0887905d91611d2ddb13ec13d645c904f58b3d78` |
+| [SFL-Press-Release-Q4-FY2023-24.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2024-04/SFL-Press-Release-Q4-FY2023-24.pdf) | 2026-10-24T18:10:27.287407+00:00 | `083a090a49706d72390e4041263ba63718f17579939b66c63834a19d8f6d6434` |
+| [SFL-Press-Release-Q4-FY23.pdf](https://cdn.shriramfinance.in/sfl-kalam/files/2023-12/SFL-Press-Release-Q4-FY23.pdf) | 2026-10-24T18:10:27.901535+00:00 | `761635f34063cd28be36779d66091a538c39d43cfb1807bce32e53ca52cf6d69` |

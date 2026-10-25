@@ -11,7 +11,6 @@ export function ResearchAudit({ report, onFact }: { report: Report; onFact?: (fa
   const supporting = new Set(report.passages.filter(p => factPassages.has(p.id)).map(p => p.document_id)).size
   return <section className="research-audit" aria-label="Research coverage and decisions">
     <h3>Research coverage</h3>
-    {report.generation_metadata?.cache_usage && <p>{report.generation_metadata.cache_usage.cold_start ? 'Cold start · ' : ''}{report.generation_metadata.cache_usage.reused} facts reused, {report.generation_metadata.cache_usage.fresh} fetched fresh this run</p>}
     <p>{report.facts.length} verified {report.facts.length === 1 ? 'fact' : 'facts'} · {report.calculations.length} reproducible {report.calculations.length === 1 ? 'calculation' : 'calculations'} · {issuer.length} official issuer {issuer.length === 1 ? 'filing' : 'filings'}</p>
     <p className="muted">{eligible.length} documents available by the cutoff · {origins} retrieved source families · {supporting} documents supporting verified facts.</p>
     {!!report.generation_metadata?.historical_cache?.length && <details className="history-cache-note"><summary>Historical source cache was used</summary><p>Historical observations came from earlier live runs after source-hash checks. Original retrieval dates remain visible. Conclusions were not reused; searches and discovery review belong to this run.</p>{report.generation_metadata.historical_cache.map((cache, index) => <p key={index}>{cache.fact_ids.length} historical facts · source run {cache.source_run_id}</p>)}</details>}

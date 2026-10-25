@@ -915,8 +915,8 @@
           ]
         }
       ],
-      "evidence_strength": "Weak",
-      "strength_rationale": "Tier describes corroboration and unresolved alternatives, not investment advice or proof of causality. All verified issuer-company figures originate with the issuer: maximum Moderate. Same-period figures from at least two peers could not be verified: maximum Weak."
+      "evidence_strength": "Moderate",
+      "strength_rationale": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality. All verified issuer-company figures originate with the issuer: maximum Moderate. Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
     }
   ],
   "limitations": [
@@ -924,7 +924,7 @@
     "The observed concentration is descriptive; investment returns, dividend timing and joint venture contributions limit any operating-margin interpretation.",
     "Annual and quarterly durations are separate. True onset and a complete eight-quarter history are not established; pre-demerger FY22/FY23 operations are not assumed comparable.",
     "The September 2026 PDF is an opened mirror of the original issuer filing, and retains the issuer origin rather than creating an independent origin.",
-    "Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; strength is capped at Weak."
+    "Matched peer context exists, but it does not benchmark all exact metric/scope/period inputs of the published headline; sector differentiation is not established."
   ],
   "generation_metadata": {
     "pipeline": "precomputed-reviewed-evidence-v1",
@@ -1325,18 +1325,19 @@
         "counterargument_searched": true,
         "counterargument_addressed": true,
         "two_origins_or_peer_comparison": false,
-        "limitations_disclosed": true
+        "limitations_disclosed": true,
+        "source_verified_arithmetic": true
       },
       "origin_families": [
         "issuer:JIOFIN"
       ],
       "caps": [
         "All verified issuer-company figures originate with the issuer: maximum Moderate.",
-        "Same-period figures from at least two peers could not be verified: maximum Weak."
+        "Source-verified descriptive arithmetic policy: peer gaps do not block Moderate; this does not establish sector differentiation or causality."
       ],
-      "rating": "Weak",
+      "rating": "Moderate",
       "numerical_gates": "passed",
-      "note": "Tier describes corroboration and unresolved alternatives, not investment advice or proof of causality."
+      "note": "Revised descriptive tier grades source binding and reproducible arithmetic; it does not establish independent corroboration, sector differentiation or causality."
     },
     "tiered_publication": true,
     "falsification_tests": {
@@ -2136,7 +2137,14 @@
         "At least three consecutive verified quarter ends with matching metric, definition, scope and duration; annual endpoints cannot establish quarterly onset."
       ]
     },
-    "verification_digest": "299ed2c46e8f93051eea30d5efe5650d29796abc863977de60b89b212b40b1f4",
+    "verification_digest": "cbb4132630f433114ff71e6ae84bfed40a08fdbe19e2035d3f46e237aee5cf88",
+    "publication_policy": {
+      "id": "source_verified_discovery_v2",
+      "coverage_thresholds_block_publication": false,
+      "source_verified_arithmetic": true,
+      "note": "User-requested descriptive publication policy: source binding, arithmetic and verifier remain mandatory; history and peer breadth are disclosed coverage targets.",
+      "accepted": true
+    },
     "mode": "precomputed",
     "generated_at": "2026-10-24T16:27:17.776045+00:00",
     "data_as_of": "2026-10-24",

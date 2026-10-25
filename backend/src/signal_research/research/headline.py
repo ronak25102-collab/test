@@ -66,7 +66,8 @@ def template_headline(company, facts, calculations):
         (c for c in available if c.formula_id.startswith('recovery_ratio')), None) or next(
         (c for c in available if c.formula_id == 'deposit_borrowing_mix_change'), None) or next(
         (c for c in available if c.formula_id == 'growth_gap'), available[0])
-    inputs = [f for f in facts if f.id in c.input_fact_ids]
+    by_id = {f.id: f for f in facts}
+    inputs = [by_id[identifier] for identifier in c.input_fact_ids]
     ends = sorted({f.period_end for f in inputs if f.period_end})
     span = f'from {ends[0]:%B %Y} to {ends[-1]:%B %Y}'
     value = f'{c.output_value:,.2f}'.rstrip('0').rstrip('.')

@@ -44,6 +44,14 @@ def verify_report(report: ResearchReport) -> ResearchReport:
     passages = {p.id: p for p in report.passages}
     facts = {f.id: f for f in report.facts}
     calculations = {c.id: c for c in report.calculations}
+    policy = report.generation_metadata.get('publication_policy', {})
+    reviewed_headline = next((c for c in report.claims if str(c.id) ==
+                             report.generation_metadata.get('headline', {}).get('claim_id')), None)
+    descriptive = (report.generation_metadata.get('mode') == 'precomputed'
+                   and policy.get('id') == 'source_verified_discovery_v2'
+                   and policy.get('source_verified_arithmetic')
+                   and reviewed_headline is not None and reviewed_headline.kind == ClaimKind.DERIVED
+                   and bool(reviewed_headline.calculation_ids))
     if report.generation_metadata.get('peer_benchmark'):
         verify_peer_benchmark(report)
     used_documents = set()
@@ -98,7 +106,7 @@ def verify_report(report: ResearchReport) -> ResearchReport:
         families = {documents[i].origin_family_id for i in used_documents}
         tiered_weak = report.generation_metadata.get('tiered_publication') and all(d.evidence_strength.value == 'Weak' for d in report.discoveries)
         tiered_peer = report.generation_metadata.get('tiered_publication') and report.generation_metadata.get('peer_benchmark', {}).get('status') == 'verified'
-        if len(families) < (1 if tiered_weak or tiered_peer else 2) or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
+        if len(families) < (1 if tiered_weak or tiered_peer or descriptive else 2) or not any(documents[i].document_type.startswith("issuer") for i in used_documents):
             raise VerificationFailure("discovery requires primary evidence and independent relevant origins")
         for discovery in report.discoveries:
             if report.generation_metadata.get('headline'):
@@ -111,10 +119,12 @@ def verify_report(report: ResearchReport) -> ResearchReport:
                     raise VerificationFailure('plain headline failed word, sentence, unit or numeric validation')
                 if set(headline_claim.calculation_ids) & break_calculations(report.generation_metadata.get('structural_breaks', []), report.calculations):
                     raise VerificationFailure('plain headline leads with a structural-break interval')
-                if report.generation_metadata.get('peer_benchmark', {}).get('status') != 'verified' and discovery.evidence_strength.value != 'Weak':
+                if (report.generation_metadata.get('peer_benchmark', {}).get('status') != 'verified'
+                        and discovery.evidence_strength.value != 'Weak'
+                        and not (descriptive and discovery.evidence_strength.value == 'Moderate')):
                     raise VerificationFailure('unverified peer comparison must cap strength at Weak')
             headline = next((claim for claim in report.claims if claim.text == discovery.discovery_sentence), None)
-            required_origins = 1 if (tiered_weak or tiered_peer) and headline and headline.kind != ClaimKind.INFERRED else 2
+            required_origins = 1 if (tiered_weak or tiered_peer or descriptive) and headline and headline.kind != ClaimKind.INFERRED else 2
             if not headline or len(supporting_origins(headline, facts, passages, documents)) < required_origins:
                 raise VerificationFailure("discovery headline requires independently originated supporting evidence")
             if not discovery.counterargument.search_attempted:

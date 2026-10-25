@@ -28,6 +28,7 @@ from signal_research.research.brief import submission_checklist
 from signal_research.research.falsification import observable_tests
 from signal_research.research.headline import validate_headline
 from signal_research.research.history import comparable_series
+from signal_research.research.identity import normalize_name
 from signal_research.research.integrity import report_digest
 from signal_research.research.peers import compare_peers
 from signal_research.research.story import timeline_story
@@ -92,6 +93,7 @@ def recursive_keys(value, prefix=''):
 
 def validate_source_bindings(report, *, require_bytes=True):
     passages = {p.id: p for p in report.passages}
+    passage_ids = {str(p.id): p for p in report.passages}
     documents = {d.id: d for d in report.documents}
     for passage in report.passages:
         if passage.document_id not in documents:
@@ -119,8 +121,22 @@ def validate_source_bindings(report, *, require_bytes=True):
         )
         # Match LiveResearch.extract: issuer identity belongs to the verified
         # document, because a continuation balance-sheet page need not repeat it.
+        context = None
+        binding = report.generation_metadata.get('fact_scope_contexts', {}).get(str(fact.id))
+        if binding:
+            context = passage_ids.get(binding['passage_id'])
+            main_document = documents[passage.document_id]
+            context_document = documents[context.document_id] if context else None
+            if (not context_document or not context_document.origin_family_id.startswith('issuer:')
+                    or context_document.origin_family_id != main_document.origin_family_id
+                    or normalize_name(report.company.legal_name) not in normalize_name(context.text)
+                    or not context_document.published_at or not main_document.published_at
+                    or context_document.published_at.date() != main_document.published_at.date()
+                    or not binding.get('review_note')):
+                raise ValueError('Supplemental scope context must be reviewed evidence from the same issuer and filing date')
         result = validate_candidate(candidate, passage, fact.entity_id,
-                                    report.company.business_profiles[0])
+                                    report.company.business_profiles[0],
+                                    scope_context=context.text if context else None)
         if result.fact is None:
             raise ValueError(f'Fact {fact.id} rejected: {result.reason}')
         for key in ['value_decimal', 'unit_normalized', 'definition_id', 'currency']:
@@ -246,6 +262,16 @@ def build_fixture(input_path: Path, *, require_bytes=True, strict_parity=False):
     benchmarked = {identifier for comparison in reproduced['comparisons']
                    for identifier in comparison['target_fact_ids']}
     headline_peer_covered = bool(headline_facts) and headline_facts <= benchmarked
+    descriptive = (data.get('publication_policy') == 'source_verified_discovery_v2'
+                   and headline_claim is not None and headline_claim.kind.value == 'derived'
+                   and bool(headline_calculations) and bool(headline_facts))
+    metadata['publication_policy'] = {
+        'id': data.get('publication_policy', 'full_reference_v1'),
+        'coverage_thresholds_block_publication': not descriptive,
+        'source_verified_arithmetic': descriptive,
+        'note': ('User-requested descriptive publication policy: source binding, arithmetic and verifier remain mandatory; history and peer breadth are disclosed coverage targets.'
+                 if descriptive else 'Original full-reference coverage policy.'),
+    }
     metadata['peer_benchmark'].update({
         'headline_comparison_status': 'verified' if headline_peer_covered else 'inconclusive',
         'headline_missing_fact_ids': sorted(headline_facts - benchmarked),
@@ -290,11 +316,12 @@ def build_fixture(input_path: Path, *, require_bytes=True, strict_parity=False):
         counterargument_addressed=bool(rules.get('counterargument_addressed', False)),
         issuer_only_facts=bool(original_trace.get('caps') and any(
             'issuer-company figures originate' in cap for cap in original_trace['caps'])),
+        source_verified_arithmetic=descriptive,
     )
     metadata['strength_trace'] = trace
     if reproduced['status'] == 'verified' and not headline_peer_covered:
         note = ('Matched peer context exists, but it does not benchmark all exact '
-                'metric/scope/period inputs of the published headline; strength is capped at Weak.')
+                'metric/scope/period inputs of the published headline; sector differentiation is not established.')
         if note not in report.limitations:
             report.limitations.append(note)
     for discovery in report.discoveries:
@@ -340,6 +367,11 @@ def build_fixture(input_path: Path, *, require_bytes=True, strict_parity=False):
     report.source_coverage['data_as_of'] = data_as_of
     gaps = parity_shortfalls(report)
     metadata['parity'] = {'passed': not gaps, 'shortfalls': gaps}
+    if descriptive and (len(report.facts) < 4 or not report.documents or not report.timeline_events
+                        or not all(d.why_it_matters and d.counterargument.evidence_claim_ids
+                                   and d.falsification_rules for d in report.discoveries)):
+        raise ValueError('Source-verified publication requires at least four bound facts, a calculation, timeline, significance, counterargument and falsification tests')
+    metadata['publication_policy']['accepted'] = not gaps or descriptive
     for gap in gaps:
         note = 'Stored evidence coverage shortfall: ' + gap
         if note not in report.limitations:

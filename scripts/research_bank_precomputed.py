@@ -38,6 +38,7 @@ def uid(text):
 
 def save_input(report, review, bse_code, receipts):
     data = {'schema_version': '1.0', 'data_as_of': str(report.cutoff),
+            'publication_policy': 'source_verified_discovery_v2',
             'bse_code': bse_code, 'reviewed_report': report.model_dump(mode='json'),
             'facts': expanded_fact_inputs(report),
             'editorial_review': review, 'source_receipts': receipts}

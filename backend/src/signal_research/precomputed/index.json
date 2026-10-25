@@ -2,6 +2,209 @@
   "schema_version": "1.0",
   "companies": [
     {
+      "symbol": "AXISBANK",
+      "legal_name": "Axis Bank Ltd.",
+      "aliases": [
+        "Axis Bank",
+        "axis bank",
+        "AXISBANK",
+        "Axis Bank Ltd."
+      ],
+      "nse_code": "AXISBANK",
+      "bse_code": "532215",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:41:22.209489+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e3aa4225_5",
+          "retrieved_at": "2026-10-18T11:50:51.249947+00:00",
+          "sha256": "8f19899d401aff3595e5dac2649ddd8b208d505bfab5c3ede4dfeecdd639dcc9"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-september-2026.pdf",
+          "retrieved_at": "2026-10-18T11:50:51.259039+00:00",
+          "sha256": "81a47e8da531e5de7148eaee59cedc264413a767677f013a9dbcca5c4c8abcd2"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/other-information/quarterly-results",
+          "retrieved_at": "2026-10-18T11:50:58.641276+00:00",
+          "sha256": "aee22018dee4fd1e4e95458d0876028f1d796da8b9382fa3fd96530292508ea6"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4",
+          "retrieved_at": "2026-10-18T11:51:00.686713+00:00",
+          "sha256": "5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=c8d22572_5",
+          "retrieved_at": "2026-10-18T11:51:03.456518+00:00",
+          "sha256": "51dd61dee2572df8c0e7277e7e86630dcf98a366c7b09db2727bb2694ddfa01f"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/financial-results-and-other-presentation",
+          "retrieved_at": "2026-10-18T11:51:07.310880+00:00",
+          "sha256": "0d536f2271dc609caea7a6d7568bdaf85072f95bde96e46c1df16bd724348016"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-june-2026.pdf",
+          "retrieved_at": "2026-10-18T11:51:09.980893+00:00",
+          "sha256": "257a7f3463ca346d5db3ad5f6269d1ebb0445a07858e1670e95e515f1c5d8cf5"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/call-transcript/2026-2027/q1fy27-earnings-call.pdf",
+          "retrieved_at": "2026-10-18T11:51:16.645261+00:00",
+          "sha256": "650d206b263b952b015c5677775121efb2d6cc76a3d56a2f045e99ffa7dbe31e"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner",
+          "retrieved_at": "2026-10-18T11:51:19.819596+00:00",
+          "sha256": "17ee16c88b0685988e1e7d97a4570a83043ff3080fc02dde169e0ab0b3c7ff54"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/shareholders-information",
+          "retrieved_at": "2026-10-18T11:51:22.572217+00:00",
+          "sha256": "0b93cbc2c996b27b246d27180ccd728145512d8220bd5922922c29507b23cae7"
+        },
+        {
+          "url": "https://www.axis.bank.in/shareholders-corner/other-information/investor-presentations",
+          "retrieved_at": "2026-10-18T11:51:24.841549+00:00",
+          "sha256": "1de5c46991b45cac55d6c236c0732c320280a791545859a231daaad4d2036fd2"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/investor-presentations/debt-investor-presentation-june-2026.pdf?sfvrsn=9e1f1034_4",
+          "retrieved_at": "2026-10-18T11:51:26.844024+00:00",
+          "sha256": "acb6f518b250059eb461be5912b9bf56a9202b513a9f37c3753c73f641313f09"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=beab124d_6",
+          "retrieved_at": "2026-10-18T11:51:31.404942+00:00",
+          "sha256": "f53c4f90e8e444963793a7c37b1240cbe0b6e9692a3c107fa3db614a669642e3"
+        },
+        {
+          "url": "https://www.axis.bank.in/docs/default-source/annual-reports/for-axis-bank/annual-report-for-the-year-2025-2026.pdf",
+          "retrieved_at": "2026-10-24T15:29:22.420923+00:00",
+          "sha256": "2630029b366df442fa22e84e9fa1d1f17240d4d8a17b7be656c164ec55da4a9e"
+        }
+      ],
+      "parity": {
+        "passed": true,
+        "shortfalls": []
+      }
+    },
+    {
+      "symbol": "BAJAJFINSV",
+      "legal_name": "Bajaj Finserv Ltd.",
+      "aliases": [
+        "BAJAJFINSV",
+        "Bajaj Finserv Ltd.",
+        "Bajaj Finserv"
+      ],
+      "nse_code": "BAJAJFINSV",
+      "bse_code": "532978",
+      "profile": "diversified",
+      "generated_at": "2026-10-24T18:42:04.499999+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/62560/2026/RNS/62560_rns_2026-07-31_cc641b29-1da9-4419-8459-ddb57609847b.pdf",
+          "retrieved_at": "2026-10-24T18:11:52.175885+00:00",
+          "sha256": "98014907d7d80f9978162591236a06c2ace5b40cd421954bfa1cf34bc92a8bd8"
+        }
+      ],
+      "parity": {
+        "passed": false,
+        "shortfalls": [
+          "documents: 1 < 6",
+          "passages: 33 < 300",
+          "verified matched peers: 0 < 2",
+          "fiscal years with verified facts: 2 < 3 ([2026, 2027])"
+        ]
+      }
+    },
+    {
+      "symbol": "BAJFINANCE",
+      "legal_name": "Bajaj Finance Ltd.",
+      "aliases": [
+        "BAJFINANCE",
+        "Bajaj Finance Ltd.",
+        "Bajaj Finance"
+      ],
+      "nse_code": "BAJFINANCE",
+      "bse_code": "500034",
+      "profile": "nbfc",
+      "generated_at": "2026-10-24T18:42:03.573413+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_19102026172612_SEIntimation_InvestorPPT_19102026.pdf",
+          "retrieved_at": "2026-10-24T15:27:58.197177+00:00",
+          "sha256": "40722430396106b1a34e1ca6f84d8c873cf4e15a2650a96afedc5be169841e94"
+        },
+        {
+          "url": "https://nsearchives.nseindia.com/corporate/BAJFINANCE_03022026173017_InvestorPresentation_Upload.pdf",
+          "retrieved_at": "2026-10-24T15:26:47.276444+00:00",
+          "sha256": "722a9cb0c1fcbed6d20d313dccc8169ed29bd0faf42e9cc39ce724ab7c0ac72c"
+        },
+        {
+          "url": "https://cms-assets.bajajfinserv.in/is/content/bajajfinance/bajaj-finance-q1-fy27-investor-presentation?fmt=pdf&scl=1",
+          "retrieved_at": "2026-10-24T15:25:26.670282+00:00",
+          "sha256": "45b664db8fd9858654fa6cdd7cf1b696898a4869152cc3831d16e1a21610bb20"
+        }
+      ],
+      "parity": {
+        "passed": false,
+        "shortfalls": [
+          "documents: 3 < 6",
+          "verified matched peers: 0 < 2",
+          "fiscal years with verified facts: 2 < 3 ([2026, 2027])"
+        ]
+      }
+    },
+    {
+      "symbol": "BSE",
+      "legal_name": "BSE Ltd.",
+      "aliases": [
+        "BSE",
+        "BSE Ltd."
+      ],
+      "nse_code": "BSE",
+      "bse_code": null,
+      "profile": "exchange",
+      "generated_at": "2026-10-24T18:42:04.789165+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_e1b21458-455d-4286-ae67-de0073f7090b.pdf",
+          "retrieved_at": "2026-10-24T18:12:27.775432+00:00",
+          "sha256": "34649f3bd60a6745dab5f5ba33cb7cf19a6a97246079743b78c2693c5f935a5d"
+        },
+        {
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/60293/2026/RNS/60293_rns_2026-08-04_7ee258b8-5b64-4054-9804-61c128cd4d23.pdf",
+          "retrieved_at": "2026-10-24T18:10:35.228559+00:00",
+          "sha256": "52f6e843c4e55607bacf8d6ddaac9e9c8dd1c254a1db450ff9efc253e06776dc"
+        }
+      ],
+      "parity": {
+        "passed": false,
+        "shortfalls": [
+          "documents: 2 < 6",
+          "passages: 54 < 300",
+          "facts: 6 < 15",
+          "verified matched peers: 0 < 2",
+          "fiscal years with verified facts: 2 < 3 ([2026, 2027])"
+        ]
+      }
+    },
+    {
       "symbol": "HDFCBANK",
       "legal_name": "HDFC Bank Ltd.",
       "aliases": [
@@ -13,7 +216,7 @@
       "nse_code": "HDFCBANK",
       "bse_code": "500180",
       "profile": "bank",
-      "generated_at": "2026-10-24T17:42:37.195350+00:00",
+      "generated_at": "2026-10-24T18:45:31.659279+00:00",
       "data_as_of": "2026-10-18",
       "outcome": "published",
       "evidence_strength": "Moderate",
@@ -110,72 +313,68 @@
       }
     },
     {
-      "symbol": "JIOFIN",
-      "legal_name": "Jio Financial Services Ltd.",
+      "symbol": "HDFCLIFE",
+      "legal_name": "HDFC Life Insurance Company Ltd.",
       "aliases": [
-        "Jio Financial Services",
-        "jio financial services",
-        "JFS",
-        "JIOFIN",
-        "Jio Financial Services Ltd."
+        "HDFCLIFE",
+        "HDFC Life Insurance Company Ltd.",
+        "HDFC Life Insurance Company"
       ],
-      "nse_code": "JIOFIN",
-      "bse_code": "543940",
-      "profile": "diversified",
-      "generated_at": "2026-10-24T16:27:17.776045+00:00",
+      "nse_code": "HDFCLIFE",
+      "bse_code": "540777",
+      "profile": "life_insurer",
+      "generated_at": "2026-10-24T18:42:05.914329+00:00",
       "data_as_of": "2026-10-24",
       "outcome": "published",
-      "evidence_strength": "Weak",
+      "evidence_strength": "Moderate",
       "sources": [
         {
-          "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_175188_16072026191853_iXBRL_WEB.html",
-          "retrieved_at": "2026-10-18T11:40:31.960229+00:00",
-          "sha256": "93a8fd1994b6608bdb27f06bffd4ac7b094f8ec79b134ef9611756f5ffc9897d"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-H1-FY2027-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:23.058961+00:00",
+          "sha256": "7a788d4dd768228fc9d053f85561ecd3f42f05e1aac2dfcf7b18ea8a4221fe90"
         },
         {
-          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/apr-2026/1777539656528.pdf",
-          "retrieved_at": "2026-10-18T11:41:26.212045+00:00",
-          "sha256": "afcde31a866635a820f58742397ca599a12ec956e264de67686ffa3140fa51b2"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2026-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:23.736497+00:00",
+          "sha256": "541b87aff20225d2b73ec58b177eb754ff580154ff49c5417b090227face450d"
         },
         {
-          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/sep-2021/1632978355924.pdf",
-          "retrieved_at": "2026-10-18T11:41:42.885120+00:00",
-          "sha256": "e544a369a87a106400929f1322d0f6e3063913a01dae73f010b111bd45f32fa8"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2025-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:24.046707+00:00",
+          "sha256": "d2befbf9714056706b2157d2f62f39665a9148d524912c84a6114766c0acfb23"
         },
         {
-          "url": "https://nsearchives.nseindia.com/annual_reports/AR_31374_ALMONDZ_2025_2026_A_9900495_04092026153413.pdf",
-          "retrieved_at": "2026-10-18T11:41:51.341217+00:00",
-          "sha256": "7b44a2db8d4fb585aa0d8de4bb56c55ade06cec9e53dfaa9c927bde543854430"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2024-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:24.479557+00:00",
+          "sha256": "dbf071c943bf26d1d1f5c1f45a552b892b8a408470c7102d85a3b6191219a7fc"
         },
         {
-          "url": "https://www.thehindubusinessline.com/markets/sensex-nifty50-today-stock-market-highlights-29th-june-2026/article71157520.ece",
-          "retrieved_at": "2026-10-18T11:42:00.571088+00:00",
-          "sha256": "890a740874e93c7032556f4db7cc79aaf6c445f20bab7b59dd4183658444bc4d"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2023-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:24.602043+00:00",
+          "sha256": "1441925e1dd8204171b7c631a7b0a02bffcec645a212dca5ca257b546307ade4"
         },
         {
-          "url": "https://m.economictimes.com/good-time-to-increase-equity-allocation-risk-reward-is-favourable-vetri-subramaniam-md-ceo-uti-amc/editionlist/edition-134854847,artid-134837110.cms",
-          "retrieved_at": "2026-10-18T11:42:03.126977+00:00",
-          "sha256": "41838cb512d40e463d51b7544f6fb3fe402c29e26ff6f96a8f02eefa77b31807"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-12M-FY2022-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:10:25.228855+00:00",
+          "sha256": "83f77ccd33a250f0cc96444290ce50cf6b04333dcd3bdc7286c408a265e0d438"
         },
         {
-          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2025-2026/annual-report-2025-2026.pdf",
-          "retrieved_at": "2026-10-24T15:27:41.502094+00:00",
-          "sha256": "c6f8bd5102bbf752171d0ca06bf15350318485401f0754237b3d2f79e9311ee4"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/hdfc-life-h1-fy2026-press-release.pdf",
+          "retrieved_at": "2026-10-24T18:27:03.984952+00:00",
+          "sha256": "78f6a8dee9d7db59b880c1d1f861d93f93ba822845fbe1bba3c33969c5c72e07"
         },
         {
-          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2024-2025/annual-report-2024-2025.pdf",
-          "retrieved_at": "2026-10-24T15:27:45.405086+00:00",
-          "sha256": "639ba7cbaeae620bc9e8c9a622641a8d201607012d8b0c363a030b9f5a7ce441"
-        },
-        {
-          "url": "https://cdn.financialreports.eu/financialreports/media/filings/62167/2026/RNS/62167_rns_2026-10-15_d140e07e-9f39-4f0c-beed-2b212905f942.pdf",
-          "retrieved_at": "2026-10-24T15:27:54.393041+00:00",
-          "sha256": "a4821ad657c1fb9756a569827885c2e4872c837bbf43cd8bb9fe6028e0870fb1"
+          "url": "https://www.hdfclife.com/content/dam/hdfclifeinsurancecompany/about-us/pdf/investor-relations/financial-information/Quarterly-financial-results/HDFC-Life-Q1-FY2027-Press-Release.pdf",
+          "retrieved_at": "2026-10-24T18:27:04.495682+00:00",
+          "sha256": "fe6528921ed5ed19123721a315969876feaa17f595b8c02e42dd0d62d8095c16"
         }
       ],
       "parity": {
-        "passed": true,
-        "shortfalls": []
+        "passed": false,
+        "shortfalls": [
+          "passages: 121 < 300",
+          "verified matched peers: 0 < 2"
+        ]
       }
     },
     {
@@ -193,7 +392,7 @@
       "generated_at": "2026-10-24T16:35:57.027339+00:00",
       "data_as_of": "2026-10-24",
       "outcome": "published",
-      "evidence_strength": "Weak",
+      "evidence_strength": "Moderate",
       "sources": [
         {
           "url": "https://www.icici.bank.in/about-us/news-room/2026/standalone-financial-results-quarter-ended-june-30-2026",
@@ -342,69 +541,67 @@
       }
     },
     {
-      "symbol": "SBIN",
-      "legal_name": "State Bank of India",
+      "symbol": "JIOFIN",
+      "legal_name": "Jio Financial Services Ltd.",
       "aliases": [
-        "SBIN",
-        "State Bank of India"
+        "Jio Financial Services",
+        "jio financial services",
+        "JFS",
+        "JIOFIN",
+        "Jio Financial Services Ltd."
       ],
-      "nse_code": "SBIN",
-      "bse_code": "500112",
-      "profile": "bank",
-      "generated_at": "2026-10-24T16:52:57.406843+00:00",
+      "nse_code": "JIOFIN",
+      "bse_code": "543940",
+      "profile": "diversified",
+      "generated_at": "2026-10-24T16:27:17.776045+00:00",
       "data_as_of": "2026-10-24",
       "outcome": "published",
-      "evidence_strength": "Weak",
+      "evidence_strength": "Moderate",
       "sources": [
         {
-          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q1FY26.pdf/c6e887f7-3ad0-71bb-ff0d-01d5b5a538d1?t=1754640306703",
-          "retrieved_at": "2026-10-24T15:25:54.702945+00:00",
-          "sha256": "77206ff234deed487e742d9920ae80cbc0e697ecab85529837107277ab9592ac"
+          "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_NBFC_INDAS_175188_16072026191853_iXBRL_WEB.html",
+          "retrieved_at": "2026-10-18T11:40:31.960229+00:00",
+          "sha256": "93a8fd1994b6608bdb27f06bffd4ac7b094f8ec79b134ef9611756f5ffc9897d"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/1275616/07082026_SBI+Analyst+Presentation+Q1FY27.pdf/6e4ca530-1666-574e-22fb-f9e19d553ef5?t=1786091443352",
-          "retrieved_at": "2026-10-24T15:25:54.805945+00:00",
-          "sha256": "ff976a31be05a774f502c841c475a3c647737554953bb8d0b75854a464716d4c"
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/apr-2026/1777539656528.pdf",
+          "retrieved_at": "2026-10-18T11:41:26.212045+00:00",
+          "sha256": "afcde31a866635a820f58742397ca599a12ec956e264de67686ffa3140fa51b2"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/1275616/081124-SBI+Analyst+Presentation+Q2FY25.pdf/088a92be-75e7-59a3-8281-1ad89a704cf2?t=1731055388496",
-          "retrieved_at": "2026-10-24T15:25:55.584387+00:00",
-          "sha256": "ddbc6dccbe418955a446c7141a55bcaa976d7f77fd43c6a822cc75b92c2339bc"
+          "url": "https://www.sebi.gov.in/sebi_data/attachdocs/sep-2021/1632978355924.pdf",
+          "retrieved_at": "2026-10-18T11:41:42.885120+00:00",
+          "sha256": "e544a369a87a106400929f1322d0f6e3063913a01dae73f010b111bd45f32fa8"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/3726866/SBI+Analyst+Presentation+Q2FY26+Final.pdf/7cb30a64-312f-de67-7b4f-2576fdd12dc6?t=1762244270753",
-          "retrieved_at": "2026-10-24T15:25:54.575680+00:00",
-          "sha256": "4d873c36eff851070e1f427a0c53626a5fd2ca54b8fd9789dd92530d52849161"
+          "url": "https://nsearchives.nseindia.com/annual_reports/AR_31374_ALMONDZ_2025_2026_A_9900495_04092026153413.pdf",
+          "retrieved_at": "2026-10-18T11:41:51.341217+00:00",
+          "sha256": "7b44a2db8d4fb585aa0d8de4bb56c55ade06cec9e53dfaa9c927bde543854430"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/1275616/SBI+Analyst+Presentation+Q3FY25.pdf/209bafd0-a167-5165-8251-eb61f1554d1e?t=1738833342459",
-          "retrieved_at": "2026-10-24T15:25:55.632710+00:00",
-          "sha256": "5821cc5bce445dd029caef71c10363d450fc871c495490aae0f34c08ce0fb06c"
+          "url": "https://www.thehindubusinessline.com/markets/sensex-nifty50-today-stock-market-highlights-29th-june-2026/article71157520.ece",
+          "retrieved_at": "2026-10-18T11:42:00.571088+00:00",
+          "sha256": "890a740874e93c7032556f4db7cc79aaf6c445f20bab7b59dd4183658444bc4d"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/1275616/07022026_SBI+Analyst+Presentation+Q3FY26+Final.pdf/0a2df0ed-996f-354b-dd7f-74b4f976e313?t=1770453864849",
-          "retrieved_at": "2026-10-24T15:25:54.759844+00:00",
-          "sha256": "7d1ecfaff77a7b3fde25dc62bd5665973add62e494779ca7b84dfabcc8b4f4e1"
+          "url": "https://m.economictimes.com/good-time-to-increase-equity-allocation-risk-reward-is-favourable-vetri-subramaniam-md-ceo-uti-amc/editionlist/edition-134854847,artid-134837110.cms",
+          "retrieved_at": "2026-10-18T11:42:03.126977+00:00",
+          "sha256": "41838cb512d40e463d51b7544f6fb3fe402c29e26ff6f96a8f02eefa77b31807"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/1275616/180523-SBI+Analyst+Presentation+Q4FY23.pdf/254aa07d-32bc-37c0-048d-c6666d1e1619?t=1684399592252",
-          "retrieved_at": "2026-10-24T15:25:56.451273+00:00",
-          "sha256": "6f7153b23779879856f02efc22dd2b833e8dccfd6becf6255d0575c285ef3444"
+          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2025-2026/annual-report-2025-2026.pdf",
+          "retrieved_at": "2026-10-24T15:27:41.502094+00:00",
+          "sha256": "c6f8bd5102bbf752171d0ca06bf15350318485401f0754237b3d2f79e9311ee4"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/39646794/090524-SBI+Analyst+Presentation+Q4FY24.pdf/90db6161-38e9-2c59-77ee-089853fbfb82?t=1715244403654",
-          "retrieved_at": "2026-10-24T15:25:56.182514+00:00",
-          "sha256": "714867846eadc748f4487ae15bc299d0850bc0b038b1e773a3c6cd3dd6173d7c"
+          "url": "https://www.jfs.in/docs/cms/assets/jfs/investor-relations/financials/annual-reports/fy-2024-2025/annual-report-2024-2025.pdf",
+          "retrieved_at": "2026-10-24T15:27:45.405086+00:00",
+          "sha256": "639ba7cbaeae620bc9e8c9a622641a8d201607012d8b0c363a030b9f5a7ce441"
         },
         {
-          "url": "https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521",
-          "retrieved_at": "2026-10-24T15:25:54.798069+00:00",
-          "sha256": "a7ac622558a1956c10b1db2b3ca616e71f6b5a1b258f7b331100f18ac295048a"
-        },
-        {
-          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279",
-          "retrieved_at": "2026-10-24T15:25:54.627537+00:00",
-          "sha256": "930c7ffdc1174bb2ac39cfcfe6fd8a82b5a805e90dd71f2a143d8daa47621116"
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/62167/2026/RNS/62167_rns_2026-10-15_d140e07e-9f39-4f0c-beed-2b212905f942.pdf",
+          "retrieved_at": "2026-10-24T15:27:54.393041+00:00",
+          "sha256": "a4821ad657c1fb9756a569827885c2e4872c837bbf43cd8bb9fe6028e0870fb1"
         }
       ],
       "parity": {
@@ -428,7 +625,7 @@
       "generated_at": "2026-10-24T16:43:39.530415+00:00",
       "data_as_of": "2026-10-24",
       "outcome": "published",
-      "evidence_strength": "Weak",
+      "evidence_strength": "Moderate",
       "sources": [
         {
           "url": "https://www.kotak.bank.in/content/dam/Kotak/about-us/media-press-releases/2026/media-release-q3fy26.pdf",
@@ -547,123 +744,207 @@
       }
     },
     {
-      "symbol": "AXISBANK",
-      "legal_name": "Axis Bank Ltd.",
+      "symbol": "SBILIFE",
+      "legal_name": "SBI Life Insurance Company Ltd.",
       "aliases": [
-        "Axis Bank",
-        "axis bank",
-        "AXISBANK",
-        "Axis Bank Ltd."
+        "SBILIFE",
+        "SBI Life Insurance Company Ltd.",
+        "SBI Life Insurance Company"
       ],
-      "nse_code": "AXISBANK",
-      "bse_code": "532215",
-      "profile": "bank",
-      "generated_at": "2026-10-24T16:41:22.209489+00:00",
+      "nse_code": "SBILIFE",
+      "bse_code": "540719",
+      "profile": "life_insurer",
+      "generated_at": "2026-10-24T18:42:08.320013+00:00",
       "data_as_of": "2026-10-24",
       "outcome": "published",
-      "evidence_strength": "Weak",
+      "evidence_strength": "Moderate",
       "sources": [
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e3aa4225_5",
-          "retrieved_at": "2026-10-18T11:50:51.249947+00:00",
-          "sha256": "8f19899d401aff3595e5dac2649ddd8b208d505bfab5c3ede4dfeecdd639dcc9"
+          "url": "https://cdn.financialreports.eu/financialreports/media/filings/60317/2026/RNS/60317_rns_2026-07-24_e110f0c1-7f45-4a0d-96b1-49cd0fe11bf3.pdf",
+          "retrieved_at": "2026-10-24T18:14:12.311146+00:00",
+          "sha256": "1dcc0495332b311fa39131582e8da65c967334a6505f24dfc717f1bbcc6c87fb"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/axis-bank-announces-financial-results-for-the-quarter-ended-30th-september-2026.pdf",
-          "retrieved_at": "2026-10-18T11:50:51.259039+00:00",
-          "sha256": "81a47e8da531e5de7148eaee59cedc264413a767677f013a9dbcca5c4c8abcd2"
+          "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_LI_177854_24072026165312_iXBRL_WEB.html",
+          "retrieved_at": "2026-10-24T18:16:56.387655+00:00",
+          "sha256": "41fef470640d3d7a660b07ffefd6b2c53299a0149ba86adfb26ae9a584a656c3"
         },
         {
-          "url": "https://www.axis.bank.in/shareholders-corner/other-information/quarterly-results",
-          "retrieved_at": "2026-10-18T11:50:58.641276+00:00",
-          "sha256": "aee22018dee4fd1e4e95458d0876028f1d796da8b9382fa3fd96530292508ea6"
+          "url": "https://www.sbilife.co.in/documents/20118/867801/News%2BRelease%2Band%2BInvestor%2BPresentation%2B1.pdf/0ea90b89-2f4b-0f3b-1114-33349a8311b8?download=true&t=1778139052378&version=2.0",
+          "retrieved_at": "2026-10-24T18:10:33.807294+00:00",
+          "sha256": "12703b82298975b4ba67cf646c95f822aa635f4b87486f3d4b34d530a48868a0"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-june-2026.pdf?sfvrsn=e821c3d6_4",
-          "retrieved_at": "2026-10-18T11:51:00.686713+00:00",
-          "sha256": "5cb5b3e4d1d0525e47b5575d27d42cd88940d814673c0ad682f74f66006e0875"
+          "url": "https://nsearchives.nseindia.com/corporate/ixbrl/INTEGRATED_FILING_LI_152152_22042026180213_iXBRL_WEB.html",
+          "retrieved_at": "2026-10-24T18:27:05.205795+00:00",
+          "sha256": "166fc60384917adb03c28c0339caac52d88d092bb3cbb9bdc4eb969138db9fcf"
+        }
+      ],
+      "parity": {
+        "passed": false,
+        "shortfalls": [
+          "documents: 4 < 6",
+          "passages: 137 < 300",
+          "verified matched peers: 0 < 2"
+        ]
+      }
+    },
+    {
+      "symbol": "SBIN",
+      "legal_name": "State Bank of India",
+      "aliases": [
+        "SBIN",
+        "State Bank of India"
+      ],
+      "nse_code": "SBIN",
+      "bse_code": "500112",
+      "profile": "bank",
+      "generated_at": "2026-10-24T16:52:57.406843+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q1FY26.pdf/c6e887f7-3ad0-71bb-ff0d-01d5b5a538d1?t=1754640306703",
+          "retrieved_at": "2026-10-24T15:25:54.702945+00:00",
+          "sha256": "77206ff234deed487e742d9920ae80cbc0e697ecab85529837107277ab9592ac"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/quarterly-result/2026-2027/unaudited-financial-results-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=c8d22572_5",
-          "retrieved_at": "2026-10-18T11:51:03.456518+00:00",
-          "sha256": "51dd61dee2572df8c0e7277e7e86630dcf98a366c7b09db2727bb2694ddfa01f"
+          "url": "https://sbi.bank.in/documents/17836/1275616/07082026_SBI+Analyst+Presentation+Q1FY27.pdf/6e4ca530-1666-574e-22fb-f9e19d553ef5?t=1786091443352",
+          "retrieved_at": "2026-10-24T15:25:54.805945+00:00",
+          "sha256": "ff976a31be05a774f502c841c475a3c647737554953bb8d0b75854a464716d4c"
         },
         {
-          "url": "https://www.axis.bank.in/shareholders-corner/financial-results-and-other-presentation",
-          "retrieved_at": "2026-10-18T11:51:07.310880+00:00",
-          "sha256": "0d536f2271dc609caea7a6d7568bdaf85072f95bde96e46c1df16bd724348016"
+          "url": "https://sbi.bank.in/documents/17836/1275616/081124-SBI+Analyst+Presentation+Q2FY25.pdf/088a92be-75e7-59a3-8281-1ad89a704cf2?t=1731055388496",
+          "retrieved_at": "2026-10-24T15:25:55.584387+00:00",
+          "sha256": "ddbc6dccbe418955a446c7141a55bcaa976d7f77fd43c6a822cc75b92c2339bc"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-june-2026.pdf",
-          "retrieved_at": "2026-10-18T11:51:09.980893+00:00",
-          "sha256": "257a7f3463ca346d5db3ad5f6269d1ebb0445a07858e1670e95e515f1c5d8cf5"
+          "url": "https://sbi.bank.in/documents/17836/3726866/SBI+Analyst+Presentation+Q2FY26+Final.pdf/7cb30a64-312f-de67-7b4f-2576fdd12dc6?t=1762244270753",
+          "retrieved_at": "2026-10-24T15:25:54.575680+00:00",
+          "sha256": "4d873c36eff851070e1f427a0c53626a5fd2ca54b8fd9789dd92530d52849161"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/call-transcript/2026-2027/q1fy27-earnings-call.pdf",
-          "retrieved_at": "2026-10-18T11:51:16.645261+00:00",
-          "sha256": "650d206b263b952b015c5677775121efb2d6cc76a3d56a2f045e99ffa7dbe31e"
+          "url": "https://sbi.bank.in/documents/17836/1275616/SBI+Analyst+Presentation+Q3FY25.pdf/209bafd0-a167-5165-8251-eb61f1554d1e?t=1738833342459",
+          "retrieved_at": "2026-10-24T15:25:55.632710+00:00",
+          "sha256": "5821cc5bce445dd029caef71c10363d450fc871c495490aae0f34c08ce0fb06c"
         },
         {
-          "url": "https://www.axis.bank.in/shareholders-corner",
-          "retrieved_at": "2026-10-18T11:51:19.819596+00:00",
-          "sha256": "17ee16c88b0685988e1e7d97a4570a83043ff3080fc02dde169e0ab0b3c7ff54"
+          "url": "https://sbi.bank.in/documents/17836/1275616/07022026_SBI+Analyst+Presentation+Q3FY26+Final.pdf/0a2df0ed-996f-354b-dd7f-74b4f976e313?t=1770453864849",
+          "retrieved_at": "2026-10-24T15:25:54.759844+00:00",
+          "sha256": "7d1ecfaff77a7b3fde25dc62bd5665973add62e494779ca7b84dfabcc8b4f4e1"
         },
         {
-          "url": "https://www.axis.bank.in/shareholders-corner/shareholders-information",
-          "retrieved_at": "2026-10-18T11:51:22.572217+00:00",
-          "sha256": "0b93cbc2c996b27b246d27180ccd728145512d8220bd5922922c29507b23cae7"
+          "url": "https://sbi.bank.in/documents/17836/1275616/180523-SBI+Analyst+Presentation+Q4FY23.pdf/254aa07d-32bc-37c0-048d-c6666d1e1619?t=1684399592252",
+          "retrieved_at": "2026-10-24T15:25:56.451273+00:00",
+          "sha256": "6f7153b23779879856f02efc22dd2b833e8dccfd6becf6255d0575c285ef3444"
         },
         {
-          "url": "https://www.axis.bank.in/shareholders-corner/other-information/investor-presentations",
-          "retrieved_at": "2026-10-18T11:51:24.841549+00:00",
-          "sha256": "1de5c46991b45cac55d6c236c0732c320280a791545859a231daaad4d2036fd2"
+          "url": "https://sbi.bank.in/documents/17836/39646794/090524-SBI+Analyst+Presentation+Q4FY24.pdf/90db6161-38e9-2c59-77ee-089853fbfb82?t=1715244403654",
+          "retrieved_at": "2026-10-24T15:25:56.182514+00:00",
+          "sha256": "714867846eadc748f4487ae15bc299d0850bc0b038b1e773a3c6cd3dd6173d7c"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/investor-presentations/debt-investor-presentation-june-2026.pdf?sfvrsn=9e1f1034_4",
-          "retrieved_at": "2026-10-18T11:51:26.844024+00:00",
-          "sha256": "acb6f518b250059eb461be5912b9bf56a9202b513a9f37c3753c73f641313f09"
+          "url": "https://sbi.bank.in/documents/17836/0/SBI+Analyst+Presentation+Q4FY25.pdf/d496fee6-a237-4328-a5ff-7246e4b736b4?t=1746263845521",
+          "retrieved_at": "2026-10-24T15:25:54.798069+00:00",
+          "sha256": "a7ac622558a1956c10b1db2b3ca616e71f6b5a1b258f7b331100f18ac295048a"
         },
         {
-          "url": "https://www.axis.bank.in/docs/default-source/shareholders/financial-results-and-other-information/investor-presentations/2026-2027/investor-presentation-for-the-quarter-ended-30th-september-2026.pdf?sfvrsn=beab124d_6",
-          "retrieved_at": "2026-10-18T11:51:31.404942+00:00",
-          "sha256": "f53c4f90e8e444963793a7c37b1240cbe0b6e9692a3c107fa3db614a669642e3"
-        },
-        {
-          "url": "https://www.axis.bank.in/docs/default-source/annual-reports/for-axis-bank/annual-report-for-the-year-2025-2026.pdf",
-          "retrieved_at": "2026-10-24T15:29:22.420923+00:00",
-          "sha256": "2630029b366df442fa22e84e9fa1d1f17240d4d8a17b7be656c164ec55da4a9e"
+          "url": "https://sbi.bank.in/documents/17836/53469043/SBI+Analyst+Presentation+Q4FY26.pdf/42112857-ac47-31a1-4d7d-4eb4f74d9598?t=1778230228279",
+          "retrieved_at": "2026-10-24T15:25:54.627537+00:00",
+          "sha256": "930c7ffdc1174bb2ac39cfcfe6fd8a82b5a805e90dd71f2a143d8daa47621116"
         }
       ],
       "parity": {
         "passed": true,
         "shortfalls": []
       }
-    }
-  ],
-  "incomplete": [
-    {
-      "symbol": "BSE",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
-    },
-    {
-      "symbol": "BAJFINANCE",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
-    },
-    {
-      "symbol": "BAJAJFINSV",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
-    },
-    {
-      "symbol": "HDFCLIFE",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
-    },
-    {
-      "symbol": "SBILIFE",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
     },
     {
       "symbol": "SHRIRAMFIN",
-      "error": "Source-reviewed report, bound financial history and matched peers remain incomplete"
+      "legal_name": "Shriram Finance Ltd.",
+      "aliases": [
+        "SHRIRAMFIN",
+        "Shriram Finance Ltd.",
+        "Shriram Finance"
+      ],
+      "nse_code": "SHRIRAMFIN",
+      "bse_code": "511218",
+      "profile": "nbfc",
+      "generated_at": "2026-10-24T18:42:09.366661+00:00",
+      "data_as_of": "2026-10-24",
+      "outcome": "published",
+      "evidence_strength": "Moderate",
+      "sources": [
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2026-10/SFL%20Press%20Release%20Q2FY27.pdf",
+          "retrieved_at": "2026-10-24T18:10:25.351090+00:00",
+          "sha256": "be815a4fdf0a638b47d554491d987cdb70da0b8c65cb56963e3cdc8a4bda8e5e"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2026-07/SFL%20Press%20Release%20Q1%20FY%202026-27.pdf",
+          "retrieved_at": "2026-10-24T18:10:25.098953+00:00",
+          "sha256": "bd2d2a565da11c3e0bc74724eb69a9d461c76810128b57ecfde5bbd53dafafe1"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2026-04/SFL-Press-Release-Q4-FY2025-26.pdf",
+          "retrieved_at": "2026-10-24T18:10:25.693224+00:00",
+          "sha256": "a3b0bffb74ceeba3176b87fc6e6e726afd1c440cff9ab13a21fb74d01249a754"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2026-01/SFL-Press-Release-Q3-FY2025-26.pdf",
+          "retrieved_at": "2026-10-24T18:10:25.892176+00:00",
+          "sha256": "05cd1c74ed1011221ddf2c8b6709e62a17010163991d01e2802bff3615d61f1d"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2025-10/SFL-Press-Release-Q2-FY2025-26.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.006802+00:00",
+          "sha256": "80344df61eda23d68e35adcccf1640f771ca1692d446222f733e9411cea78d17"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2025-07/SFL-Press-Release-Q1-FY2025-26.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.081319+00:00",
+          "sha256": "5104b4ceaabc0d6806615ed9b003a971cf2b2f21d8099a78270fb5aaed270615"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2025-04/SFL-Press-Release-Q4-FY2024-25.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.470591+00:00",
+          "sha256": "de9095fb6cc3e0656846477a9474ddc9b2c0736ca8e1904fdec5c1c8dab25ca2"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2025-01/SFL-Press-Release-Q3-FY2024-25.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.600470+00:00",
+          "sha256": "f66caa9216b2f12629a146082e32585a22057a0b0efa3e36dd6639efcf6ce21f"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2024-10/SFL-Press-Release-Q2-FY2024-25.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.669682+00:00",
+          "sha256": "4b2973dcd57842caa1d9521035a5be748f0cb8610468eabeeb793eb804a5d22f"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2024-07/SFL-Press-Release-Q1-FY2024-25_0.pdf",
+          "retrieved_at": "2026-10-24T18:10:26.890209+00:00",
+          "sha256": "4b52e108a78e3ea16d8d94eb0887905d91611d2ddb13ec13d645c904f58b3d78"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2024-04/SFL-Press-Release-Q4-FY2023-24.pdf",
+          "retrieved_at": "2026-10-24T18:10:27.287407+00:00",
+          "sha256": "083a090a49706d72390e4041263ba63718f17579939b66c63834a19d8f6d6434"
+        },
+        {
+          "url": "https://cdn.shriramfinance.in/sfl-kalam/files/2023-12/SFL-Press-Release-Q4-FY23.pdf",
+          "retrieved_at": "2026-10-24T18:10:27.901535+00:00",
+          "sha256": "761635f34063cd28be36779d66091a538c39d43cfb1807bce32e53ca52cf6d69"
+        }
+      ],
+      "parity": {
+        "passed": false,
+        "shortfalls": [
+          "passages: 55 < 300",
+          "verified matched peers: 0 < 2"
+        ]
+      }
     }
-  ]
+  ],
+  "incomplete": []
 }

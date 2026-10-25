@@ -11,6 +11,7 @@ from signal_research.precomputed.builder import (
     parity_shortfalls,
     read_json,
     recursive_keys,
+    validate_source_bindings,
 )
 from signal_research.research.verifier import verify_report
 
@@ -65,26 +66,36 @@ def test_hdfc_meets_count_history_and_verified_peer_parity():
 @pytest.mark.parametrize('symbol', SYMBOLS)
 def test_parity_minimums_for_every_published_fixture(symbol):
     report = ResearchReport.model_validate(read_json(FIXTURE_DIR / f'{symbol}.json'))
-    assert parity_shortfalls(report) == []
+    gaps = parity_shortfalls(report)
+    policy = report.generation_metadata['publication_policy']
+    assert policy['accepted']
+    if gaps:
+        assert policy['id'] == 'source_verified_discovery_v2'
+        assert policy['source_verified_arithmetic']
+        assert len(report.facts) >= 4 and report.calculations
+        assert report.generation_metadata['parity']['shortfalls'] == gaps
+        assert all('Stored evidence coverage shortfall: ' + gap in report.limitations for gap in gaps)
+    else:
+        assert report.generation_metadata['parity']['passed']
 
 
 @pytest.mark.parametrize('symbol', ['JIOFIN', 'ICICIBANK', 'SBIN', 'AXISBANK', 'KOTAKBANK'])
-def test_other_peer_lanes_cannot_upgrade_the_headline_strength(symbol):
+def test_other_peer_lanes_remain_inconclusive_under_revised_arithmetic_policy(symbol):
     report = ResearchReport.model_validate(read_json(FIXTURE_DIR / f'{symbol}.json'))
     benchmark = report.generation_metadata['peer_benchmark']
     assert benchmark['status'] == 'verified'
     assert benchmark['headline_comparison_status'] == 'inconclusive'
     assert benchmark['headline_missing_fact_ids']
     assert not report.generation_metadata['strength_trace']['rules']['peer_comparison_verified']
-    assert report.discoveries[0].evidence_strength.value == 'Weak'
+    assert report.generation_metadata['strength_trace']['rules']['source_verified_arithmetic']
+    assert report.discoveries[0].evidence_strength.value == 'Moderate'
 
 
 @pytest.mark.parametrize('symbol', [entry['symbol'] for entry in
                                   read_json(FIXTURE_DIR / 'roster.json')['companies']])
 def test_every_nifty_track_a_company_has_a_reviewed_fixture(symbol):
     path = FIXTURE_DIR / f'{symbol}.json'
-    if not path.is_file():
-        pytest.xfail(f'{symbol}: source-reviewed discovery and full evidence parity remain incomplete')
+    assert path.is_file(), f'{symbol}: missing published fixture'
     assert verify_report(ResearchReport.model_validate(read_json(path)))
 
 
@@ -129,3 +140,31 @@ def test_builder_rejects_missing_reviewed_report(tmp_path):
     source.write_text(json.dumps({'schema_version': '1.0', 'facts': []}), encoding='utf-8')
     with pytest.raises(ValueError, match='cannot be published automatically'):
         build_fixture(source)
+
+
+def test_supplemental_scope_needs_the_same_issuer_and_filing_date():
+    from datetime import timedelta
+    report = ResearchReport.model_validate(read_json(FIXTURE_DIR / 'SBILIFE.json'))
+    binding = next(iter(report.generation_metadata['fact_scope_contexts'].values()))
+    passage = next(p for p in report.passages if str(p.id) == binding['passage_id'])
+    document = next(d for d in report.documents if d.id == passage.document_id)
+    document.published_at += timedelta(days=1)
+    with pytest.raises(ValueError, match='same issuer and filing date'):
+        validate_source_bindings(report, require_bytes=False)
+
+
+def test_supplemental_scope_cannot_supply_a_number_missing_from_the_main_quote():
+    report = ResearchReport.model_validate(read_json(FIXTURE_DIR / 'SBILIFE.json'))
+    report.facts[0].value_raw = '2007820.91'  # Present only in the NSE scope document.
+    with pytest.raises(ValueError, match='raw value does not occur'):
+        validate_source_bindings(report, require_bytes=False)
+
+
+def test_descriptive_publication_does_not_authorize_strong_without_peers():
+    from signal_research.domain.enums import EvidenceStrength
+    from signal_research.research.integrity import report_digest
+    report = ResearchReport.model_validate(read_json(FIXTURE_DIR / 'BAJAJFINSV.json'))
+    report.discoveries[0].evidence_strength = EvidenceStrength.STRONG
+    report.generation_metadata['verification_digest'] = report_digest(report)
+    with pytest.raises(ValueError, match='unverified peer comparison'):
+        verify_report(report)

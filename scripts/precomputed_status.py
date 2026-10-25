@@ -24,13 +24,21 @@ def main():
     lines = [
         '# Precomputed coverage and outstanding work', '',
         f'**{len(available)} of {len(roster)} official NIFTY 50 Track A companies have '
-        'published stored fixtures. The catalog is incomplete.**', '',
+        'published stored fixtures. '
+        + ('All roster companies are replayable.**' if len(available) == len(roster) else 'The catalog is incomplete.**'), '',
         'The report schema and frontend are unchanged. Playback is offline and defaults '
         'to 120 seconds, using the database start time. New run IDs own remapped report '
         'and evidence IDs; original review receipts retain their original identities.', '',
+        'The user-approved `source_verified_discovery_v2` policy allows publication '
+        'of reviewed descriptive arithmetic with at least four verified facts and a '
+        'registered calculation. Source hashes, exact source bindings, all report '
+        'sections and the final verifier remain mandatory. Missing history/document/'
+        'peer breadth is disclosed below. Such arithmetic can be Moderate without '
+        'two exact-period peers; Strong still requires independent corroboration. '
+        'The live pipeline retains its original rating policy.', '',
         '| Company | Symbol | Discovery | Strength | Fiscal years observed | Data as of | '
-        'Report documents | Verifier | Minimum parity |',
-        '| --- | --- | --- | --- | --- | --- | ---: | --- | --- |',
+        'Report documents | Verifier | Publication accepted | Original coverage targets |',
+        '| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |',
     ]
     details = []
     order = ['HDFCBANK', 'JIOFIN', 'ICICIBANK', 'SBIN', 'BAJFINANCE',
@@ -40,7 +48,7 @@ def main():
         entry = by_symbol[symbol]
         if symbol not in available:
             lines.append(f'| {entry["legal_name"]} | {symbol} | Not published | — | — | — | '
-                         '— | Not run | Not passed |')
+                         '— | Not run | Not passed | Not passed |')
             details += [f'## {symbol}: incomplete', '',
                 'Research-only YAML is present. Missing: reviewed discovery/significance, '
                 'bound financial history, matched peer series, and final report/evidence/export '
@@ -57,6 +65,7 @@ def main():
         lines.append(f'| {entry["legal_name"]} | {symbol} | {headline} | '
                      f'{report.discoveries[0].evidence_strength.value} | {years} | '
                      f'{metadata["data_as_of"]} | {len(report.documents)} | Passed | '
+                     f'{"Passed" if metadata.get("publication_policy", {}).get("accepted") else "Not accepted"} | '
                      f'{"Passed" if not gaps else "; ".join(gaps)} |')
         details += [f'## {symbol}: measured evidence', '',
             f'{len(report.documents)} documents; {len(report.passages)} passages; '
@@ -71,11 +80,13 @@ def main():
                     for doc in report.documents]
         details.append('')
     lines += ['', 'Fiscal years list verified observation dates, including partial current '
-              'years; they do not imply a complete annual or quarterly history. Minimum parity '
+              'years; they do not imply a complete annual or quarterly history. Original coverage parity '
               'means at least 6 documents, 300 real passages, 15 facts, 8 calculations, '
               '2 matched peers and observations in 3 fiscal years, with valid evidence chains. '
               'It does not assert economic equivalence of different segment boundaries, '
-              'true onset, all five annual years/eight quarters, or currently accessible URLs.', '',
+              'true onset, all five annual years/eight quarters, or currently accessible URLs. '
+              'Coverage targets remain diagnostic under the revised publication policy; '
+              'their shortfalls are not reported as passes.', '',
               '## Source availability exceptions', '',
               'Archived source byte hashes validate locally. The refresh did not establish '
               'HTTP 200 for every legacy link. No success status or replacement hash was invented.', '']
@@ -85,7 +96,7 @@ def main():
             lines.append(f'- {receipt["url"]}: {receipt.get("error") or status}.')
     lines += ['', *details]
     (ROOT / 'docs' / 'PRECOMPUTED_STATUS.md').write_text('\n'.join(lines).rstrip() + '\n', encoding='utf-8')
-    print(f'{len(available)}/{len(roster)} published fixtures; outstanding issuers remain explicit')
+    print(f'{len(available)}/{len(roster)} published fixtures; coverage shortfalls remain explicit')
 
 
 if __name__ == '__main__':

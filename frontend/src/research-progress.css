@@ -2,15 +2,15 @@
 #investigation-progress { scroll-margin-top: 110px; }
 .money-journey { margin-top: 28px; border: 1px solid #dce4d1; border-radius: 14px; padding: 30px 34px 0; background: radial-gradient(ellipse at 80% 10%, #e4ebd8a0, transparent 65%), #f4f5eb; overflow: hidden; }
 .journey-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
-.journey-kicker { display: block; color: #7a8c66; font-size: 8px; letter-spacing: .16em; }
+.journey-kicker { display: block; color: #49543d; font-size: 8px; letter-spacing: .16em; }
 .progress-card .journey-heading h3 { font-size: clamp(24px, 2.7vw, 36px); font-weight: 400; letter-spacing: -1.4px; line-height: 1.12; margin: 15px 0 0; color: #254a35; }
-.journey-heading h3 span { color: #8d9c7e; }
-.journey-live { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d6dfc8; border-radius: 30px; color: #597348; font-size: 9px; padding: 9px 12px; white-space: nowrap; }
+.journey-heading h3 span { color: #5b674f; }
+.journey-live { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d6dfc8; border-radius: 30px; color: #435736; font-size: 9px; padding: 9px 12px; white-space: nowrap; }
 .journey-live i { display: inline-block; height: 5px; width: 5px; background: #759754; border-radius: 50%; }
 .journey-moving .journey-live i { animation: journey-pulse 2.6s ease-in-out infinite; }
 .journey-caption { margin-top: 19px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; }
-.journey-caption strong { font-size: 11px; font-weight: 400; color: #526747; }
-.journey-caption > span { color: #88917b; font-size: 9px; }
+.journey-caption strong { font-size: 11px; font-weight: 400; color: #45563c; }
+.journey-caption > span { color: #4d5244; font-size: 9px; }
 .finance-scene { max-width: 900px; margin: 5px auto -4px; }
 .finance-scene > svg { display: block; width: 100%; height: auto; overflow: visible; }
 .finance-ribbon-shadow { stroke: #38502b0b; stroke-width: 34px; stroke-linejoin: round; }
@@ -37,39 +37,39 @@
 .pillar-check circle { fill: #dce9cc; stroke: #91ae72; stroke-width: 1; }
 .pillar-check path { stroke: #436937; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .journey-phases { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 900px; margin: 0 auto 24px; }
-.journey-phases button { display: grid; justify-items: center; gap: 6px; position: relative; min-width: 0; border: 1px solid transparent; border-radius: 9px; padding: 12px 8px; color: #87947b; background: transparent; }
+.journey-phases button { display: grid; justify-items: center; gap: 6px; position: relative; min-width: 0; border: 1px solid transparent; border-radius: 9px; padding: 12px 8px; color: #4b5344; background: transparent; }
 .journey-phases button > span { font-size: 8px; letter-spacing: .12em; }
 .journey-phases button > strong { font-size: 13px; font-weight: 400; letter-spacing: -.2px; }
-.journey-phases button > small { font-size: 8px; color: #99a18d; }
+.journey-phases button > small { font-size: 8px; color: #4d5344; }
 .journey-phases .phase-current, .journey-phases .phase-done { color: #345b3b; }
-.journey-phases .phase-current > small { color: #66894a; }
+.journey-phases .phase-current > small { color: #41572f; }
 .journey-phases button[aria-pressed='true'] { background: #fffffa9c; border-color: #cfdcbe; box-shadow: 0 5px 15px #45633505; }
 .journey-phases button:hover { border-color: #b7c8a2; background: #fbfcf4; transform: translateY(-2px); }
 .journey-stage-track { height: 4px; border-radius: 5px; background: #dce3cf; overflow: hidden; }
 .journey-stage-track > span { display: block; height: 100%; background: linear-gradient(90deg, #91ab71, #315a3c); border-radius: inherit; transition: width 1s var(--ease-out); }
-.journey-stage-legend { display: flex; justify-content: space-between; gap: 15px; color: #87927c; font-size: 8px; margin-top: 9px; }
-.journey-stage-legend > span:first-child { color: #617950; text-transform: capitalize; }
+.journey-stage-legend { display: flex; justify-content: space-between; gap: 15px; color: #4c5345; font-size: 8px; margin-top: 9px; }
+.journey-stage-legend > span:first-child { color: #455639; text-transform: capitalize; }
 .journey-detail { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; border-top: 1px solid #dce4cf; padding: 22px 0; margin-top: 21px; min-height: 156px; }
 .journey-detail > div { max-width: 620px; animation: panel-arrive .4s var(--ease-out) both; }
 .progress-card .journey-detail h4 { margin: 9px 0; font-size: 18px; font-weight: 400; letter-spacing: -.5px; color: #35563b; }
-.journey-detail p { font-size: 11px; line-height: 1.75; color: #7c8a70; margin-bottom: 9px; }
-.journey-detail small { font-size: 8px; color: #8c997c; }
-.journey-follow { background: transparent; border: 0; color: #557442; font-size: 9px; padding: 2px 0 7px; border-bottom: 1px solid #b2c39b; white-space: nowrap; }
+.journey-detail p { font-size: 11px; line-height: 1.75; color: #4b5343; margin-bottom: 9px; }
+.journey-detail small { font-size: 8px; color: #4c5441; }
+.journey-follow { background: transparent; border: 0; color: #405731; font-size: 9px; padding: 2px 0 7px; border-bottom: 1px solid #b2c39b; white-space: nowrap; }
 .journey-follow span { display: inline-block; margin-left: 9px; transition: transform .3s; }
 .journey-follow:hover span { transform: translate(2px, -2px); }
 .journey-counters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid #dce4cf; margin-inline: -34px; background: #e8eeda80; }
 .journey-counters > div { padding: 19px 12px; text-align: center; border-right: 1px solid #dce4cf; }
 .journey-counters > div:last-child { border: 0; }
 .journey-counters strong { display: block; color: #3b5e3d; font-size: 24px; font-weight: 400; line-height: 1; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
-.journey-counters span { display: block; color: #7f8c70; font-size: 9px; margin-top: 7px; }
-.journey-stopped .journey-live { color: #896c41; border-color: #d8cdb3; }
+.journey-counters span { display: block; color: #4c5343; font-size: 9px; margin-top: 7px; }
+.journey-stopped .journey-live { color: #614d2e; border-color: #d8cdb3; }
 .journey-stopped .journey-live i { background: #af9564; }
 .journey-still .finance-scene *, .finance-scene:not(.scene-awake) * { animation-play-state: paused !important; }
 .money-journey:has(.finance-scene:not(.scene-awake)) .journey-live i { animation-play-state: paused; }
 .progress-card:has(.journey-still) .event .dot { animation: none; }
 .run-activity { border-top: 1px solid var(--line); margin-top: 20px; }
-.run-activity > summary { cursor: pointer; padding: 16px 0; color: #657958; font-size: 11px; }
-.run-activity > summary > span { float: right; color: #97a18b; font-size: 9px; }
+.run-activity > summary { cursor: pointer; padding: 16px 0; color: #46543d; font-size: 11px; }
+.run-activity > summary > span { float: right; color: #4b5343; font-size: 9px; }
 @keyframes money-flow { to { stroke-dashoffset: -68; } }
 @keyframes coin-bob { 0%, 100% { transform: translateY(0) rotate(-7deg); } 50% { transform: translateY(-8px) rotate(6deg); } }
 @keyframes filing-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -4px; } }
@@ -104,6 +104,6 @@
 .research-agents h3 { margin-bottom: 12px; font-size: 1rem; }
 .research-agents ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; list-style: none; padding: 0; }
 .research-agents li { display: grid; gap: 8px; padding: 16px; border: 1px solid #d9dece; border-radius: 12px; background: #f3f4e9; color: #203d30; }
-.research-agents li strong { font-size: .8rem; color: #386047; }
-.research-agents li[data-agent-status="incomplete"] strong { color: #8c4e28; }
+.research-agents li strong { font-size: .8rem; color: #335841; }
+.research-agents li[data-agent-status="incomplete"] strong { color: #784322; }
 .research-agents li small, .research-agents > p { font-size: .75rem; line-height: 1.5; }

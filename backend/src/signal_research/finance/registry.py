@@ -35,6 +35,7 @@ METRICS: dict[str, MetricDefinition] = {
 
 # Profile-native measures are registered centrally, never added for a specific issuer.
 for key, aliases, unit, kind, profiles in (
+    ("net_interest_income", ("net interest income",), "INR_crore", "duration", (Profile.BANK, Profile.NBFC)),
     ("net_advances", ("net advances", "net loans"), "INR_crore", "stock", (Profile.BANK,)),
     ("on_book_loans", ("on-book loans", "on book loans", "loan assets"), "INR_crore", "stock", (Profile.NBFC,)),
     ("net_flows", ("net flows", "net inflows"), "INR_crore", "duration", (Profile.ASSET_MANAGER,)),
