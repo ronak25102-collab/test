@@ -18,6 +18,12 @@ def get_store(request: Request) -> Store:
     return request.app.state.store
 
 
+def wake_worker(request: Request) -> None:
+    wakeup = getattr(request.app.state, "worker_wakeup", None)
+    if wakeup is not None:
+        wakeup.set()
+
+
 def require_summary(run_id: UUID, store: Store):
     summary = store.get_summary(run_id)
     if not summary:
@@ -58,6 +64,7 @@ def create_run(request: RunCreate, response: Response, http_request: Request, st
                                   replay_duration_seconds=settings.replay_duration_seconds)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail={"code": "IDEMPOTENCY_CONFLICT", "message": str(exc)})
+    wake_worker(http_request)
     response.headers["Location"] = f"/api/v1/runs/{run_id}"
     return {"run_id": str(run_id), "status_url": f"/api/v1/runs/{run_id}", "status": "queued"}
 
@@ -102,12 +109,13 @@ def cancel(run_id: UUID, store: Store = Depends(get_store)):
 
 
 @router.post("/{run_id}/resume", status_code=status.HTTP_202_ACCEPTED)
-def resume(run_id: UUID, store: Store = Depends(get_store)):
+def resume(run_id: UUID, request: Request, store: Store = Depends(get_store)):
     require_summary(run_id, store)
     try:
         state = store.resume(run_id)
     except ValueError as exc:
         raise HTTPException(status_code=409, detail={"code": "RUN_NOT_RESUMABLE", "message": str(exc)})
+    wake_worker(request)
     return {"run_id": str(run_id), "status": state}
 
 

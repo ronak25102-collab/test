@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     allow_fixture_provider: bool = False
     allow_unknown_cost: bool = False
     auto_start_worker: bool = False
+    worker_idle_poll_seconds: float = Field(default=900, ge=1)
     pdftoppm_path: str = "pdftoppm"
     tesseract_path: str = "tesseract"
 

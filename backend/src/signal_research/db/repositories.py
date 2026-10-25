@@ -535,6 +535,19 @@ class Store:
                 worker.timestamp = datetime.now(UTC)
             session.commit()
 
+    def worker_idle_delay(self, maximum: float) -> float:
+        """Wake for abandoned leases promptly, otherwise let an idle database sleep."""
+        terminal = [RunStatus.COMPLETED.value, RunStatus.FAILED.value, RunStatus.CANCELLED.value]
+        with self.session_factory() as session:
+            expiry = session.scalar(select(func.min(ResearchRunModel.lease_expires_at)).where(
+                ResearchRunModel.status.not_in([*terminal, RunStatus.QUEUED.value]),
+                ResearchRunModel.lease_expires_at.is_not(None)))
+        if expiry is None:
+            return maximum
+        if expiry.tzinfo is None:
+            expiry = expiry.replace(tzinfo=UTC)
+        return min(maximum, max(1, (expiry - datetime.now(UTC)).total_seconds() + .1))
+
     def record_provider_call(
         self,
         run_id: UUID | str,

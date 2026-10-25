@@ -45,6 +45,10 @@ def ready(request: Request):
             if heartbeat:
                 timestamp = heartbeat.timestamp.replace(tzinfo=UTC)
                 fresh = (datetime.now(UTC) - timestamp).total_seconds() < 30
-        return JSONResponse({"database": "ok", "worker": "fresh" if fresh else "stale"}, status_code=200 if fresh else 503)
+        thread = getattr(request.app.state, "worker_thread", None)
+        idle = getattr(request.app.state, "worker_idle", None)
+        standby = thread is not None and thread.is_alive() and idle is not None and idle.is_set()
+        worker = "idle" if standby else "fresh" if fresh else "stale"
+        return JSONResponse({"database": "ok", "worker": worker}, status_code=200 if fresh or standby else 503)
     except Exception:
         return JSONResponse({"database": "unavailable", "worker": "unknown"}, status_code=503)

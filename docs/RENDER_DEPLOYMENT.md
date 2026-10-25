@@ -51,11 +51,31 @@ service is needed.
 Click **Deploy Web Service**. When live, open its `https://...onrender.com` URL.
 Check `/api/v1/health/configuration` for `ready: true` and `mode: precomputed`.
 After the worker starts, `/api/v1/health/ready` should return `database: ok` and
-`worker: fresh`. Start an HDFC Bank investigation using today's cutoff and Live
+`worker: fresh` (working) or `worker: idle` (waiting). Start an HDFC Bank investigation using today's cutoff and Live
 mode; stored evidence playback runs for 147 seconds before saving the report.
 
 The Free service sleeps after 15 minutes without inbound traffic and can take
 about a minute to wake. Files written inside the container are temporary; saved
 reports and run history are stored in Neon. Both providers have free usage limits.
-The worker polls PostgreSQL while the web service is awake, consuming Neon compute.
+The embedded worker wakes immediately when the API creates or resumes a run. When
+idle it waits in memory rather than polling PostgreSQL every second, allowing Neon
+to scale to zero. A 15-minute fallback checks for externally queued work, and an
+outstanding lease causes an earlier check when that lease expires. Standalone CLI
+workers retain their one-second polling behavior. `WORKER_IDLE_POLL_SECONDS` adjusts
+the embedded fallback interval (default 900). Work queued directly by another
+process can wait until the next fallback check.
 See <https://render.com/docs/free> and the current Neon plan limits.
+
+## External keep-alive
+
+The `Keep Beyond awake` GitHub Actions workflow checks the public `/api/v1/health/live`
+endpoint every five minutes. This endpoint does not query Neon or create research
+runs. The workflow needs no database password or API key. It also runs when its
+workflow file is pushed, and can be started from GitHub Actions with **Run workflow**.
+Disable it from its GitHub Actions page when it is no longer needed.
+
+This helps prevent Render's inactivity sleep; it does not guarantee 24/7 uptime.
+GitHub schedules can be delayed, and public-repository schedules are disabled after
+60 days without repository activity. Render can restart free instances and enforces
+shared monthly compute, bandwidth and build limits. Neon compute and storage quotas
+still apply when the application is used. No paid plan or automatic upgrade is enabled.
